@@ -483,7 +483,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             crossAxisCount: crossAxisCount,
             mainAxisSpacing: 10,
             crossAxisSpacing: 10,
-            childAspectRatio: 1.0,
+            childAspectRatio: 0.75,
           ),
           itemCount: productos.length,
           itemBuilder: (context, index) {
@@ -509,79 +509,84 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       elevation: 1,
       child: InkWell(
         onTap: producto.disponible ? () => _agregarProducto(producto) : null,
-        child: Container(
-          decoration: BoxDecoration(
-            color: producto.disponible ? Colors.white : Colors.grey.shade100,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                flex: 3,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    _buildProductImage(producto, categoria),
-                    if (itemEnCarrito != null)
-                      Positioned(
-                        top: 6,
-                        right: 6,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${itemEnCarrito.cantidad}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AspectRatio(
+              aspectRatio: 1,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  _buildProductImage(producto, categoria),
+                  if (!producto.disponible)
+                    Container(
+                      color: Colors.black45,
+                      child: const Center(
+                        child: Text(
+                          'AGOTADO',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                  ],
-                ),
+                    ),
+                  if (itemEnCarrito != null)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${itemEnCarrito.cantidad}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        producto.nombre,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: producto.disponible ? null : Colors.grey,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        '${producto.precio.toStringAsFixed(2)} €',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: producto.disponible
-                              ? AppColors.secondary
-                              : Colors.grey,
-                        ),
-                      ),
-                    ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    producto.nombre,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: producto.disponible ? null : Colors.grey,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${producto.precio.toStringAsFixed(2)} €',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: producto.disponible
+                          ? AppColors.secondary
+                          : Colors.grey,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -688,6 +693,11 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                   ),
                 ),
                 const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.calculate, color: Colors.white),
+                  onPressed: _mostrarCalculadora,
+                  tooltip: 'Calculadora',
+                ),
                 if (mesaSeleccionada != null)
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -723,7 +733,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           Expanded(
             child: ListView.builder(
               controller: scrollController,
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 12),
               itemCount: _carrito.length,
               itemBuilder: (context, index) {
                 final item = _carrito[index];
@@ -745,89 +755,54 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     const Text(
                       'Total:',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
                       '${total.toStringAsFixed(2)} €',
                       style: const TextStyle(
-                        fontSize: 24,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: AppColors.secondary,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 if (_mesaAsignada != null) ...[
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: _guardarPedidoMesa,
                       icon: const Icon(Icons.save),
-                      label: const Text('Guardar para Mesa'),
+                      label: const Text('Guardar Mesa'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.warning,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _enviarACocina,
-                          icon: const Icon(Icons.send),
-                          label: const Text('Cocina'),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _cobrarPedido,
-                          icon: const Icon(Icons.payment),
-                          label: const Text('Cobrar'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.success,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ] else ...[
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _enviarACocina,
-                          icon: const Icon(Icons.send),
-                          label: const Text('Cocina'),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _cobrarPedido,
-                          icon: const Icon(Icons.payment),
-                          label: const Text('Cobrar'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.success,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  const SizedBox(height: 12),
                 ],
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _cobrarPedido,
+                    icon: const Icon(Icons.payment, size: 24),
+                    label: const Text(
+                      'COBRAR',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.success,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 8),
                 SizedBox(
                   width: double.infinity,
@@ -855,72 +830,123 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       onDismissed: (_) => setState(() => _carrito.removeAt(index)),
-      child: ListTile(
-        dense: true,
-        leading: Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Center(
-            child: Text(
-              '${item.cantidad}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: Text(
+                  '${item.cantidad}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-        title: Text(item.productoNombre, style: const TextStyle(fontSize: 13)),
-        subtitle: Text(
-          '${item.precioUnitario.toStringAsFixed(2)} €',
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.productoNombre,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    '${item.precioUnitario.toStringAsFixed(2)} € x ${item.cantidad}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
+            ),
             Text(
               '${item.subtotal.toStringAsFixed(2)} €',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(width: 4),
-            InkWell(
-              onTap: () {
-                if (item.cantidad > 1) {
-                  setState(() {
-                    _carrito[index] = item.copyWith(
-                      cantidad: item.cantidad - 1,
-                    );
-                  });
-                } else {
-                  setState(() => _carrito.removeAt(index));
-                }
-              },
-              child: const Icon(
-                Icons.remove_circle_outline,
-                size: 20,
-                color: AppColors.error,
-              ),
-            ),
-            const SizedBox(width: 4),
-            InkWell(
-              onTap: () {
-                setState(() {
-                  _carrito[index] = item.copyWith(cantidad: item.cantidad + 1);
-                });
-              },
-              child: const Icon(
-                Icons.add_circle_outline,
-                size: 20,
-                color: AppColors.success,
-              ),
+            const SizedBox(width: 12),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                InkWell(
+                  onTap: () {
+                    if (item.cantidad > 1) {
+                      setState(() {
+                        _carrito[index] = item.copyWith(
+                          cantidad: item.cantidad - 1,
+                        );
+                      });
+                    } else {
+                      setState(() => _carrito.removeAt(index));
+                    }
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.remove,
+                      color: AppColors.error,
+                      size: 24,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _carrito[index] = item.copyWith(
+                        cantidad: item.cantidad + 1,
+                      );
+                    });
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.add,
+                      color: AppColors.success,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _mostrarCalculadora() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => const _CalculadoraSheet(),
     );
   }
 
@@ -985,43 +1011,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Pedido guardado para la mesa'),
-          backgroundColor: AppColors.success,
-          duration: Duration(seconds: 1),
-        ),
-      );
-    }
-  }
-
-  void _enviarACocina() async {
-    if (_carrito.isEmpty) return;
-
-    final pedidoId = await ref
-        .read(pedidosProvider.notifier)
-        .crear(_mesaAsignada ?? '');
-
-    for (final item in _carrito) {
-      await ref
-          .read(pedidosProvider.notifier)
-          .agregarItem(
-            pedidoId,
-            Producto(
-              id: item.productoId,
-              nombre: item.productoNombre,
-              precio: item.precioUnitario,
-              categoriaId: '',
-            ),
-            cantidad: item.cantidad,
-          );
-    }
-
-    await ref.read(pedidosProvider.notifier).enviarACocina(pedidoId);
-
-    setState(() => _carrito.clear());
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Enviado a cocina'),
           backgroundColor: AppColors.success,
           duration: Duration(seconds: 1),
         ),
@@ -1125,34 +1114,63 @@ class _CobroSheetState extends State<_CobroSheet> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Center(
             child: Container(
-              width: 40,
-              height: 4,
+              width: 50,
+              height: 5,
               decoration: BoxDecoration(
                 color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(3),
               ),
             ),
           ),
-          const SizedBox(height: 24),
-          const Text(
-            'Total a Cobrar',
-            style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${widget.total.toStringAsFixed(2)} €',
-            style: const TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.bold,
-              color: AppColors.secondary,
+          const SizedBox(height: 32),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.success,
+                  AppColors.success.withValues(alpha: 0.8),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              children: [
+                const Text(
+                  'TOTAL A COBRAR',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white70,
+                    letterSpacing: 2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${widget.total.toStringAsFixed(2)} €',
+                  style: const TextStyle(
+                    fontSize: 56,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
+          const Text(
+            'Selecciona método de pago',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
@@ -1162,7 +1180,7 @@ class _CobroSheetState extends State<_CobroSheet> {
                   AppColors.success,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Expanded(
                 child: _buildMetodoButton(
                   Icons.credit_card,
@@ -1172,18 +1190,35 @@ class _CobroSheetState extends State<_CobroSheet> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
+            height: 60,
             child: ElevatedButton(
               onPressed: () => widget.onCobrar(_metodoPago),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.success,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
-              child: Text('Cobrar $_metodoPago'),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.check_circle, size: 28),
+                  const SizedBox(width: 12),
+                  Text(
+                    'COBRAR $_metodoPago',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -1193,25 +1228,278 @@ class _CobroSheetState extends State<_CobroSheet> {
     final selected = _metodoPago == texto;
     return InkWell(
       onTap: () => setState(() => _metodoPago = texto),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(20),
+      borderRadius: BorderRadius.circular(20),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 24),
         decoration: BoxDecoration(
           color: selected ? color : color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? color : color.withValues(alpha: 0.3),
+            width: 2,
+          ),
         ),
         child: Column(
           children: [
-            Icon(icon, size: 32, color: selected ? Colors.white : color),
-            const SizedBox(height: 8),
+            Icon(icon, size: 48, color: selected ? Colors.white : color),
+            const SizedBox(height: 12),
             Text(
               texto,
               style: TextStyle(
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: selected ? Colors.white : color,
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CalculadoraSheet extends StatefulWidget {
+  const _CalculadoraSheet();
+
+  @override
+  State<_CalculadoraSheet> createState() => _CalculadoraSheetState();
+}
+
+class _CalculadoraSheetState extends State<_CalculadoraSheet> {
+  String _display = '0';
+  double _result = 0;
+  String _operator = '';
+  bool _shouldResetDisplay = false;
+
+  void _onDigit(String digit) {
+    setState(() {
+      if (_shouldResetDisplay) {
+        _display = digit;
+        _shouldResetDisplay = false;
+      } else {
+        _display = _display == '0' ? digit : _display + digit;
+      }
+    });
+  }
+
+  void _onOperator(String op) {
+    setState(() {
+      _result = double.tryParse(_display) ?? 0;
+      _operator = op;
+      _shouldResetDisplay = true;
+    });
+  }
+
+  void _onEquals() {
+    setState(() {
+      final current = double.tryParse(_display) ?? 0;
+      switch (_operator) {
+        case '+':
+          _result += current;
+          break;
+        case '-':
+          _result -= current;
+          break;
+        case 'x':
+          _result *= current;
+          break;
+        case '/':
+          if (current != 0) _result /= current;
+          break;
+      }
+      _display = _result.toStringAsFixed(2);
+      _operator = '';
+      _shouldResetDisplay = true;
+    });
+  }
+
+  void _onClear() {
+    setState(() {
+      _display = '0';
+      _result = 0;
+      _operator = '';
+      _shouldResetDisplay = false;
+    });
+  }
+
+  void _onPercent() {
+    setState(() {
+      final value = (double.tryParse(_display) ?? 0) / 100;
+      _display = value.toStringAsFixed(2);
+    });
+  }
+
+  void _onBackspace() {
+    setState(() {
+      if (_display.length > 1) {
+        _display = _display.substring(0, _display.length - 1);
+      } else {
+        _display = '0';
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade400,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    _display,
+                    style: const TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (_operator.isNotEmpty)
+                    Text(
+                      '${_result.toStringAsFixed(2)} $_operator',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                _buildCalcButton('C', AppColors.error, () => _onClear()),
+                _buildCalcButton('%', Colors.grey, () => _onPercent()),
+                _buildCalcButton('⌫', Colors.grey, () => _onBackspace()),
+                _buildCalcButton(
+                  '/',
+                  AppColors.primary,
+                  () => _onOperator('/'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _buildCalcButton('7', Colors.black, () => _onDigit('7')),
+                _buildCalcButton('8', Colors.black, () => _onDigit('8')),
+                _buildCalcButton('9', Colors.black, () => _onDigit('9')),
+                _buildCalcButton(
+                  'x',
+                  AppColors.primary,
+                  () => _onOperator('x'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _buildCalcButton('4', Colors.black, () => _onDigit('4')),
+                _buildCalcButton('5', Colors.black, () => _onDigit('5')),
+                _buildCalcButton('6', Colors.black, () => _onDigit('6')),
+                _buildCalcButton(
+                  '-',
+                  AppColors.primary,
+                  () => _onOperator('-'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _buildCalcButton('1', Colors.black, () => _onDigit('1')),
+                _buildCalcButton('2', Colors.black, () => _onDigit('2')),
+                _buildCalcButton('3', Colors.black, () => _onDigit('3')),
+                _buildCalcButton(
+                  '+',
+                  AppColors.primary,
+                  () => _onOperator('+'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _buildCalcButton(
+                  '0',
+                  Colors.black,
+                  () => _onDigit('0'),
+                  flex: 2,
+                ),
+                _buildCalcButton('.', Colors.black, () {
+                  if (!_display.contains('.')) _onDigit('.');
+                }),
+                _buildCalcButton('=', AppColors.success, () => _onEquals()),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCalcButton(
+    String text,
+    Color color,
+    VoidCallback onTap, {
+    int flex = 1,
+  }) {
+    return Expanded(
+      flex: flex,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Material(
+          color: color.withValues(
+            alpha:
+                text == '=' ||
+                    text == '+' ||
+                    text == '-' ||
+                    text == 'x' ||
+                    text == '/'
+                ? 1
+                : 0.15,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              height: 60,
+              alignment: Alignment.center,
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

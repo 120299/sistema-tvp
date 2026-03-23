@@ -320,67 +320,9 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Ultimas Ventas',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          if (ventasHoy.isEmpty)
-            Center(
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.receipt_long,
-                    size: 48,
-                    color: Colors.grey.shade400,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'No hay ventas hoy',
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
-                ],
-              ),
-            )
-          else
-            ...ventasHoy
-                .take(10)
-                .map(
-                  (pedido) => Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: pedido.metodoPago == 'Efectivo'
-                              ? Colors.green.withValues(alpha: 0.1)
-                              : Colors.blue.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          pedido.metodoPago == 'Efectivo'
-                              ? Icons.money
-                              : Icons.credit_card,
-                          color: pedido.metodoPago == 'Efectivo'
-                              ? Colors.green
-                              : Colors.blue,
-                        ),
-                      ),
-                      title: Text(
-                        DateFormat('HH:mm').format(pedido.horaApertura),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text('${pedido.items.length} productos'),
-                      trailing: Text(
-                        '${pedido.total.toStringAsFixed(2)} €',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+          _buildSeccionVentas(ventasHoy),
+          const SizedBox(height: 24),
+          _buildSeccionMovimientos(caja),
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
@@ -505,6 +447,210 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSeccionVentas(List<Pedido> ventasHoy) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Ultimas Ventas',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        if (ventasHoy.isEmpty)
+          Center(
+            child: Column(
+              children: [
+                Icon(Icons.receipt_long, size: 48, color: Colors.grey.shade400),
+                const SizedBox(height: 8),
+                Text(
+                  'No hay ventas hoy',
+                  style: TextStyle(color: Colors.grey.shade600),
+                ),
+              ],
+            ),
+          )
+        else
+          ...ventasHoy
+              .take(10)
+              .map(
+                (pedido) => Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: pedido.metodoPago == 'Efectivo'
+                            ? Colors.green.withValues(alpha: 0.1)
+                            : Colors.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        pedido.metodoPago == 'Efectivo'
+                            ? Icons.money
+                            : Icons.credit_card,
+                        color: pedido.metodoPago == 'Efectivo'
+                            ? Colors.green
+                            : Colors.blue,
+                      ),
+                    ),
+                    title: Text(
+                      DateFormat('HH:mm').format(pedido.horaApertura),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text('${pedido.items.length} productos'),
+                    trailing: Text(
+                      '${pedido.total.toStringAsFixed(2)} €',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.secondary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+      ],
+    );
+  }
+
+  Widget _buildSeccionMovimientos(Caja caja) {
+    final ingresos = caja.movimientos
+        .where((m) => m.tipo == 'ingreso')
+        .toList();
+    final retiros = caja.movimientos.where((m) => m.tipo == 'retiro').toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Movimientos de Caja',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        if (caja.movimientos.isEmpty)
+          Center(
+            child: Column(
+              children: [
+                Icon(Icons.swap_horiz, size: 48, color: Colors.grey.shade400),
+                const SizedBox(height: 8),
+                Text(
+                  'No hay movimientos',
+                  style: TextStyle(color: Colors.grey.shade600),
+                ),
+              ],
+            ),
+          )
+        else
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: caja.movimientos.length,
+              separatorBuilder: (_, __) =>
+                  Divider(height: 1, color: Colors.grey.shade200),
+              itemBuilder: (context, index) {
+                final movimiento =
+                    caja.movimientos[caja.movimientos.length - 1 - index];
+                final isIngreso = movimiento.tipo == 'ingreso';
+                return ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isIngreso
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : Colors.red.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      isIngreso ? Icons.add_circle : Icons.remove_circle,
+                      color: isIngreso ? Colors.green : Colors.red,
+                    ),
+                  ),
+                  title: Text(
+                    movimiento.descripcion?.isNotEmpty == true
+                        ? movimiento.descripcion!
+                        : (isIngreso ? 'Ingreso' : 'Retiro'),
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: Text(
+                    DateFormat('dd/MM/yyyy HH:mm').format(movimiento.fecha),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                  trailing: Text(
+                    '${isIngreso ? '+' : '-'}${movimiento.cantidad.toStringAsFixed(2)} €',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: isIngreso ? Colors.green : Colors.red,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Ingresos:',
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      '${ingresos.fold<double>(0, (sum, m) => sum + m.cantidad).toStringAsFixed(2)} €',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Retiros:',
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      '${retiros.fold<double>(0, (sum, m) => sum + m.cantidad).toStringAsFixed(2)} €',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 

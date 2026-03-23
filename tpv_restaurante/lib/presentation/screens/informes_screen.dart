@@ -651,17 +651,23 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
   }
 
   void _hoy() {
+    final now = DateTime.now();
     setState(() {
-      _fechaInicio = DateTime.now();
-      _fechaFin = DateTime.now();
+      _fechaInicio = DateTime(now.year, now.month, now.day);
+      _fechaFin = DateTime(now.year, now.month, now.day, 23, 59, 59);
     });
   }
 
   void _semana() {
     final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
     setState(() {
-      _fechaInicio = now.subtract(Duration(days: now.weekday - 1));
-      _fechaFin = now;
+      _fechaInicio = DateTime(
+        startOfWeek.year,
+        startOfWeek.month,
+        startOfWeek.day,
+      );
+      _fechaFin = DateTime(now.year, now.month, now.day, 23, 59, 59);
     });
   }
 
@@ -669,7 +675,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     final now = DateTime.now();
     setState(() {
       _fechaInicio = DateTime(now.year, now.month, 1);
-      _fechaFin = now;
+      _fechaFin = DateTime(now.year, now.month, now.day, 23, 59, 59);
     });
   }
 }

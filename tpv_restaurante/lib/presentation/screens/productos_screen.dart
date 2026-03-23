@@ -52,17 +52,18 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
         children: [
           _buildHeader(),
           _buildToolbar(busqueda, categoriaSeleccionada, categorias),
+          _buildCategoriasToolbar(categoriaSeleccionada, categorias),
           Expanded(
             child: productosFiltrados.isEmpty
                 ? _buildEmptyState()
-                : _buildProductList(productosFiltrados, categorias),
+                : _buildProductGrid(productosFiltrados, categorias),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _agregarProducto(context),
         icon: const Icon(Icons.add),
-        label: const Text('Nuevo Producto'),
+        label: const Text('Nuevo'),
       ),
     );
   }
@@ -177,29 +178,22 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     List<CategoriaProducto> categorias,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: AppColors.lightDivider)),
       ),
       child: Row(
         children: [
           Expanded(
-            flex: 2,
             child: TextField(
               controller: _busquedaController,
               decoration: InputDecoration(
-                hintText: 'Buscar productos...',
-                prefixIcon: const Icon(Icons.search),
+                hintText: 'Buscar...',
+                prefixIcon: const Icon(Icons.search, size: 20),
                 suffixIcon: busqueda.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear),
+                        icon: const Icon(Icons.clear, size: 18),
                         onPressed: () {
                           _busquedaController.clear();
                           ref.read(busquedaProductoProvider.notifier).state =
@@ -207,44 +201,58 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                         },
                       )
                     : null,
-                filled: true,
-                fillColor: Theme.of(context).scaffoldBackgroundColor,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,
                 ),
+                filled: true,
+                fillColor: Colors.grey.shade100,
               ),
               onChanged: (value) =>
                   ref.read(busquedaProductoProvider.notifier).state = value,
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 3,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildFilterChip(
-                    'Todos',
-                    null,
-                    categoriaSeleccionada == null,
-                    Icons.apps,
-                  ),
-                  const SizedBox(width: 8),
-                  ...categorias.map(
-                    (cat) => Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: _buildCategoriaChip(
-                        cat.nombre,
-                        cat.id,
-                        categoriaSeleccionada == cat.id,
-                        cat.icono,
-                        cat.color,
-                      ),
-                    ),
-                  ),
-                ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoriasToolbar(
+    String? categoriaSeleccionada,
+    List<CategoriaProducto> categorias,
+  ) {
+    return Container(
+      height: 50,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: AppColors.lightDivider)),
+      ),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          _buildCategoriaChip(
+            'Todos',
+            null,
+            categoriaSeleccionada == null,
+            Icons.apps,
+          ),
+          const SizedBox(width: 8),
+          ...categorias.map(
+            (cat) => Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: _buildCategoriaChip(
+                cat.nombre,
+                cat.id,
+                categoriaSeleccionada == cat.id,
+                null,
+                cat.icono,
+                cat.color,
               ),
             ),
           ),
@@ -253,76 +261,42 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     );
   }
 
-  Widget _buildFilterChip(
-    String label,
-    String? value,
-    bool selected,
-    IconData icon,
-  ) {
-    return GestureDetector(
-      onTap: () =>
-          ref.read(categoriaSeleccionadaProvider.notifier).state = value,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: selected ? AppColors.primary : Colors.grey.shade300,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18, color: selected ? Colors.white : Colors.grey),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: selected ? Colors.white : Colors.grey.shade700,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildCategoriaChip(
     String label,
-    String value,
+    String? id,
     bool selected,
-    String icono,
-    Color color,
-  ) {
-    return GestureDetector(
-      onTap: () => ref.read(categoriaSeleccionadaProvider.notifier).state =
-          selected ? null : value,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: selected ? color : Colors.transparent,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: selected ? color : Colors.grey.shade300),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(icono, style: const TextStyle(fontSize: 16)),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                color: selected ? Colors.white : Colors.grey.shade700,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+    IconData? icon, [
+    String? icono,
+    Color? color,
+  ]) {
+    return ActionChip(
+      avatar: icono != null
+          ? Text(icono, style: const TextStyle(fontSize: 14))
+          : (icon != null
+                ? Icon(
+                    icon,
+                    size: 16,
+                    color: selected
+                        ? (color ?? AppColors.primary)
+                        : Colors.grey,
+                  )
+                : null),
+      label: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          color: selected ? Colors.white : Colors.grey.shade700,
+          fontWeight: selected ? FontWeight.bold : FontWeight.normal,
         ),
       ),
+      backgroundColor: selected
+          ? (color ?? AppColors.primary)
+          : Colors.grey.shade200,
+      onPressed: () {
+        ref.read(categoriaSeleccionadaProvider.notifier).state = selected
+            ? null
+            : id;
+      },
     );
   }
 
@@ -376,84 +350,151 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     );
   }
 
-  Widget _buildProductList(
+  Widget _buildProductGrid(
     List<Producto> productos,
     List<CategoriaProducto> categorias,
   ) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: productos.length,
-      itemBuilder: (context, index) {
-        final producto = productos[index];
-        final categoria = categorias.firstWhere(
-          (c) => c.id == producto.categoriaId,
-          orElse: () => CategoriaProducto.defaultCategories.first,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        int crossAxisCount;
+        if (width > 1200) {
+          crossAxisCount = 6;
+        } else if (width > 900) {
+          crossAxisCount = 5;
+        } else if (width > 600) {
+          crossAxisCount = 4;
+        } else if (width > 400) {
+          crossAxisCount = 3;
+        } else {
+          crossAxisCount = 2;
+        }
+
+        return GridView.builder(
+          padding: const EdgeInsets.all(12),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: 0.75,
+          ),
+          itemCount: productos.length,
+          itemBuilder: (context, index) {
+            final producto = productos[index];
+            final categoria = categorias.firstWhere(
+              (c) => c.id == producto.categoriaId,
+              orElse: () => CategoriaProducto.defaultCategories.first,
+            );
+            return _buildProductCard(producto, categoria);
+          },
         );
-        return _buildProductCard(producto, categoria);
       },
     );
   }
 
   Widget _buildProductCard(Producto producto, CategoriaProducto categoria) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: producto.disponible
-            ? null
-            : Border.all(color: Colors.grey.shade300, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _editarProducto(context, producto),
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                _buildProductImage(producto, categoria),
-                const SizedBox(width: 16),
-                Expanded(child: _buildProductInfo(producto, categoria)),
-                _buildProductPrice(producto),
-                const SizedBox(width: 16),
-                _buildProductActions(producto),
-              ],
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      elevation: 1,
+      child: InkWell(
+        onTap: () => _editarProducto(context, producto),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AspectRatio(
+              aspectRatio: 1,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  _buildProductImage(producto, categoria),
+                  if (!producto.disponible)
+                    Container(
+                      color: Colors.black45,
+                      child: const Center(
+                        child: Text(
+                          'AGOTADO',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (producto.esAlergenico)
+                    Positioned(
+                      top: 6,
+                      left: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.warning,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.warning_amber,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      producto.nombre,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: producto.disponible ? null : Colors.grey,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${producto.precio.toStringAsFixed(2)} €',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: producto.disponible
+                                ? AppColors.secondary
+                                : Colors.grey,
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () => _toggleDisponibilidad(producto),
+                          child: Icon(
+                            producto.disponible
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            size: 20,
+                            color: producto.disponible
+                                ? Colors.grey
+                                : AppColors.success,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildProductImage(Producto producto, CategoriaProducto categoria) {
-    return Container(
-      width: 80,
-      height: 80,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: categoria.color.withValues(alpha: 0.1),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: _buildProductImageContent(producto, categoria),
-      ),
-    );
-  }
-
-  Widget _buildProductImageContent(
-    Producto producto,
-    CategoriaProducto categoria,
-  ) {
     if (producto.imagenUrl != null && producto.imagenUrl!.isNotEmpty) {
       if (producto.imagenUrl!.startsWith('products/')) {
         final base64 = imageStorageService.getBase64FromPath(
@@ -479,143 +520,19 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
 
   Widget _buildPlaceholder(CategoriaProducto categoria) {
     return Container(
-      color: categoria.color.withValues(alpha: 0.1),
-      child: Center(
-        child: Text(categoria.icono, style: const TextStyle(fontSize: 32)),
-      ),
-    );
-  }
-
-  Widget _buildProductInfo(Producto producto, CategoriaProducto categoria) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                producto.nombre,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (!producto.disponible)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  'AGOTADO',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-            if (producto.esAlergenico)
-              Container(
-                margin: const EdgeInsets.only(left: 8),
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: AppColors.warning.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.warning_amber,
-                  size: 16,
-                  color: AppColors.warning,
-                ),
-              ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            categoria.color.withValues(alpha: 0.2),
+            categoria.color.withValues(alpha: 0.05),
           ],
         ),
-        const SizedBox(height: 4),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: categoria.color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(categoria.icono, style: const TextStyle(fontSize: 12)),
-              const SizedBox(width: 4),
-              Text(
-                categoria.nombre,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: categoria.color,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (producto.descripcion != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            producto.descripcion!,
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).textTheme.bodySmall?.color,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildProductPrice(Producto producto) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(
-          '${producto.precio.toStringAsFixed(2)} €',
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColors.secondary,
-          ),
-        ),
-        if (producto.precioCompra != null)
-          Text(
-            'Coste: ${producto.precioCompra!.toStringAsFixed(2)} €',
-            style: TextStyle(
-              fontSize: 11,
-              color: Theme.of(context).textTheme.bodySmall?.color,
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildProductActions(Producto producto) {
-    return Column(
-      children: [
-        IconButton(
-          onPressed: () => _editarProducto(context, producto),
-          icon: const Icon(Icons.edit_outlined),
-          color: AppColors.primary,
-          tooltip: 'Editar',
-        ),
-        IconButton(
-          onPressed: () => _toggleDisponibilidad(producto),
-          icon: Icon(
-            producto.disponible ? Icons.visibility_off : Icons.visibility,
-          ),
-          color: producto.disponible ? AppColors.success : Colors.grey,
-          tooltip: producto.disponible ? 'Deshabilitar' : 'Habilitar',
-        ),
-      ],
+      ),
+      child: Center(
+        child: Text(categoria.icono, style: const TextStyle(fontSize: 40)),
+      ),
     );
   }
 
