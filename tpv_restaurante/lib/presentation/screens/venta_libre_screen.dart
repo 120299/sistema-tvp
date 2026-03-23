@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../../data/services/image_storage_service.dart';
+import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
 
 class VentaLibreScreen extends ConsumerStatefulWidget {
@@ -49,27 +50,143 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         : productosFiltrados;
 
     return Scaffold(
-      body: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Column(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth > 800;
+
+          if (isWide) {
+            return Row(
               children: [
-                _buildHeader(mesasDisponibles),
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    children: [
+                      _buildHeader(mesasDisponibles, isWide: true),
+                      _buildCategorias(categoriaSeleccionada, categorias),
+                      _buildBuscador(),
+                      Expanded(child: _buildGridProductos(productosAMostrar)),
+                    ],
+                  ),
+                ),
+                Container(width: 1, color: AppColors.lightDivider),
+                SizedBox(width: 380, child: _buildPanelCarrito()),
+              ],
+            );
+          } else {
+            return Column(
+              children: [
+                _buildHeader(mesasDisponibles, isWide: false),
                 _buildCategorias(categoriaSeleccionada, categorias),
                 _buildBuscador(),
                 Expanded(child: _buildGridProductos(productosAMostrar)),
+                _buildCarritoBarra(),
               ],
-            ),
-          ),
-          Container(width: 1, color: AppColors.lightDivider),
-          SizedBox(width: 380, child: _buildPanelCarrito()),
-        ],
+            );
+          }
+        },
       ),
     );
   }
 
-  Widget _buildHeader(List<Mesa> mesasDisponibles) {
+  Widget _buildCarritoBarra() {
+    if (_carrito.isEmpty) return const SizedBox.shrink();
+
+    final total = _carrito.fold<double>(0, (sum, item) => sum + item.subtotal);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.shopping_cart,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${_carrito.fold<int>(0, (sum, i) => sum + i.cantidad)} items',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                '${total.toStringAsFixed(2)} €',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: _cobrarPedido,
+              icon: const Icon(Icons.payment),
+              label: const Text('Cobrar'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.success,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              onPressed: _verCarritoCompleto,
+              icon: const Icon(Icons.shopping_cart, color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _verCarritoCompleto() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) =>
+            _buildPanelCarrito(scrollController: scrollController),
+      ),
+    );
+  }
+
+  Widget _buildHeader(List<Mesa> mesasDisponibles, {bool isWide = true}) {
     final total = _carrito.fold<double>(0, (sum, item) => sum + item.subtotal);
     final totalItems = _carrito.fold<int>(
       0,
@@ -108,36 +225,39 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.shopping_cart,
-                      color: Colors.white,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '$totalItems items',
-                      style: const TextStyle(
+              if (isWide) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.shopping_cart,
                         color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                        size: 18,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      Text(
+                        '$totalItems items',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
           const SizedBox(height: 12),
@@ -154,41 +274,31 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     child: DropdownButton<String?>(
                       value: _mesaAsignada,
                       isExpanded: true,
+                      isDense: true,
                       hint: const Text('Sin mesa'),
                       items: [
                         const DropdownMenuItem<String?>(
                           value: null,
-                          child: Text('Sin mesa'),
+                          child: Text(
+                            'Sin mesa',
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         ...mesasDisponibles.map(
                           (m) => DropdownMenuItem(
                             value: m.id,
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.table_restaurant,
-                                  size: 18,
-                                  color: AppColors.success,
-                                ),
-                                const SizedBox(width: 8),
-                                Text('Mesa ${m.numero} (Libre)'),
-                              ],
+                            child: Text(
+                              'Mesa ${m.numero}',
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ),
                         ..._getMesasOcupadas().map(
                           (m) => DropdownMenuItem(
                             value: m.id,
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.table_restaurant,
-                                  size: 18,
-                                  color: AppColors.warning,
-                                ),
-                                const SizedBox(width: 8),
-                                Text('Mesa ${m.numero} (Ocupada)'),
-                              ],
+                            child: Text(
+                              'Mesa ${m.numero} (Ocupada)',
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ),
@@ -278,28 +388,32 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     String? icono,
     Color? color,
   ]) {
-    return FilterChip(
-      selected: selected,
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icono != null) ...[
-            Text(icono),
-            const SizedBox(width: 4),
-          ] else ...[
-            Icon(selected ? Icons.check : icon, size: 16),
-            const SizedBox(width: 4),
-          ],
-          Text(label),
-        ],
+    return ActionChip(
+      avatar: icono != null
+          ? Text(icono, style: const TextStyle(fontSize: 14))
+          : Icon(
+              selected ? Icons.check : icon,
+              size: 16,
+              color: selected ? (color ?? AppColors.primary) : Colors.grey,
+            ),
+      label: Text(
+        label,
+        style: TextStyle(
+          color: selected ? (color ?? AppColors.primary) : Colors.grey.shade700,
+          fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+        ),
       ),
-      onSelected: (_) {
+      backgroundColor: selected
+          ? (color ?? AppColors.primary).withValues(alpha: 0.15)
+          : Colors.grey.shade100,
+      side: BorderSide(
+        color: selected ? (color ?? AppColors.primary) : Colors.grey.shade300,
+      ),
+      onPressed: () {
         ref.read(categoriaSeleccionadaProvider.notifier).state = selected
             ? null
             : id;
       },
-      selectedColor: (color ?? AppColors.primary).withValues(alpha: 0.2),
-      checkmarkColor: color ?? AppColors.primary,
     );
   }
 
@@ -347,18 +461,36 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(12),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-        childAspectRatio: 1.1,
-      ),
-      itemCount: productos.length,
-      itemBuilder: (context, index) {
-        final producto = productos[index];
-        return _buildProductCard(producto);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        int crossAxisCount;
+        if (width > 1200) {
+          crossAxisCount = 6;
+        } else if (width > 900) {
+          crossAxisCount = 5;
+        } else if (width > 600) {
+          crossAxisCount = 4;
+        } else if (width > 400) {
+          crossAxisCount = 3;
+        } else {
+          crossAxisCount = 2;
+        }
+
+        return GridView.builder(
+          padding: const EdgeInsets.all(12),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: 1.0,
+          ),
+          itemCount: productos.length,
+          itemBuilder: (context, index) {
+            final producto = productos[index];
+            return _buildProductCard(producto);
+          },
+        );
       },
     );
   }
@@ -500,7 +632,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     );
   }
 
-  Widget _buildPanelCarrito() {
+  Widget _buildPanelCarrito({ScrollController? scrollController}) {
     if (_carrito.isEmpty) {
       return Container(
         color: Colors.white,
@@ -590,6 +722,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           ),
           Expanded(
             child: ListView.builder(
+              controller: scrollController,
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: _carrito.length,
               itemBuilder: (context, index) {
@@ -931,9 +1064,30 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
 
           await ref.read(pedidosProvider.notifier).cerrar(pedidoId, metodoPago);
 
+          await ref
+              .read(cajaProvider.notifier)
+              .registrarVenta(total, metodoPago, pedidoId: pedidoId);
+
           if (_mesaAsignada != null) {
             await ref.read(mesasProvider.notifier).liberar(_mesaAsignada!);
           }
+
+          final mesaNumero = _mesaAsignada != null
+              ? ref
+                    .read(mesasProvider)
+                    .firstWhere((m) => m.id == _mesaAsignada)
+                    .numero
+                    .toString()
+              : null;
+
+          await PrintService.printTicket(
+            items: List.from(_carrito),
+            total: total,
+            ivaPorcentaje: negocio.ivaPorcentaje,
+            metodoPago: metodoPago,
+            negocio: negocio,
+            mesaNumero: mesaNumero,
+          );
 
           setState(() => _carrito.clear());
           _mesaAsignada = null;

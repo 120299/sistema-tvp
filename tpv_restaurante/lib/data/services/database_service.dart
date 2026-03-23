@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import '../adapters/hive_adapters.dart';
 import '../models/models.dart';
 import '../repositories/repositories.dart';
@@ -13,6 +16,7 @@ class DatabaseService {
   static const String _negocioBox = 'negocio';
   static const String _configBox = 'config';
   static const String _cajaBox = 'caja';
+  static const String _movimientosBox = 'movimientos';
 
   late Box<Producto> productosBox;
   late Box<CategoriaProducto> categoriasBox;
@@ -21,12 +25,14 @@ class DatabaseService {
   late Box<DatosNegocio> negocioBox;
   late Box<dynamic> configBox;
   late Box<Caja> cajaBox;
+  late Box<MovimientoCaja> movimientosBox;
 
   late ProductoRepositorio productoRepositorio;
   late CategoriaRepositorio categoriaRepositorio;
   late MesaRepositorio mesaRepositorio;
   late PedidoRepositorio pedidoRepositorio;
   late CajaRepositorio cajaRepositorio;
+  late MovimientoRepositorio movimientoRepositorio;
 
   final StreamController<String> _changeController =
       StreamController<String>.broadcast();
@@ -38,7 +44,12 @@ class DatabaseService {
   }
 
   Future<void> initialize() async {
-    await Hive.initFlutter();
+    if (!kIsWeb) {
+      final directory = await _getDataDirectory();
+      await Hive.initFlutter(directory.path);
+    } else {
+      await Hive.initFlutter();
+    }
 
     Hive.registerAdapter(CategoriaProductoAdapter());
     Hive.registerAdapter(ProductoAdapter());
@@ -47,6 +58,7 @@ class DatabaseService {
     Hive.registerAdapter(PedidoAdapter());
     Hive.registerAdapter(DatosNegocioAdapter());
     Hive.registerAdapter(CajaAdapter());
+    Hive.registerAdapter(MovimientoCajaAdapter());
 
     productosBox = await Hive.openBox<Producto>(_productosBox);
     categoriasBox = await Hive.openBox<CategoriaProducto>(_categoriasBox);
@@ -55,6 +67,7 @@ class DatabaseService {
     negocioBox = await Hive.openBox<DatosNegocio>(_negocioBox);
     configBox = await Hive.openBox(_configBox);
     cajaBox = await Hive.openBox<Caja>(_cajaBox);
+    movimientosBox = await Hive.openBox<MovimientoCaja>(_movimientosBox);
 
     _setupListeners();
 
@@ -65,8 +78,30 @@ class DatabaseService {
     mesaRepositorio = MesaRepositorio(mesasBox);
     pedidoRepositorio = PedidoRepositorio(pedidosBox);
     cajaRepositorio = CajaRepositorio(cajaBox);
+    movimientoRepositorio = MovimientoRepositorio(movimientosBox);
 
     await _seedData();
+  }
+
+  Future<Directory> _getDataDirectory() async {
+    String basePath;
+
+    if (kIsWeb) {
+      basePath = (await getApplicationDocumentsDirectory()).path;
+    } else if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      final documentsDir = await getApplicationDocumentsDirectory();
+      basePath = documentsDir.path;
+    } else {
+      basePath = (await getApplicationDocumentsDirectory()).path;
+    }
+
+    final tpvdDir = Directory('$basePath/TPV_Datos');
+
+    if (!await tpvdDir.exists()) {
+      await tpvdDir.create(recursive: true);
+    }
+
+    return tpvdDir;
   }
 
   void _setupListeners() {
@@ -76,6 +111,7 @@ class DatabaseService {
     pedidosBox.listenable().addListener(() => notifyChange('pedidos'));
     negocioBox.listenable().addListener(() => notifyChange('negocio'));
     cajaBox.listenable().addListener(() => notifyChange('caja'));
+    movimientosBox.listenable().addListener(() => notifyChange('movimientos'));
   }
 
   Future<void> _seedData() async {
@@ -100,16 +136,6 @@ class DatabaseService {
     if (negocioBox.isEmpty) {
       await negocioBox.add(DatosNegocio.ejemplo);
     }
-
-    if (cajaBox.isEmpty) {
-      await cajaBox.add(
-        Caja(
-          id: 'caja_1',
-          fechaApertura: DateTime.now(),
-          estado: EstadoCaja.abierta,
-        ),
-      );
-    }
   }
 
   List<Mesa> _getMesasIniciales() {
@@ -124,8 +150,6 @@ class DatabaseService {
       Mesa(id: 'mesa_8', numero: 8, capacidad: 4),
       Mesa(id: 'mesa_9', numero: 9, capacidad: 6),
       Mesa(id: 'mesa_10', numero: 10, capacidad: 4),
-      Mesa(id: 'mesa_11', numero: 11, capacidad: 2),
-      Mesa(id: 'mesa_12', numero: 12, capacidad: 4),
     ];
   }
 

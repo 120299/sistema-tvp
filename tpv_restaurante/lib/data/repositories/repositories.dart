@@ -160,3 +160,33 @@ class CajaRepositorio extends Repositorio<Caja> {
     }
   }
 }
+
+class MovimientoRepositorio extends Repositorio<MovimientoCaja> {
+  MovimientoRepositorio(super.box);
+
+  List<MovimientoCaja> getPorFecha(DateTime fecha) {
+    return getAll().where((m) {
+      return m.fecha.year == fecha.year &&
+          m.fecha.month == fecha.month &&
+          m.fecha.day == fecha.day;
+    }).toList();
+  }
+
+  List<MovimientoCaja> getPorRangoFechas(DateTime inicio, DateTime fin) {
+    return getAll().where((m) {
+      return m.fecha.isAfter(inicio) && m.fecha.isBefore(fin);
+    }).toList();
+  }
+
+  List<MovimientoCaja> getIngresos() {
+    return getAll().where((m) => m.tipo == 'ingreso').toList();
+  }
+
+  List<MovimientoCaja> getRetiros() {
+    return getAll().where((m) => m.tipo == 'retiro').toList();
+  }
+
+  List<MovimientoCaja> getVentas() {
+    return getAll().where((m) => m.tipo == 'venta').toList();
+  }
+}

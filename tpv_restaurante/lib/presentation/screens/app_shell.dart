@@ -10,8 +10,6 @@ import 'mesas_screen.dart';
 import 'configuracion_screen.dart';
 import 'caja_screen.dart';
 
-final indiceNavegacionProvider = StateProvider<int>((ref) => 0);
-
 class AppShell extends ConsumerWidget {
   const AppShell({super.key});
 
