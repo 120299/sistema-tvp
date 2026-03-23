@@ -32,7 +32,7 @@ class CategoriaProductoAdapter extends TypeAdapter<CategoriaProducto> {
       ..writeByte(2)
       ..write(obj.icono)
       ..writeByte(3)
-      ..write(obj.color.value)
+      ..write(obj.color.toARGB32())
       ..writeByte(4)
       ..write(obj.imagenUrl);
   }

@@ -5,8 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../../data/services/image_storage_service.dart';
 import '../providers/providers.dart';
-import '../widgets/product_card.dart';
-import '../widgets/category_chip.dart';
+
 import '../widgets/ticket_widget.dart';
 
 class VentaLibreScreen extends ConsumerStatefulWidget {
@@ -68,7 +67,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
         ),
       ),
       child: SafeArea(
@@ -78,7 +77,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
@@ -110,7 +109,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -147,7 +146,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -308,7 +307,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               : Border.all(color: Colors.grey.shade300, width: 2),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -402,7 +401,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
 
   Widget _buildPlaceholder(CategoriaProducto categoria) {
     return Container(
-      color: categoria.color.withOpacity(0.1),
+      color: categoria.color.withValues(alpha: 0.1),
       child: Center(
         child: Text(categoria.icono, style: const TextStyle(fontSize: 40)),
       ),
@@ -437,9 +436,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     final negocio = ref.watch(negocioProvider);
     final total = _calcularTotal();
     final totalConPropina = total * (1 + _porcentajePropina / 100);
-    final mesaSeleccionada = _mesaAsignada != null
-        ? mesas.where((m) => m.id == _mesaAsignada).firstOrNull
-        : null;
 
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
@@ -575,7 +571,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               color: Theme.of(context).cardColor,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, -2),
                 ),
@@ -1248,8 +1244,8 @@ class _CobroDialogState extends State<_CobroDialog> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: _cambio >= 0
-                      ? AppColors.success.withOpacity(0.1)
-                      : AppColors.error.withOpacity(0.1),
+                      ? AppColors.success.withValues(alpha: 0.1)
+                      : AppColors.error.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: _cambio >= 0 ? AppColors.success : AppColors.error,
@@ -1326,12 +1322,12 @@ class _CobroDialogState extends State<_CobroDialog> {
         decoration: BoxDecoration(
           color: selected
               ? AppColors.primary
-              : AppColors.primary.withOpacity(0.1),
+              : AppColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: selected
                 ? AppColors.primary
-                : AppColors.primary.withOpacity(0.3),
+                : AppColors.primary.withValues(alpha: 0.3),
             width: 2,
           ),
         ),

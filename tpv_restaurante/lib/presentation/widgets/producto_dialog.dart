@@ -443,7 +443,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
                     Switch(
                       value: _disponible,
                       onChanged: (value) => setState(() => _disponible = value),
-                      activeColor: AppColors.success,
+                      activeThumbColor: AppColors.success,
                     ),
                   ],
                 ),
@@ -518,7 +518,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
                       value: _esAlergenico,
                       onChanged: (value) =>
                           setState(() => _esAlergenico = value),
-                      activeColor: AppColors.warning,
+                      activeThumbColor: AppColors.warning,
                     ),
                   ],
                 ),

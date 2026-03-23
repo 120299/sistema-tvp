@@ -75,7 +75,7 @@ class MesasScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
         ),
       ),
       child: Column(
@@ -109,7 +109,7 @@ class MesasScreen extends ConsumerWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -176,7 +176,7 @@ class MesasScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -239,7 +239,7 @@ class MesasScreen extends ConsumerWidget {
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: estadoColor.withOpacity(0.3), width: 2),
+        side: BorderSide(color: estadoColor.withValues(alpha: 0.3), width: 2),
       ),
       child: InkWell(
         onTap: () => _abrirDetalleMesa(context, mesa),
@@ -252,7 +252,7 @@ class MesasScreen extends ConsumerWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [estadoColor.withOpacity(0.1), Colors.white],
+              colors: [estadoColor.withValues(alpha: 0.1), Colors.white],
             ),
           ),
           child: Column(
@@ -261,7 +261,7 @@ class MesasScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: estadoColor.withOpacity(0.2),
+                  color: estadoColor.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -285,7 +285,7 @@ class MesasScreen extends ConsumerWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: estadoColor.withOpacity(0.2),
+                  color: estadoColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(

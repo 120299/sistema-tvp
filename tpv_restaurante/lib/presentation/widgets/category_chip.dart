@@ -25,13 +25,15 @@ class CategoryChip extends StatelessWidget {
           color: isSelected ? categoria.color : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: isSelected ? categoria.color : Colors.grey.withOpacity(0.3),
+            color: isSelected
+                ? categoria.color
+                : Colors.grey.withValues(alpha: 0.3),
             width: 1.5,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: categoria.color.withOpacity(0.3),
+                    color: categoria.color.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),

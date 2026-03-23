@@ -5,7 +5,6 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../providers/providers.dart';
 import '../widgets/ticket_widget.dart';
-import '../widgets/product_card.dart';
 
 class MesaDetalleScreen extends ConsumerStatefulWidget {
   final Mesa mesa;
@@ -96,16 +95,16 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: estadoColor.withOpacity(0.1),
+        color: estadoColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: estadoColor.withOpacity(0.3)),
+        border: Border.all(color: estadoColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: estadoColor.withOpacity(0.2),
+              color: estadoColor.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(estadoIcono, color: estadoColor, size: 32),
@@ -150,7 +149,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -210,7 +209,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -271,7 +270,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
       icon: Icon(icono, size: 18),
       label: Text(texto),
       style: ElevatedButton.styleFrom(
-        backgroundColor: color.withOpacity(0.1),
+        backgroundColor: color.withValues(alpha: 0.1),
         foregroundColor: color,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
@@ -384,7 +383,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.receipt, color: AppColors.primary),
@@ -458,8 +457,6 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
 
   Widget _buildPedidoContent(Mesa mesa, Pedido pedido) {
     final negocio = ref.read(negocioProvider);
-    final productos = ref.watch(productosProvider);
-    final categorias = ref.watch(categoriasProvider);
     final baseImponible = pedido.total / (1 + negocio.ivaPorcentaje / 100);
     final importeIva = pedido.total - baseImponible;
 
@@ -467,7 +464,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(16),
-          color: AppColors.mesaOcupada.withOpacity(0.1),
+          color: AppColors.mesaOcupada.withValues(alpha: 0.1),
           child: Row(
             children: [
               const Icon(Icons.receipt, color: AppColors.mesaOcupada),
@@ -510,7 +507,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -535,7 +532,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
             color: Theme.of(context).cardColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 8,
                 offset: const Offset(0, -2),
               ),
@@ -1094,8 +1091,8 @@ class _CobroMesaDialogState extends State<_CobroMesaDialog> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: _cambio >= 0
-                      ? AppColors.success.withOpacity(0.1)
-                      : AppColors.error.withOpacity(0.1),
+                      ? AppColors.success.withValues(alpha: 0.1)
+                      : AppColors.error.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: _cambio >= 0 ? AppColors.success : AppColors.error,
@@ -1172,12 +1169,12 @@ class _CobroMesaDialogState extends State<_CobroMesaDialog> {
         decoration: BoxDecoration(
           color: selected
               ? AppColors.primary
-              : AppColors.primary.withOpacity(0.1),
+              : AppColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: selected
                 ? AppColors.primary
-                : AppColors.primary.withOpacity(0.3),
+                : AppColors.primary.withValues(alpha: 0.3),
             width: 2,
           ),
         ),

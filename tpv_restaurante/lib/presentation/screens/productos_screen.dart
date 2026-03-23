@@ -75,7 +75,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
         ),
       ),
       child: SafeArea(
@@ -85,7 +85,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
@@ -117,7 +117,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -139,7 +139,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                 style: TextStyle(color: Colors.white),
               ),
               style: TextButton.styleFrom(
-                backgroundColor: Colors.white.withOpacity(0.2),
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 8,
@@ -182,7 +182,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
         color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -335,7 +335,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -406,7 +406,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
             : Border.all(color: Colors.grey.shade300, width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -441,7 +441,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
       height: 80,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: categoria.color.withOpacity(0.1),
+        color: categoria.color.withValues(alpha: 0.1),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -479,7 +479,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
 
   Widget _buildPlaceholder(CategoriaProducto categoria) {
     return Container(
-      color: categoria.color.withOpacity(0.1),
+      color: categoria.color.withValues(alpha: 0.1),
       child: Center(
         child: Text(categoria.icono, style: const TextStyle(fontSize: 32)),
       ),
@@ -524,7 +524,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                 margin: const EdgeInsets.only(left: 8),
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: AppColors.warning.withOpacity(0.1),
+                  color: AppColors.warning.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -539,7 +539,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: categoria.color.withOpacity(0.1),
+            color: categoria.color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -714,7 +714,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                             width: 48,
                             height: 48,
                             decoration: BoxDecoration(
-                              color: cat.color.withOpacity(0.2),
+                              color: cat.color.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Center(

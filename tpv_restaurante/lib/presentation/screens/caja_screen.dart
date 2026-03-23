@@ -25,7 +25,6 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
   Widget build(BuildContext context) {
     final caja = ref.watch(cajaProvider);
     final pedidos = ref.watch(pedidosProvider);
-    final negocio = ref.watch(negocioProvider);
 
     final ventasHoy = pedidos.where((p) {
       return p.estado == EstadoPedido.cerrado &&
@@ -77,7 +76,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.1),
+                color: AppColors.warning.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -105,7 +104,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -166,7 +165,10 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColors.success, AppColors.success.withOpacity(0.8)],
+                colors: [
+                  AppColors.success,
+                  AppColors.success.withValues(alpha: 0.8),
+                ],
               ),
               borderRadius: BorderRadius.circular(16),
             ),
@@ -175,7 +177,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
@@ -298,7 +300,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -379,8 +381,8 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: pedido.metodoPago == 'Efectivo'
-                              ? Colors.green.withOpacity(0.1)
-                              : Colors.blue.withOpacity(0.1),
+                              ? Colors.green.withValues(alpha: 0.1)
+                              : Colors.blue.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
@@ -425,7 +427,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -436,7 +438,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icono, color: color),
@@ -500,7 +502,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
+                color: AppColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(

@@ -73,7 +73,7 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: _color.withOpacity(0.2),
+                      color: _color.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
