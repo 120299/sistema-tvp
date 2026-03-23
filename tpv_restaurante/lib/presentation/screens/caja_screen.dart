@@ -13,11 +13,13 @@ class CajaScreen extends ConsumerStatefulWidget {
 }
 
 class _CajaScreenState extends ConsumerState<CajaScreen> {
-  final _fondoInicialController = TextEditingController();
+  final _montoController = TextEditingController();
+  final _descripcionController = TextEditingController();
 
   @override
   void dispose() {
-    _fondoInicialController.dispose();
+    _montoController.dispose();
+    _descripcionController.dispose();
     super.dispose();
   }
 
@@ -42,21 +44,19 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
         .fold<double>(0, (sum, p) => sum + p.total);
 
     return Scaffold(
+      backgroundColor: AppColors.lightBackground,
       appBar: AppBar(
         title: const Text('Caja'),
-        actions: [
-          if (caja != null && caja.estado == EstadoCaja.abierta)
-            IconButton(
-              icon: const Icon(Icons.lock),
-              tooltip: 'Cerrar caja',
-              onPressed: () => _cerrarCaja(context, caja),
-            ),
-        ],
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: caja == null || caja.estado == EstadoCaja.cerrada
-          ? _buildCajaCerrada(context)
+          ? _buildCajaCerrada()
           : _buildCajaAbierta(
-              context,
               caja,
               ventasHoy,
               totalVentasHoy,
@@ -66,15 +66,15 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
     );
   }
 
-  Widget _buildCajaCerrada(BuildContext context) {
+  Widget _buildCajaCerrada() {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
                 color: AppColors.warning.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
@@ -90,9 +90,9 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
               'Caja Cerrada',
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
-              'Para comenzar a vender, abre la caja',
+              'Ingresa el fondo inicial para abrir',
               style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 32),
@@ -100,13 +100,12 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
               padding: const EdgeInsets.all(24),
               constraints: const BoxConstraints(maxWidth: 400),
               decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(16),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
-                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
@@ -120,12 +119,11 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                   ),
                   const SizedBox(height: 20),
                   TextField(
-                    controller: _fondoInicialController,
+                    controller: _montoController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'Fondo inicial (€)',
+                      labelText: 'Fondo inicial',
                       prefixText: '€ ',
-                      border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.account_balance_wallet),
                     ),
                   ),
@@ -149,7 +147,6 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
   }
 
   Widget _buildCajaAbierta(
-    BuildContext context,
     Caja caja,
     List<Pedido> ventasHoy,
     double totalVentasHoy,
@@ -200,7 +197,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                         ),
                       ),
                       Text(
-                        'Desde las ${DateFormat('HH:mm').format(caja.fechaApertura)}',
+                        'Desde ${DateFormat('HH:mm').format(caja.fechaApertura)}',
                         style: const TextStyle(color: Colors.white70),
                       ),
                     ],
@@ -239,11 +236,6 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Resumen de Hoy',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
@@ -288,86 +280,66 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Fondo de Caja',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              Expanded(
+                child: _buildAccionCard(
+                  'Ingreso',
+                  Icons.add_circle,
+                  AppColors.success,
+                  () => _mostrarDialogoIngreso(),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildAccionCard(
+                  'Retiro',
+                  Icons.remove_circle,
+                  AppColors.error,
+                  () => _mostrarDialogoRetiro(),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: _buildInfoCard(
+                  'Fondo inicial',
+                  '${caja.fondoInicial.toStringAsFixed(2)} €',
                 ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Fondo inicial:',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Dinero en caja:',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildInfoCard(
+                  'En efectivo',
+                  '${efectivoHoy.toStringAsFixed(2)} €',
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '${caja.fondoInicial.toStringAsFixed(2)} €',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${caja.saldoCaja.toStringAsFixed(2)} €',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: AppColors.success,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
           const SizedBox(height: 24),
           const Text(
-            'Últimas Ventas',
+            'Ultimas Ventas',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           if (ventasHoy.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(32),
-              child: Center(
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.receipt_long,
-                      size: 48,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No hay ventas hoy',
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                  ],
-                ),
+            Center(
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.receipt_long,
+                    size: 48,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No hay ventas hoy',
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                ],
               ),
             )
           else
@@ -409,6 +381,20 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                     ),
                   ),
                 ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _cerrarCaja(caja),
+              icon: const Icon(Icons.lock),
+              label: const Text('Cerrar Caja'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.warning,
+                side: const BorderSide(color: AppColors.warning),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -423,13 +409,12 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
-            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -468,21 +453,180 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
     );
   }
 
-  void _abrirCaja() async {
-    final fondoInicial = double.tryParse(_fondoInicialController.text) ?? 0;
-    await ref.read(cajaProvider.notifier).abrirCaja(fondoInicial: fondoInicial);
-    _fondoInicialController.clear();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Caja abierta correctamente'),
-          backgroundColor: AppColors.success,
+  Widget _buildAccionCard(
+    String label,
+    IconData icono,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
-      );
-    }
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icono, color: color, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
-  void _cerrarCaja(BuildContext context, Caja caja) {
+  Widget _buildInfoCard(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _abrirCaja() async {
+    final fondoInicial = double.tryParse(_montoController.text) ?? 0;
+    await ref.read(cajaProvider.notifier).abrirCaja(fondoInicial: fondoInicial);
+    _montoController.clear();
+  }
+
+  void _mostrarDialogoIngreso() {
+    _montoController.clear();
+    _descripcionController.clear();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.add_circle, color: AppColors.success),
+            SizedBox(width: 12),
+            Text('Ingreso'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _montoController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Cantidad',
+                prefixText: '€ ',
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _descripcionController,
+              decoration: const InputDecoration(
+                labelText: 'Descripcion (opcional)',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final monto = double.tryParse(_montoController.text) ?? 0;
+              if (monto > 0) {
+                ref
+                    .read(cajaProvider.notifier)
+                    .agregarIngreso(monto, _descripcionController.text);
+                Navigator.pop(ctx);
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+            child: const Text('Agregar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarDialogoRetiro() {
+    _montoController.clear();
+    _descripcionController.clear();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.remove_circle, color: AppColors.error),
+            SizedBox(width: 12),
+            Text('Retiro'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _montoController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Cantidad',
+                prefixText: '€ ',
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _descripcionController,
+              decoration: const InputDecoration(
+                labelText: 'Descripcion (opcional)',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final monto = double.tryParse(_montoController.text) ?? 0;
+              if (monto > 0) {
+                ref
+                    .read(cajaProvider.notifier)
+                    .agregarRetiro(monto, _descripcionController.text);
+                Navigator.pop(ctx);
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Agregar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _cerrarCaja(Caja caja) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -497,23 +641,26 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('¿Estás seguro de cerrar la caja?'),
+            const Text('Se cerrara la caja con el saldo actual:'),
             const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.success.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Saldo final:'),
+                  const Text(
+                    'Saldo final:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   Text(
                     '${caja.saldoCaja.toStringAsFixed(2)} €',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize: 20,
                       color: AppColors.success,
                     ),
                   ),
@@ -528,19 +675,12 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await ref
+            onPressed: () {
+              ref
                   .read(cajaProvider.notifier)
                   .cerrarCaja(saldoFinal: caja.saldoCaja);
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Caja cerrada correctamente'),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
-              }
+              Navigator.pop(ctx);
+              Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.warning),
             child: const Text('Cerrar Caja'),

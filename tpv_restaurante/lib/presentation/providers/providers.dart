@@ -469,6 +469,50 @@ class CajaNotifier extends StateNotifier<Caja?> {
     state = null;
   }
 
+  Future<void> agregarIngreso(double cantidad, String descripcion) async {
+    if (state == null || state!.estado != EstadoCaja.abierta) return;
+
+    final movimiento = MovimientoCaja(
+      id: 'mov_${DateTime.now().millisecondsSinceEpoch}',
+      tipo: 'ingreso',
+      cantidad: cantidad,
+      descripcion: descripcion,
+      fecha: DateTime.now(),
+    );
+
+    final actualizada = state!.copyWith(
+      movimientos: [...state!.movimientos, movimiento],
+    );
+
+    final index = _db.cajaBox.values.toList().indexOf(state!);
+    if (index >= 0) {
+      await _db.cajaBox.putAt(index, actualizada);
+      state = actualizada;
+    }
+  }
+
+  Future<void> agregarRetiro(double cantidad, String descripcion) async {
+    if (state == null || state!.estado != EstadoCaja.abierta) return;
+
+    final movimiento = MovimientoCaja(
+      id: 'mov_${DateTime.now().millisecondsSinceEpoch}',
+      tipo: 'retiro',
+      cantidad: cantidad,
+      descripcion: descripcion,
+      fecha: DateTime.now(),
+    );
+
+    final actualizada = state!.copyWith(
+      movimientos: [...state!.movimientos, movimiento],
+    );
+
+    final index = _db.cajaBox.values.toList().indexOf(state!);
+    if (index >= 0) {
+      await _db.cajaBox.putAt(index, actualizada);
+      state = actualizada;
+    }
+  }
+
   Future<void> registrarVenta(
     double cantidad,
     String metodoPago, {

@@ -835,7 +835,6 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
     await PrintService.printCocinaTicket(
       items: pedidoActual,
       mesaNumero: widget.mesa.numero.toString(),
-      hora: DateTime.now(),
     );
 
     _mostrarMensaje('Enviado a cocina');
@@ -900,7 +899,6 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
     await PrintService.printCocinaTicket(
       items: pedidoActual,
       mesaNumero: widget.mesa.numero.toString(),
-      hora: DateTime.now(),
     );
     _mostrarMensaje('Ticket de cocina impreso');
   }

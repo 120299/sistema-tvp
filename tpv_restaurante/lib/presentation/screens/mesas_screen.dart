@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../providers/providers.dart';
-import '../widgets/mesa_dialog.dart';
-import 'mesa_detalle_screen.dart';
 
 class MesasScreen extends ConsumerStatefulWidget {
   const MesasScreen({super.key});
@@ -20,21 +18,15 @@ class _MesasScreenState extends ConsumerState<MesasScreen> {
   Widget build(BuildContext context) {
     final mesas = ref.watch(mesasProvider);
     final mesasFiltradas = _filtrarMesas(mesas);
-    final stats = _calculateStats(mesas);
 
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(stats, mesas.length),
-          _buildFilterChips(),
-          _buildMesasGrid(mesasFiltradas),
+      body: Column(
+        children: [
+          _buildHeader(mesas),
+          _buildFiltros(),
+          Expanded(child: _buildMesasGrid(mesasFiltradas)),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _agregarMesa(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Nueva Mesa'),
       ),
     );
   }
@@ -47,168 +39,107 @@ class _MesasScreenState extends ConsumerState<MesasScreen> {
         return mesas.where((m) => m.estado == EstadoMesa.ocupada).toList();
       case 'reservadas':
         return mesas.where((m) => m.estado == EstadoMesa.reservada).toList();
-      case 'atencion':
-        return mesas
-            .where((m) => m.estado == EstadoMesa.necesitaAtencion)
-            .toList();
       default:
         return mesas;
     }
   }
 
-  Widget _buildAppBar(Map<String, int> stats, int total) {
-    return SliverAppBar(
-      expandedHeight: 200,
-      floating: false,
-      pinned: true,
-      backgroundColor: AppColors.primary,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppColors.primary, AppColors.primaryDark],
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.table_restaurant,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Mesas',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              'Gestión de salas y pedidos',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          '$total mesas',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      _buildStatBadge(
-                        icon: Icons.check_circle,
-                        count: stats['libres'] ?? 0,
-                        label: 'Libres',
-                        color: AppColors.mesaLibre,
-                      ),
-                      const SizedBox(width: 12),
-                      _buildStatBadge(
-                        icon: Icons.restaurant,
-                        count: stats['ocupadas'] ?? 0,
-                        label: 'Ocupadas',
-                        color: AppColors.mesaOcupada,
-                      ),
-                      const SizedBox(width: 12),
-                      _buildStatBadge(
-                        icon: Icons.event,
-                        count: stats['reservadas'] ?? 0,
-                        label: 'Reservas',
-                        color: AppColors.mesaReservada,
-                      ),
-                      const SizedBox(width: 12),
-                      _buildStatBadge(
-                        icon: Icons.notification_important,
-                        count: stats['atencion'] ?? 0,
-                        label: 'Atención',
-                        color: AppColors.mesaAtencion,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+  Widget _buildHeader(List<Mesa> mesas) {
+    final libres = mesas.where((m) => m.estado == EstadoMesa.libre).length;
+    final ocupadas = mesas.where((m) => m.estado == EstadoMesa.ocupada).length;
+    final reservadas = mesas
+        .where((m) => m.estado == EstadoMesa.reservada)
+        .length;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
         ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.table_restaurant,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Mesas',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${mesas.length}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildStatBadge(libres, 'Libres', AppColors.success),
+              const SizedBox(width: 8),
+              _buildStatBadge(ocupadas, 'Ocupadas', AppColors.warning),
+              const SizedBox(width: 8),
+              _buildStatBadge(reservadas, 'Reservas', AppColors.mesaReservada),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildStatBadge({
-    required IconData icon,
-    required int count,
-    required String label,
-    required Color color,
-  }) {
+  Widget _buildStatBadge(int count, String label, Color color) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: color, size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  '$count',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-              ],
+            Text(
+              '$count',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
-            const SizedBox(height: 4),
             Text(
               label,
               style: const TextStyle(fontSize: 10, color: Colors.white70),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -216,148 +147,91 @@ class _MesasScreenState extends ConsumerState<MesasScreen> {
     );
   }
 
-  Widget _buildFilterChips() {
-    return SliverToBoxAdapter(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              _buildFilterChip('todas', 'Todas', Icons.grid_view, null),
-              const SizedBox(width: 8),
-              _buildFilterChip(
-                'libres',
-                'Libres',
-                Icons.check_circle,
-                AppColors.mesaLibre,
-              ),
-              const SizedBox(width: 8),
-              _buildFilterChip(
-                'ocupadas',
-                'Ocupadas',
-                Icons.restaurant,
-                AppColors.mesaOcupada,
-              ),
-              const SizedBox(width: 8),
-              _buildFilterChip(
-                'reservadas',
-                'Reservadas',
-                Icons.event,
-                AppColors.mesaReservada,
-              ),
-              const SizedBox(width: 8),
-              _buildFilterChip(
-                'atencion',
-                'Atención',
-                Icons.notification_important,
-                AppColors.mesaAtencion,
-              ),
-            ],
-          ),
-        ),
+  Widget _buildFiltros() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Colors.white,
+      child: Row(
+        children: [
+          _buildFiltroChip('todas', 'Todas'),
+          const SizedBox(width: 8),
+          _buildFiltroChip('libres', 'Libres', AppColors.success),
+          const SizedBox(width: 8),
+          _buildFiltroChip('ocupadas', 'Ocupadas', AppColors.warning),
+          const SizedBox(width: 8),
+          _buildFiltroChip('reservadas', 'Reservas', AppColors.mesaReservada),
+        ],
       ),
     );
   }
 
-  Widget _buildFilterChip(
-    String value,
-    String label,
-    IconData icon,
-    Color? color,
-  ) {
-    final isSelected = _filtroEstado == value;
+  Widget _buildFiltroChip(String valor, String label, [Color? color]) {
+    final selected = _filtroEstado == valor;
     return FilterChip(
-      selected: isSelected,
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 16,
-            color: isSelected
-                ? (color ?? AppColors.primary)
-                : AppColors.textSecondary,
-          ),
-          const SizedBox(width: 6),
-          Text(label),
-        ],
-      ),
-      onSelected: (_) => setState(() => _filtroEstado = value),
-      backgroundColor: AppColors.lightSurface,
-      selectedColor: (color ?? AppColors.primary).withValues(alpha: 0.15),
+      selected: selected,
+      label: Text(label),
+      onSelected: (_) => setState(() => _filtroEstado = valor),
+      selectedColor: (color ?? AppColors.primary).withValues(alpha: 0.2),
       checkmarkColor: color ?? AppColors.primary,
-      side: BorderSide(
-        color: isSelected
-            ? (color ?? AppColors.primary)
-            : AppColors.lightDivider,
-      ),
     );
   }
 
   Widget _buildMesasGrid(List<Mesa> mesas) {
     if (mesas.isEmpty) {
-      return SliverFillRemaining(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.table_restaurant,
-                size: 80,
-                color: Colors.grey.shade300,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No hay mesas',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey.shade500,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Toca el botón + para agregar mesas',
-                style: TextStyle(color: Colors.grey.shade400),
-              ),
-            ],
-          ),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.table_restaurant, size: 80, color: Colors.grey.shade300),
+            const SizedBox(height: 16),
+            Text(
+              'No hay mesas',
+              style: TextStyle(fontSize: 18, color: Colors.grey.shade500),
+            ),
+          ],
         ),
       );
     }
 
-    return SliverPadding(
+    return GridView.builder(
       padding: const EdgeInsets.all(16),
-      sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 200,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          childAspectRatio: 0.9,
-        ),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) => _buildMesaCard(mesas[index]),
-          childCount: mesas.length,
-        ),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.1,
       ),
+      itemCount: mesas.length,
+      itemBuilder: (context, index) => _buildMesaCard(mesas[index]),
     );
   }
 
   Widget _buildMesaCard(Mesa mesa) {
     final estadoData = _getEstadoData(mesa.estado);
+    final pedidoActual = mesa.pedidoActualId != null
+        ? ref
+              .read(pedidosProvider)
+              .where((p) => p.id == mesa.pedidoActualId)
+              .firstOrNull
+        : null;
+    final totalPedido =
+        pedidoActual?.items.fold<double>(
+          0,
+          (sum, item) => sum + item.subtotal,
+        ) ??
+        0;
 
     return Card(
       clipBehavior: Clip.antiAlias,
+      elevation: 2,
       child: InkWell(
-        onTap: () => _abrirDetalleMesa(context, mesa),
-        onLongPress: () => _mostrarMenuMesa(context, mesa),
+        onTap: () => _mostrarOpcionesMesa(context, mesa),
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [estadoData.color.withValues(alpha: 0.08), Colors.white],
+              colors: [estadoData.color.withValues(alpha: 0.1), Colors.white],
             ),
           ),
           child: Column(
@@ -365,27 +239,28 @@ class _MesasScreenState extends ConsumerState<MesasScreen> {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+                  horizontal: 10,
+                  vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: estadoData.color.withValues(alpha: 0.15),
+                  color: estadoData.color.withValues(alpha: 0.2),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           estadoData.icono,
-                          size: 16,
+                          size: 14,
                           color: estadoData.color,
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         Text(
                           estadoData.texto,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: estadoData.color,
                           ),
@@ -394,12 +269,12 @@ class _MesasScreenState extends ConsumerState<MesasScreen> {
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
+                        horizontal: 6,
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -409,13 +284,12 @@ class _MesasScreenState extends ConsumerState<MesasScreen> {
                             size: 12,
                             color: AppColors.textSecondary,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 2),
                           Text(
                             '${mesa.capacidad}',
                             style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textSecondary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
@@ -429,62 +303,38 @@ class _MesasScreenState extends ConsumerState<MesasScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: estadoData.color.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.table_restaurant,
-                          size: 40,
-                          color: estadoData.color,
-                        ),
+                      Icon(
+                        Icons.table_restaurant,
+                        size: 40,
+                        color: estadoData.color,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Text(
                         'Mesa ${mesa.numero}',
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       if (mesa.estado == EstadoMesa.ocupada &&
-                          mesa.tiempoTranscurrido != null) ...[
+                          totalPedido > 0) ...[
                         const SizedBox(height: 4),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
+                            horizontal: 8,
+                            vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: _getTiempoColor(
-                              mesa.tiempoTranscurrido!,
-                            ).withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
+                            color: AppColors.success.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.access_time,
-                                size: 12,
-                                color: _getTiempoColor(
-                                  mesa.tiempoTranscurrido!,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _formatearTiempo(mesa.tiempoTranscurrido!),
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: _getTiempoColor(
-                                    mesa.tiempoTranscurrido!,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          child: Text(
+                            '${totalPedido.toStringAsFixed(2)} €',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.success,
+                            ),
                           ),
                         ),
                       ],
@@ -502,56 +352,26 @@ class _MesasScreenState extends ConsumerState<MesasScreen> {
   _EstadoData _getEstadoData(EstadoMesa estado) {
     switch (estado) {
       case EstadoMesa.libre:
-        return _EstadoData(AppColors.mesaLibre, 'Libre', Icons.check_circle);
+        return _EstadoData(AppColors.success, 'Libre', Icons.check_circle);
       case EstadoMesa.ocupada:
-        return _EstadoData(AppColors.mesaOcupada, 'Ocupada', Icons.restaurant);
+        return _EstadoData(AppColors.warning, 'Ocupada', Icons.restaurant);
       case EstadoMesa.reservada:
         return _EstadoData(AppColors.mesaReservada, 'Reservada', Icons.event);
       case EstadoMesa.necesitaAtencion:
         return _EstadoData(
-          AppColors.mesaAtencion,
+          AppColors.error,
           'Atención',
           Icons.notification_important,
         );
     }
   }
 
-  Color _getTiempoColor(Duration duracion) {
-    if (duracion.inMinutes < 30) return AppColors.success;
-    if (duracion.inMinutes < 60) return AppColors.warning;
-    return AppColors.error;
-  }
-
-  String _formatearTiempo(Duration duracion) {
-    if (duracion.inMinutes < 60) return '${duracion.inMinutes}m';
-    return '${duracion.inHours}h ${duracion.inMinutes % 60}m';
-  }
-
-  Map<String, int> _calculateStats(List<Mesa> mesas) {
-    return {
-      'libres': mesas.where((m) => m.estado == EstadoMesa.libre).length,
-      'ocupadas': mesas.where((m) => m.estado == EstadoMesa.ocupada).length,
-      'reservadas': mesas.where((m) => m.estado == EstadoMesa.reservada).length,
-      'atencion': mesas
-          .where((m) => m.estado == EstadoMesa.necesitaAtencion)
-          .length,
-    };
-  }
-
-  void _abrirDetalleMesa(BuildContext context, Mesa mesa) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => MesaDetalleScreen(mesa: mesa)),
-    );
-  }
-
-  void _agregarMesa(BuildContext context) {
-    showDialog(context: context, builder: (context) => const MesaDialog());
-  }
-
-  void _mostrarMenuMesa(BuildContext context, Mesa mesa) {
+  void _mostrarOpcionesMesa(BuildContext context, Mesa mesa) {
     showModalBottomSheet(
       context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -603,36 +423,66 @@ class _MesasScreenState extends ConsumerState<MesasScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            _buildMenuItem(
-              icon: Icons.visibility,
-              title: 'Ver detalles',
-              color: AppColors.primary,
-              onTap: () {
+            if (mesa.estado == EstadoMesa.libre) ...[
+              _buildOpcion(
+                Icons.add_circle,
+                'Abrir Mesa',
+                AppColors.success,
+                () {
+                  Navigator.pop(context);
+                  _abrirMesa(mesa);
+                },
+              ),
+              _buildOpcion(
+                Icons.event_available,
+                'Reservar',
+                AppColors.mesaReservada,
+                () {
+                  Navigator.pop(context);
+                  ref.read(mesasProvider.notifier).marcarReservada(mesa.id);
+                },
+              ),
+            ],
+            if (mesa.estado == EstadoMesa.ocupada) ...[
+              _buildOpcion(
+                Icons.visibility,
+                'Ver Pedido',
+                AppColors.primary,
+                () {
+                  Navigator.pop(context);
+                  _verPedidoMesa(mesa);
+                },
+              ),
+              _buildOpcion(Icons.payment, 'Cobrar', AppColors.success, () {
                 Navigator.pop(context);
-                _abrirDetalleMesa(context, mesa);
-              },
-            ),
-            _buildMenuItem(
-              icon: Icons.edit,
-              title: 'Editar mesa',
-              color: AppColors.warning,
-              onTap: () {
+                _cobrarMesa(mesa);
+              }),
+              _buildOpcion(Icons.cancel, 'Cancelar', AppColors.error, () {
                 Navigator.pop(context);
-                showDialog(
-                  context: context,
-                  builder: (context) => MesaDialog(mesa: mesa),
-                );
-              },
-            ),
-            _buildMenuItem(
-              icon: Icons.delete,
-              title: 'Eliminar mesa',
-              color: AppColors.error,
-              onTap: () {
+                _cancelarMesa(mesa);
+              }),
+            ],
+            if (mesa.estado == EstadoMesa.reservada) ...[
+              _buildOpcion(
+                Icons.check_circle,
+                'Activar Reserva',
+                AppColors.success,
+                () {
+                  Navigator.pop(context);
+                  _abrirMesa(mesa);
+                },
+              ),
+            ],
+            if (mesa.estado == EstadoMesa.necesitaAtencion) ...[
+              _buildOpcion(Icons.check, 'Atender', AppColors.primary, () {
                 Navigator.pop(context);
-                _eliminarMesa(context, ref, mesa);
-              },
-            ),
+                ref.read(mesasProvider.notifier).liberar(mesa.id);
+              }),
+            ],
+            _buildOpcion(Icons.delete, 'Eliminar Mesa', AppColors.error, () {
+              Navigator.pop(context);
+              _eliminarMesa(mesa);
+            }),
             const SizedBox(height: 20),
           ],
         ),
@@ -640,12 +490,12 @@ class _MesasScreenState extends ConsumerState<MesasScreen> {
     );
   }
 
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildOpcion(
+    IconData icono,
+    String texto,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
@@ -653,30 +503,193 @@ class _MesasScreenState extends ConsumerState<MesasScreen> {
           color: color.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: color, size: 20),
+        child: Icon(icono, color: color, size: 20),
       ),
       title: Text(
-        title,
+        texto,
         style: TextStyle(color: color, fontWeight: FontWeight.w600),
       ),
       onTap: onTap,
     );
   }
 
-  void _eliminarMesa(BuildContext context, WidgetRef ref, Mesa mesa) {
+  void _abrirMesa(Mesa mesa) async {
+    final pedidoId = await ref.read(pedidosProvider.notifier).crear(mesa.id);
+    await ref.read(mesasProvider.notifier).ocupar(mesa.id, pedidoId);
+  }
+
+  void _verPedidoMesa(Mesa mesa) {
+    final pedido = mesa.pedidoActualId != null
+        ? ref
+              .read(pedidosProvider)
+              .where((p) => p.id == mesa.pedidoActualId)
+              .firstOrNull
+        : null;
+
+    if (pedido == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Text(
+                    'Pedido - Mesa ${mesa.numero}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Total: ${pedido.total.toStringAsFixed(2)} €',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.success,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                itemCount: pedido.items.length,
+                itemBuilder: (context, index) {
+                  final item = pedido.items[index];
+                  return ListTile(
+                    leading: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${item.cantidad}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    title: Text(item.productoNombre),
+                    trailing: Text(
+                      '${item.subtotal.toStringAsFixed(2)} €',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _cobrarMesa(Mesa mesa) async {
+    final pedido = mesa.pedidoActualId != null
+        ? ref
+              .read(pedidosProvider)
+              .where((p) => p.id == mesa.pedidoActualId)
+              .firstOrNull
+        : null;
+
+    if (pedido == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _CobroSheet(
+        total: pedido.total,
+        onCobrar: (metodoPago) async {
+          await ref
+              .read(pedidosProvider.notifier)
+              .cerrar(pedido.id, metodoPago);
+          await ref.read(mesasProvider.notifier).liberar(mesa.id);
+          if (mounted) {
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Venta completada - $metodoPago'),
+                backgroundColor: AppColors.success,
+                duration: const Duration(seconds: 1),
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  void _cancelarMesa(Mesa mesa) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.warning, color: AppColors.error),
-            SizedBox(width: 12),
-            Text('Eliminar Mesa'),
-          ],
-        ),
-        content: Text(
-          '¿Eliminar la Mesa ${mesa.numero}?\n\nEsta acción no se puede deshacer.',
-        ),
+        title: const Text('Cancelar Pedido'),
+        content: const Text('¿Cancelar el pedido y liberar la mesa?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('No'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (mesa.pedidoActualId != null) {
+                final pedido = ref
+                    .read(pedidosProvider)
+                    .where((p) => p.id == mesa.pedidoActualId)
+                    .firstOrNull;
+                if (pedido != null) {
+                  await ref
+                      .read(pedidosProvider.notifier)
+                      .cerrar(pedido.id, 'Cancelado');
+                }
+              }
+              await ref.read(mesasProvider.notifier).liberar(mesa.id);
+              Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Sí, cancelar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _eliminarMesa(Mesa mesa) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Eliminar Mesa'),
+        content: Text('¿Eliminar Mesa ${mesa.numero}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -686,12 +699,6 @@ class _MesasScreenState extends ConsumerState<MesasScreen> {
             onPressed: () {
               ref.read(mesasProvider.notifier).eliminar(mesa.id);
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Mesa eliminada'),
-                  backgroundColor: AppColors.error,
-                ),
-              );
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('Eliminar'),
@@ -708,4 +715,114 @@ class _EstadoData {
   final IconData icono;
 
   _EstadoData(this.color, this.texto, this.icono);
+}
+
+class _CobroSheet extends StatefulWidget {
+  final double total;
+  final Function(String) onCobrar;
+
+  const _CobroSheet({required this.total, required this.onCobrar});
+
+  @override
+  State<_CobroSheet> createState() => _CobroSheetState();
+}
+
+class _CobroSheetState extends State<_CobroSheet> {
+  String _metodoPago = 'Efectivo';
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Total a Cobrar',
+            style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${widget.total.toStringAsFixed(2)} €',
+            style: const TextStyle(
+              fontSize: 48,
+              fontWeight: FontWeight.bold,
+              color: AppColors.secondary,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: _buildMetodoButton(
+                  Icons.money,
+                  'Efectivo',
+                  AppColors.success,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMetodoButton(
+                  Icons.credit_card,
+                  'Tarjeta',
+                  AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => widget.onCobrar(_metodoPago),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.success,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: Text('Cobrar $_metodoPago'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetodoButton(IconData icon, String texto, Color color) {
+    final selected = _metodoPago == texto;
+    return InkWell(
+      onTap: () => setState(() => _metodoPago = texto),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: selected ? color : color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 32, color: selected ? Colors.white : color),
+            const SizedBox(height: 8),
+            Text(
+              texto,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: selected ? Colors.white : color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
-import '../../data/services/print_service.dart';
 
 class TicketWidget extends StatelessWidget {
   final List<PedidoItem> items;
@@ -27,8 +26,7 @@ class TicketWidget extends StatelessWidget {
     final baseImponible = total / (1 + ivaPorcentaje / 100);
     final importeIva = total - baseImponible;
     final now = DateTime.now();
-    final numeroTicket =
-        'T-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.millisecondsSinceEpoch.toString().substring(7)}';
+    final numeroTicket = _generateNumeroTicket(now);
     final totalConPropina = total * (1 + porcentajePropina / 100);
 
     final itemsHtml = items
@@ -46,7 +44,7 @@ class TicketWidget extends StatelessWidget {
     return '''
       <div class="header">
         <h1>${negocio.nombre.toUpperCase()}</h1>
-        <div>${negocio.razonSocial ?? ''}</div>
+        ${negocio.razonSocial != null && negocio.razonSocial!.isNotEmpty ? '<div>${negocio.razonSocial}</div>' : ''}
         <div>${negocio.direccion}</div>
         <div>${negocio.ciudad}</div>
         <div><strong>CIF/NIF: ${negocio.cifNif ?? 'N/A'}</strong></div>
@@ -85,7 +83,7 @@ class TicketWidget extends StatelessWidget {
         <div><strong>FACTURA SIMPLIFICADA</strong></div>
         <div>Sin efectos fiscales</div>
         <div>RD 1496/2003</div>
-        <div>¡Gracias por su visita!</div>
+        <div>!Gracias por su visita!</div>
       </div>
     ''';
   }
@@ -105,7 +103,8 @@ class TicketWidget extends StatelessWidget {
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
-          if (negocio.razonSocial != null) ...[
+          if (negocio.razonSocial != null &&
+              negocio.razonSocial!.isNotEmpty) ...[
             const SizedBox(height: 2),
             Text(
               negocio.razonSocial!,
@@ -122,8 +121,19 @@ class TicketWidget extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Divider(thickness: 1),
-          _buildRow('Nº Ticket', _generateNumeroTicket(), bold: true),
+          _buildRow(
+            'Nº Ticket',
+            _generateNumeroTicket(DateTime.now()),
+            bold: true,
+          ),
           const Divider(thickness: 1),
+          if (mesaNumero != null) ...[
+            Text(
+              'Mesa: $mesaNumero',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+            ),
+            const Divider(thickness: 1),
+          ],
           _buildItemsList(),
           const Divider(thickness: 1),
           _buildTotals(),
@@ -146,8 +156,7 @@ class TicketWidget extends StatelessWidget {
     );
   }
 
-  String _generateNumeroTicket() {
-    final now = DateTime.now();
+  String _generateNumeroTicket(DateTime now) {
     return 'T-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.millisecondsSinceEpoch.toString().substring(7)}';
   }
 
@@ -190,7 +199,7 @@ class TicketWidget extends StatelessWidget {
             ),
             Expanded(
               child: Text(
-                'Descripción',
+                'Descripcion',
                 style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
               ),
             ),
@@ -221,6 +230,7 @@ class TicketWidget extends StatelessWidget {
                   child: Text(
                     item.productoNombre,
                     style: const TextStyle(fontSize: 9),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 SizedBox(
@@ -338,7 +348,7 @@ class TicketPrintHelper {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('¿Desea imprimir el ticket?'),
+                const Text('Desea imprimir el ticket?'),
                 const SizedBox(height: 16),
                 Container(
                   constraints: const BoxConstraints(maxHeight: 400),
@@ -356,20 +366,16 @@ class TicketPrintHelper {
               child: const Text('Cerrar sin imprimir'),
             ),
             ElevatedButton.icon(
-              onPressed: () async {
+              onPressed: () {
                 Navigator.pop(context);
-                await PrintService.printTicket(
-                  items: items,
-                  total: total,
-                  ivaPorcentaje: ivaPorcentaje,
-                  metodoPago: metodoPago,
-                  negocio: negocio,
-                  mesaNumero: mesaNumero,
-                  porcentajePropina: porcentajePropina,
-                  numeroTicket: TicketPrintHelper.generateNumeroTicket(
-                    DateTime.now(),
-                    items.firstOrNull?.productoId ?? '000000',
-                  ),
+                _printTicket(
+                  items,
+                  total,
+                  ivaPorcentaje,
+                  metodoPago,
+                  negocio,
+                  mesaNumero,
+                  porcentajePropina,
                 );
                 onImprimir?.call();
               },
@@ -382,26 +388,16 @@ class TicketPrintHelper {
     );
   }
 
-  static String generateNumeroTicket(DateTime fecha, String pedidoId) {
-    final year = fecha.year.toString().substring(2);
-    final month = fecha.month.toString().padLeft(2, '0');
-    final day = fecha.day.toString().padLeft(2, '0');
-    final suffix = pedidoId.length > 6
-        ? pedidoId.substring(pedidoId.length - 6)
-        : pedidoId;
-    return 'T-$year$month$day-$suffix';
-  }
-
-  static Future<void> printTicket({
-    required List<PedidoItem> items,
-    required double total,
-    required double porcentajePropina,
-    required double ivaPorcentaje,
-    required String metodoPago,
-    required DatosNegocio negocio,
+  static void _printTicket(
+    List<PedidoItem> items,
+    double total,
+    double ivaPorcentaje,
+    String metodoPago,
+    DatosNegocio negocio,
     String? mesaNumero,
-  }) async {
-    await PrintService.printTicket(
+    double porcentajePropina,
+  ) {
+    final ticket = TicketWidget(
       items: items,
       total: total,
       ivaPorcentaje: ivaPorcentaje,
@@ -410,5 +406,55 @@ class TicketPrintHelper {
       mesaNumero: mesaNumero,
       porcentajePropina: porcentajePropina,
     );
+
+    final html =
+        '''
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Ticket</title>
+  <style>
+    @page { margin: 0; size: 80mm auto; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Courier New', monospace; 
+      font-size: 12px; 
+      width: 80mm; 
+      padding: 5mm;
+      margin: 0 auto;
+    }
+    .header { text-align: center; margin-bottom: 10px; }
+    .header h1 { font-size: 16px; margin-bottom: 5px; }
+    .divider { border-top: 1px dashed #000; margin: 8px 0; }
+    .row { display: flex; justify-content: space-between; margin: 3px 0; font-size: 11px; }
+    .total { font-weight: bold; font-size: 14px; }
+    .footer { text-align: center; margin-top: 10px; font-size: 10px; }
+    .center { text-align: center; }
+    .bold { font-weight: bold; }
+  </style>
+</head>
+<body>
+${ticket.generateTicketHtml()}
+</body>
+</html>
+''';
+
+    _openPrintWindow(html);
+  }
+
+  static void _openPrintWindow(String htmlContent) {
+    // En mobile, mostrar el ticket en pantalla para imprimir
+    // En desktop/web, usar window.print()
+  }
+
+  static String generateNumeroTicket(DateTime fecha, String pedidoId) {
+    final year = fecha.year.toString().substring(2);
+    final month = fecha.month.toString().padLeft(2, '0');
+    final day = fecha.day.toString().padLeft(2, '0');
+    final suffix = pedidoId.length > 6
+        ? pedidoId.substring(pedidoId.length - 6)
+        : pedidoId;
+    return 'T-$year$month$day-$suffix';
   }
 }

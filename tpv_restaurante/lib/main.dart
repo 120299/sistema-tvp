@@ -3,10 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'data/services/database_service.dart';
-import 'presentation/screens/dashboard_screen.dart';
+import 'presentation/screens/app_shell.dart';
 import 'presentation/screens/mesas_screen.dart';
-import 'presentation/screens/productos_screen.dart';
-import 'presentation/screens/informes_screen.dart';
 import 'presentation/screens/configuracion_screen.dart';
 import 'presentation/providers/providers.dart';
 
@@ -50,12 +48,9 @@ class TPVRestauranteApp extends ConsumerWidget {
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
       themeMode: themeMode,
-      initialRoute: '/',
+      home: const AppShell(),
       routes: {
-        '/': (context) => const DashboardScreen(),
         '/mesas': (context) => const MesasScreen(),
-        '/productos': (context) => const ProductosScreen(),
-        '/informes': (context) => const InformesScreen(),
         '/configuracion': (context) => const ConfiguracionScreen(),
       },
     );

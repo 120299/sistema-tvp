@@ -69,7 +69,16 @@ class Caja {
     this.saldoFinal,
   });
 
-  double get saldoCaja => fondoInicial + totalVentas;
+  double get saldoCaja {
+    final ventasEnEfectivo = totalEfectivo;
+    final otrosIngresos = movimientos
+        .where((m) => m.tipo == 'ingreso')
+        .fold<double>(0, (sum, m) => sum + m.cantidad);
+    final retiros = movimientos
+        .where((m) => m.tipo == 'retiro')
+        .fold<double>(0, (sum, m) => sum + m.cantidad);
+    return fondoInicial + ventasEnEfectivo + otrosIngresos - retiros;
+  }
 
   Caja copyWith({
     String? id,
