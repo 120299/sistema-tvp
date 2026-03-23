@@ -1,0 +1,10 @@
+export 'mesas_screen.dart';
+export 'productos_screen.dart';
+export 'cocina_screen.dart';
+export 'informes_screen.dart';
+export 'dashboard_screen.dart';
+export 'pedido_screen.dart';
+export 'mesa_detalle_screen.dart';
+export 'configuracion_screen.dart';
+export 'venta_libre_screen.dart';
+export '../widgets/ticket_widget.dart';
