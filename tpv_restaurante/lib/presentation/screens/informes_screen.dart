@@ -277,7 +277,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
             children: [
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: _filtroMetodo,
+                  initialValue: _filtroMetodo,
                   decoration: const InputDecoration(
                     labelText: 'Método de pago',
                     prefixIcon: Icon(Icons.payment),
@@ -302,7 +302,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: DropdownButtonFormField<String?>(
-                  value: _filtroMesa,
+                  initialValue: _filtroMesa,
                   decoration: const InputDecoration(
                     labelText: 'Mesa',
                     prefixIcon: Icon(Icons.table_restaurant),

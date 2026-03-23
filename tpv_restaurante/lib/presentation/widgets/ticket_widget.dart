@@ -356,9 +356,21 @@ class TicketPrintHelper {
               child: const Text('Cerrar sin imprimir'),
             ),
             ElevatedButton.icon(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context);
-                printService.printTicket(ticketWidget.generateTicketHtml());
+                await PrintService.printTicket(
+                  items: items,
+                  total: total,
+                  ivaPorcentaje: ivaPorcentaje,
+                  metodoPago: metodoPago,
+                  negocio: negocio,
+                  mesaNumero: mesaNumero,
+                  porcentajePropina: porcentajePropina,
+                  numeroTicket: TicketPrintHelper.generateNumeroTicket(
+                    DateTime.now(),
+                    items.firstOrNull?.productoId ?? '000000',
+                  ),
+                );
                 onImprimir?.call();
               },
               icon: const Icon(Icons.print),
@@ -370,7 +382,17 @@ class TicketPrintHelper {
     );
   }
 
-  static void printTicket({
+  static String generateNumeroTicket(DateTime fecha, String pedidoId) {
+    final year = fecha.year.toString().substring(2);
+    final month = fecha.month.toString().padLeft(2, '0');
+    final day = fecha.day.toString().padLeft(2, '0');
+    final suffix = pedidoId.length > 6
+        ? pedidoId.substring(pedidoId.length - 6)
+        : pedidoId;
+    return 'T-$year$month$day-$suffix';
+  }
+
+  static Future<void> printTicket({
     required List<PedidoItem> items,
     required double total,
     required double porcentajePropina,
@@ -378,16 +400,15 @@ class TicketPrintHelper {
     required String metodoPago,
     required DatosNegocio negocio,
     String? mesaNumero,
-  }) {
-    final ticketWidget = TicketWidget(
+  }) async {
+    await PrintService.printTicket(
       items: items,
       total: total,
-      porcentajePropina: porcentajePropina,
       ivaPorcentaje: ivaPorcentaje,
       metodoPago: metodoPago,
       negocio: negocio,
       mesaNumero: mesaNumero,
+      porcentajePropina: porcentajePropina,
     );
-    printService.printTicket(ticketWidget.generateTicketHtml());
   }
 }

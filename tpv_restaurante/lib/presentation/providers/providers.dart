@@ -286,6 +286,13 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
     await _cambiarEstado(pedidoId, EstadoPedido.listo);
   }
 
+  Future<void> actualizar(Pedido pedido) async {
+    final pedidoIndex = state.indexWhere((p) => p.id == pedido.id);
+    if (pedidoIndex < 0) return;
+    await _db.pedidosBox.putAt(pedidoIndex, pedido);
+    _refresh();
+  }
+
   Future<void> cerrar(
     String pedidoId,
     String metodoPago, {

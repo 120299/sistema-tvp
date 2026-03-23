@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../providers/providers.dart';
-import '../widgets/ticket_widget.dart';
+import 'mesa_productos_screen.dart';
 
 class MesaDetalleScreen extends ConsumerStatefulWidget {
   final Mesa mesa;
@@ -15,361 +15,602 @@ class MesaDetalleScreen extends ConsumerStatefulWidget {
   ConsumerState<MesaDetalleScreen> createState() => _MesaDetalleScreenState();
 }
 
-class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
+class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   String _filtroMetodo = 'Todos';
   DateTime? _fechaFiltro;
-  bool _showPedido = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final mesaActual = ref
         .watch(mesasProvider)
         .firstWhere((m) => m.id == widget.mesa.id, orElse: () => widget.mesa);
+    final estadoData = _getEstadoData(mesaActual.estado);
 
     return Scaffold(
+      backgroundColor: AppColors.lightBackground,
       appBar: AppBar(
         title: Text('Mesa ${widget.mesa.numero}'),
-        actions: [
-          if (mesaActual.estado == EstadoMesa.ocupada)
-            IconButton(
-              icon: const Icon(Icons.receipt),
-              tooltip: 'Ver pedido actual',
-              onPressed: () => setState(() => _showPedido = !_showPedido),
+        backgroundColor: estadoData.color,
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          tabs: const [
+            Tab(text: 'Información', icon: Icon(Icons.info_outline)),
+            Tab(text: 'Historial', icon: Icon(Icons.history)),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          _buildEstadoHeader(mesaActual, estadoData),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildInfoTab(mesaActual),
+                _buildHistorialTab(mesaActual),
+              ],
             ),
+          ),
         ],
       ),
-      body: mesaActual.estado == EstadoMesa.ocupada && _showPedido
-          ? _buildPedidoActual(mesaActual)
-          : _buildInfoMesa(mesaActual),
-      floatingActionButton: _buildFab(mesaActual),
+      bottomNavigationBar: _buildBottomBar(mesaActual),
     );
   }
 
-  Widget _buildInfoMesa(Mesa mesa) {
+  Widget _buildEstadoHeader(Mesa mesa, _EstadoData estadoData) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: estadoData.color,
+        boxShadow: [
+          BoxShadow(
+            color: estadoData.color.withValues(alpha: 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(estadoData.icono, color: Colors.white, size: 32),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    estadoData.texto,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (mesa.horaApertura != null)
+                    Text(
+                      'Desde ${DateFormat('HH:mm').format(mesa.horaApertura!)}',
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    '${mesa.capacidad}',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: estadoData.color,
+                    ),
+                  ),
+                  Text(
+                    'pers.',
+                    style: TextStyle(fontSize: 12, color: estadoData.color),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoTab(Mesa mesa) {
+    final negocio = ref.read(negocioProvider);
+    final pedidoActual = _getPedidoActual(mesa);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildEstadoCard(mesa),
-          const SizedBox(height: 20),
-          _buildDetallesCard(mesa),
-          const SizedBox(height: 20),
+          if (pedidoActual != null) ...[
+            _buildPedidoCard(mesa, pedidoActual, negocio),
+            const SizedBox(height: 20),
+          ],
           _buildAccionesCard(mesa),
           const SizedBox(height: 20),
-          _buildHistorialHeader(),
-          _buildHistorialList(mesa),
+          if (mesa.estado == EstadoMesa.ocupada) ...[
+            _buildTiempoCard(mesa),
+            const SizedBox(height: 20),
+          ],
+          _buildInfoCard(mesa),
         ],
       ),
     );
   }
 
-  Widget _buildEstadoCard(Mesa mesa) {
-    Color estadoColor;
-    String estadoTexto;
-    IconData estadoIcono;
-
-    switch (mesa.estado) {
-      case EstadoMesa.libre:
-        estadoColor = AppColors.mesaLibre;
-        estadoTexto = 'Libre';
-        estadoIcono = Icons.check_circle;
-        break;
-      case EstadoMesa.ocupada:
-        estadoColor = AppColors.mesaOcupada;
-        estadoTexto = 'Ocupada';
-        estadoIcono = Icons.circle;
-        break;
-      case EstadoMesa.reservada:
-        estadoColor = AppColors.mesaReservada;
-        estadoTexto = 'Reservada';
-        estadoIcono = Icons.event;
-        break;
-      case EstadoMesa.necesitaAtencion:
-        estadoColor = AppColors.mesaAtencion;
-        estadoTexto = 'Necesita Atención';
-        estadoIcono = Icons.warning;
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: estadoColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: estadoColor.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: estadoColor.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(estadoIcono, color: estadoColor, size: 32),
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildPedidoCard(Mesa mesa, Pedido pedido, DatosNegocio negocio) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Text(
-                  estadoTexto,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: estadoColor,
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.receipt, color: AppColors.secondary),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pedido Activo',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'En curso',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                if (mesa.horaApertura != null)
-                  Text(
-                    'Desde: ${DateFormat('HH:mm').format(mesa.horaApertura!)}',
-                    style: const TextStyle(color: Colors.grey),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
                   ),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${pedido.items.length} items',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondary,
+                    ),
+                  ),
+                ),
               ],
             ),
-          ),
-          if (mesa.estado == EstadoMesa.ocupada)
-            IconButton(
-              icon: const Icon(Icons.receipt_long, color: AppColors.primary),
-              onPressed: () => setState(() => _showPedido = true),
-              tooltip: 'Ver pedido',
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetallesCard(Mesa mesa) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Detalles de la Mesa',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildDetalleItem(Icons.tag, 'Número', '${mesa.numero}'),
-              ),
-              Expanded(
-                child: _buildDetalleItem(
-                  Icons.people,
-                  'Capacidad',
-                  '${mesa.capacidad} personas',
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 12),
+            ...pedido.items
+                .take(3)
+                .map(
+                  (item) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${item.cantidad}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(child: Text(item.productoNombre)),
+                        Text(
+                          '${item.subtotal.toStringAsFixed(2)} €',
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            if (pedido.items.length > 3) ...[
+              const SizedBox(height: 8),
+              Text(
+                '+${pedido.items.length - 3} más...',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetalleItem(IconData icono, String label, String valor) {
-    return Row(
-      children: [
-        Icon(icono, size: 20, color: AppColors.primary),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            const SizedBox(height: 12),
+            const Divider(),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Total:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  '${pedido.total.toStringAsFixed(2)} €',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.secondary,
+                  ),
+                ),
+              ],
             ),
-            Text(valor, style: const TextStyle(fontWeight: FontWeight.w600)),
           ],
         ),
-      ],
+      ),
     );
   }
 
   Widget _buildAccionesCard(Mesa mesa) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Acciones Rápidas',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              _buildAccionBoton(
-                Icons.restaurant,
-                'Nuevo Pedido',
-                () => _nuevoPedido(mesa),
-                AppColors.secondary,
-              ),
-              _buildAccionBoton(
-                Icons.event_available,
-                'Reservar',
-                () => _reservarMesa(mesa),
-                AppColors.primary,
-              ),
-              _buildAccionBoton(
-                Icons.warning,
-                'Llamar',
-                () => _llamarMozo(mesa),
-                AppColors.warning,
-              ),
-              if (mesa.estado == EstadoMesa.libre)
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Acciones Rápidas',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                if (mesa.estado == EstadoMesa.libre) ...[
+                  _buildAccionBoton(
+                    Icons.add_circle,
+                    'Abrir Mesa',
+                    () => _nuevoPedido(mesa),
+                    AppColors.secondary,
+                  ),
+                  _buildAccionBoton(
+                    Icons.event_available,
+                    'Reservar',
+                    () => _reservarMesa(mesa),
+                    AppColors.mesaReservada,
+                  ),
+                ],
+                if (mesa.estado == EstadoMesa.ocupada) ...[
+                  _buildAccionBoton(
+                    Icons.restaurant_menu,
+                    'Añadir Productos',
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MesaProductosScreen(mesa: mesa),
+                        ),
+                      );
+                    },
+                    AppColors.primary,
+                  ),
+                  _buildAccionBoton(
+                    Icons.payment,
+                    'Cobrar',
+                    () => _cobrarYLiberar(mesa),
+                    AppColors.success,
+                  ),
+                  _buildAccionBoton(
+                    Icons.cancel,
+                    'Cancelar Pedido',
+                    () => _cancelarPedido(mesa),
+                    AppColors.error,
+                  ),
+                ],
+                if (mesa.estado == EstadoMesa.reservada)
+                  _buildAccionBoton(
+                    Icons.check_circle,
+                    'Activar Reserva',
+                    () => _nuevoPedido(mesa),
+                    AppColors.success,
+                  ),
+                if (mesa.estado == EstadoMesa.necesitaAtencion)
+                  _buildAccionBoton(
+                    Icons.check,
+                    'Atender',
+                    () => _liberarMesa(mesa),
+                    AppColors.primary,
+                  ),
                 _buildAccionBoton(
-                  Icons.delete,
-                  'Eliminar Mesa',
-                  () => _eliminarMesa(mesa),
-                  AppColors.error,
+                  Icons.edit,
+                  'Editar Mesa',
+                  () => showDialog(
+                    context: context,
+                    builder: (context) => _EditMesaDialog(mesa: mesa),
+                  ),
+                  AppColors.warning,
                 ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildAccionBoton(
-    IconData icono,
+    IconData icon,
     String texto,
-    VoidCallback onPressed,
+    VoidCallback onTap,
     Color color,
   ) {
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icono, size: 18),
-      label: Text(texto),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color.withValues(alpha: 0.1),
-        foregroundColor: color,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    return Material(
+      color: color.withValues(alpha: 0.1),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 20, color: color),
+              const SizedBox(width: 8),
+              Text(
+                texto,
+                style: TextStyle(color: color, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildHistorialHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'Historial de Pedidos',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        Row(
+  Widget _buildTiempoCard(Mesa mesa) {
+    if (mesa.tiempoTranscurrido == null) return const SizedBox();
+
+    final tiempo = mesa.tiempoTranscurrido!;
+    final color = _getTiempoColor(tiempo);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
           children: [
-            DropdownButton<String>(
-              value: _filtroMetodo,
-              items: const [
-                DropdownMenuItem(value: 'Todos', child: Text('Todos')),
-                DropdownMenuItem(value: 'Efectivo', child: Text('Efectivo')),
-                DropdownMenuItem(value: 'Tarjeta', child: Text('Tarjeta')),
-              ],
-              onChanged: (value) {
-                setState(() => _filtroMetodo = value ?? 'Todos');
-              },
-            ),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: Icon(
-                _fechaFiltro != null
-                    ? Icons.filter_alt
-                    : Icons.filter_alt_outlined,
-                color: _fechaFiltro != null ? AppColors.primary : Colors.grey,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
               ),
-              onPressed: _seleccionarFecha,
-              tooltip: 'Filtrar por fecha',
+              child: Icon(Icons.timer, color: color, size: 28),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Tiempo en mesa',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  Text(
+                    _formatearTiempo(tiempo),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.access_time, size: 14, color: color),
+                  const SizedBox(width: 4),
+                  Text(
+                    _getTiempoLabel(tiempo),
+                    style: TextStyle(fontWeight: FontWeight.w600, color: color),
+                  ),
+                ],
+              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(Mesa mesa) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Información',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            _buildInfoRow(Icons.tag, 'Número', 'Mesa ${mesa.numero}'),
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              Icons.people,
+              'Capacidad',
+              '${mesa.capacidad} personas',
+            ),
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              Icons.access_time,
+              'Última apertura',
+              mesa.horaApertura != null
+                  ? DateFormat('dd/MM/yyyy HH:mm').format(mesa.horaApertura!)
+                  : 'Nunca',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String valor) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: AppColors.textSecondary),
+        const SizedBox(width: 12),
+        Text(label, style: const TextStyle(color: AppColors.textSecondary)),
+        const Spacer(),
+        Text(valor, style: const TextStyle(fontWeight: FontWeight.w600)),
+      ],
+    );
+  }
+
+  Widget _buildHistorialTab(Mesa mesa) {
+    final historialPedidos = ref
+        .watch(pedidosProvider.notifier)
+        .getPorMesa(mesa.id)
+        .where((p) => p.estado == EstadoPedido.cerrado)
+        .toList();
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Expanded(
+                child: SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(value: 'Todos', label: Text('Todos')),
+                    ButtonSegment(value: 'Efectivo', label: Text('Efectivo')),
+                    ButtonSegment(value: 'Tarjeta', label: Text('Tarjeta')),
+                  ],
+                  selected: {_filtroMetodo},
+                  onSelectionChanged: (value) {
+                    setState(() => _filtroMetodo = value.first);
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              IconButton.filledTonal(
+                icon: Icon(
+                  _fechaFiltro != null
+                      ? Icons.filter_alt
+                      : Icons.filter_alt_outlined,
+                ),
+                onPressed: _seleccionarFecha,
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: historialPedidos.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.receipt_long,
+                        size: 64,
+                        color: Colors.grey.shade300,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Sin pedidos en el historial',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey.shade500,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: historialPedidos.length,
+                  itemBuilder: (context, index) {
+                    return _buildHistorialCard(historialPedidos[index]);
+                  },
+                ),
         ),
       ],
     );
   }
 
-  Widget _buildHistorialList(Mesa mesa) {
-    final pedidosNotifier = ref.watch(pedidosProvider.notifier);
-    var historialPedidos = pedidosNotifier
-        .getPorMesa(mesa.id)
-        .where((p) => p.estado == EstadoPedido.cerrado)
-        .toList();
-
-    if (_filtroMetodo != 'Todos') {
-      historialPedidos = historialPedidos
-          .where((p) => p.metodoPago == _filtroMetodo)
-          .toList();
-    }
-
-    if (_fechaFiltro != null) {
-      historialPedidos = historialPedidos.where((p) {
-        return p.horaApertura.year == _fechaFiltro!.year &&
-            p.horaApertura.month == _fechaFiltro!.month &&
-            p.horaApertura.day == _fechaFiltro!.day;
-      }).toList();
-    }
-
-    if (historialPedidos.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(40),
-        child: Center(
-          child: Column(
-            children: [
-              Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade400),
-              const SizedBox(height: 16),
-              Text(
-                'Sin pedidos en el historial',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: historialPedidos.length,
-      itemBuilder: (context, index) {
-        return _buildTicketCard(historialPedidos[index]);
-      },
-    );
-  }
-
-  Widget _buildTicketCard(Pedido pedido) {
+  Widget _buildHistorialCard(Pedido pedido) {
     final negocio = ref.read(negocioProvider);
+    final esEfectivo = pedido.metodoPago == 'Efectivo';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -383,10 +624,14 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
+                  color: (esEfectivo ? AppColors.success : AppColors.primary)
+                      .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.receipt, color: AppColors.primary),
+                child: Icon(
+                  esEfectivo ? Icons.money : Icons.credit_card,
+                  color: esEfectivo ? AppColors.success : AppColors.primary,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -401,7 +646,10 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
                     ),
                     Text(
                       '${pedido.items.length} productos - ${pedido.metodoPago ?? 'N/A'}',
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -410,15 +658,9 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
                 '${pedido.total.toStringAsFixed(2)} €',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: 18,
                   color: AppColors.secondary,
                 ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.print, size: 20),
-                onPressed: () => _imprimirTicket(pedido, negocio),
-                tooltip: 'Imprimir ticket',
               ),
             ],
           ),
@@ -427,208 +669,89 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
     );
   }
 
-  Widget _buildPedidoActual(Mesa mesa) {
-    final pedidos = ref.watch(pedidosProvider);
-    final pedidoActual = mesa.pedidoActualId != null
-        ? pedidos.where((p) => p.id == mesa.pedidoActualId).firstOrNull
-        : null;
-
-    if (pedidoActual == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade400),
-            const SizedBox(height: 16),
-            const Text('No hay pedido activo'),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () => _nuevoPedido(mesa),
-              icon: const Icon(Icons.add),
-              label: const Text('Crear Pedido'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return _buildPedidoContent(mesa, pedidoActual);
-  }
-
-  Widget _buildPedidoContent(Mesa mesa, Pedido pedido) {
-    final negocio = ref.read(negocioProvider);
-    final baseImponible = pedido.total / (1 + negocio.ivaPorcentaje / 100);
-    final importeIva = pedido.total - baseImponible;
-
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          color: AppColors.mesaOcupada.withValues(alpha: 0.1),
-          child: Row(
-            children: [
-              const Icon(Icons.receipt, color: AppColors.mesaOcupada),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Pedido en Curso',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      '${pedido.items.length} productos - Total: ${pedido.total.toStringAsFixed(2)} €',
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => setState(() => _showPedido = false),
-                tooltip: 'Cerrar',
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: pedido.items.length,
-            itemBuilder: (context, index) {
-              final item = pedido.items[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '${item.cantidad}x',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  title: Text(item.productoNombre),
-                  subtitle: Text('${item.precioUnitario.toStringAsFixed(2)} €'),
-                  trailing: Text(
-                    '${item.subtotal.toStringAsFixed(2)} €',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 8,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Base imponible:'),
-                  Text('${baseImponible.toStringAsFixed(2)} €'),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('IVA (${negocio.ivaPorcentaje.toStringAsFixed(0)}%):'),
-                  Text('${importeIva.toStringAsFixed(2)} €'),
-                ],
-              ),
-              const Divider(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Total:',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    '${pedido.total.toStringAsFixed(2)} €',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.secondary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _imprimirTicket(pedido, negocio),
-                      icon: const Icon(Icons.print),
-                      label: const Text('Imprimir'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _cobrarPedido(mesa, pedido, negocio),
-                      icon: const Icon(Icons.payment),
-                      label: const Text('Cobrar'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget? _buildFab(Mesa mesa) {
+  Widget _buildBottomBar(Mesa mesa) {
     if (mesa.estado == EstadoMesa.libre) {
-      return FloatingActionButton.extended(
-        onPressed: () => _nuevoPedido(mesa),
-        icon: const Icon(Icons.add),
-        label: const Text('Abrir Mesa'),
-        backgroundColor: AppColors.secondary,
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ElevatedButton.icon(
+            onPressed: () => _nuevoPedido(mesa),
+            icon: const Icon(Icons.add),
+            label: const Text('Abrir Mesa'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.secondary,
+              minimumSize: const Size(double.infinity, 56),
+            ),
+          ),
+        ),
       );
     } else if (mesa.estado == EstadoMesa.ocupada) {
-      return FloatingActionButton.extended(
-        onPressed: () => _cobrarYLiberar(mesa),
-        icon: const Icon(Icons.payment),
-        label: const Text('Cobrar y Liberar'),
-        backgroundColor: AppColors.success,
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ElevatedButton.icon(
+            onPressed: () => _cobrarYLiberar(mesa),
+            icon: const Icon(Icons.payment),
+            label: const Text('Cobrar y Liberar'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.success,
+              minimumSize: const Size(double.infinity, 56),
+            ),
+          ),
+        ),
       );
     }
-    return null;
+    return const SizedBox();
+  }
+
+  Pedido? _getPedidoActual(Mesa mesa) {
+    if (mesa.pedidoActualId == null) return null;
+    final pedidos = ref.watch(pedidosProvider);
+    return pedidos.where((p) => p.id == mesa.pedidoActualId).firstOrNull;
+  }
+
+  _EstadoData _getEstadoData(EstadoMesa estado) {
+    switch (estado) {
+      case EstadoMesa.libre:
+        return _EstadoData(AppColors.mesaLibre, 'Libre', Icons.check_circle);
+      case EstadoMesa.ocupada:
+        return _EstadoData(AppColors.mesaOcupada, 'Ocupada', Icons.restaurant);
+      case EstadoMesa.reservada:
+        return _EstadoData(AppColors.mesaReservada, 'Reservada', Icons.event);
+      case EstadoMesa.necesitaAtencion:
+        return _EstadoData(
+          AppColors.mesaAtencion,
+          'Necesita Atención',
+          Icons.notification_important,
+        );
+    }
+  }
+
+  Color _getTiempoColor(Duration duracion) {
+    if (duracion.inMinutes < 30) return AppColors.success;
+    if (duracion.inMinutes < 60) return AppColors.warning;
+    return AppColors.error;
+  }
+
+  String _formatearTiempo(Duration duracion) {
+    if (duracion.inMinutes < 60) return '${duracion.inMinutes} min';
+    return '${duracion.inHours}h ${duracion.inMinutes % 60}m';
+  }
+
+  String _getTiempoLabel(Duration duracion) {
+    if (duracion.inMinutes < 30) return 'Normal';
+    if (duracion.inMinutes < 60) return 'Tardando';
+    return 'Urgente';
   }
 
   void _nuevoPedido(Mesa mesa) async {
     final pedidoId = await ref.read(pedidosProvider.notifier).crear(mesa.id);
-
     await ref.read(mesasProvider.notifier).ocupar(mesa.id, pedidoId);
 
     if (mounted) {
-      setState(() => _showPedido = true);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Pedido creado para la mesa'),
+          content: Text('Mesa abierta correctamente'),
           backgroundColor: AppColors.success,
         ),
       );
@@ -639,97 +762,54 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
     ref.read(mesasProvider.notifier).marcarReservada(mesa.id);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Mesa marcada como reservada'),
+        content: Text('Mesa reservada'),
         backgroundColor: AppColors.success,
       ),
     );
   }
 
-  void _llamarMozo(Mesa mesa) {
-    ref.read(mesasProvider.notifier).marcarAtencion(mesa.id);
+  void _liberarMesa(Mesa mesa) {
+    ref.read(mesasProvider.notifier).liberar(mesa.id);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Mozo notificado'),
-        backgroundColor: AppColors.warning,
+        content: Text('Mesa liberada'),
+        backgroundColor: AppColors.success,
       ),
     );
   }
 
-  void _eliminarMesa(Mesa mesa) {
+  void _cancelarPedido(Mesa mesa) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.warning, color: AppColors.error),
-            SizedBox(width: 12),
-            Text('Eliminar Mesa'),
-          ],
-        ),
-        content: Text(
-          '¿Eliminar la Mesa ${mesa.numero}?\n\nEsta acción no se puede deshacer.',
-        ),
+        title: const Text('Cancelar Pedido'),
+        content: const Text('¿Cancelar el pedido actual y liberar la mesa?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: const Text('No'),
           ),
           ElevatedButton(
-            onPressed: () {
-              ref.read(mesasProvider.notifier).eliminar(mesa.id);
+            onPressed: () async {
               Navigator.pop(ctx);
-              Navigator.pop(context);
+              if (mesa.pedidoActualId != null) {
+                final pedidos = ref.read(pedidosProvider);
+                final pedido = pedidos
+                    .where((p) => p.id == mesa.pedidoActualId)
+                    .firstOrNull;
+                if (pedido != null) {
+                  await ref
+                      .read(pedidosProvider.notifier)
+                      .cerrar(pedido.id, 'Cancelado');
+                }
+              }
+              await ref.read(mesasProvider.notifier).liberar(mesa.id);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Eliminar'),
+            child: const Text('Cancelar Pedido'),
           ),
         ],
       ),
-    );
-  }
-
-  void _cobrarPedido(Mesa mesa, Pedido pedido, DatosNegocio negocio) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => _CobroMesaDialog(
-        total: pedido.total,
-        onPago: (metodoPago, importeRecibido, cambio) {
-          _procesarPago(mesa, pedido, metodoPago);
-        },
-      ),
-    );
-  }
-
-  void _procesarPago(Mesa mesa, Pedido pedido, String metodoPago) async {
-    await ref.read(pedidosProvider.notifier).cerrar(pedido.id, metodoPago);
-    await ref.read(mesasProvider.notifier).liberar(mesa.id);
-
-    final negocio = ref.read(negocioProvider);
-
-    TicketPrintHelper.showPrintDialog(
-      context,
-      items: pedido.items,
-      total: pedido.total,
-      porcentajePropina: pedido.porcentajePropina,
-      ivaPorcentaje: negocio.ivaPorcentaje,
-      metodoPago: metodoPago,
-      negocio: negocio,
-      mesaNumero: mesa.numero.toString(),
-      onCerrar: () {
-        if (mounted) {
-          setState(() => _showPedido = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Venta completada con $metodoPago'),
-              backgroundColor: AppColors.success,
-            ),
-          );
-        }
-      },
     );
   }
 
@@ -740,7 +820,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
         : null;
 
     if (pedidoActual != null) {
-      _cobrarPedido(mesa, pedidoActual, ref.read(negocioProvider));
+      _mostrarDialogoCobro(mesa, pedidoActual);
     } else {
       await ref.read(mesasProvider.notifier).liberar(mesa.id);
       if (mounted) {
@@ -751,6 +831,35 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
           ),
         );
       }
+    }
+  }
+
+  void _mostrarDialogoCobro(Mesa mesa, Pedido pedido) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _CobroDialog(
+        total: pedido.total,
+        onPago: (metodoPago) => _procesarPago(mesa, pedido, metodoPago),
+      ),
+    );
+  }
+
+  void _procesarPago(Mesa mesa, Pedido pedido, String metodoPago) async {
+    await ref.read(pedidosProvider.notifier).cerrar(pedido.id, metodoPago);
+    await ref.read(mesasProvider.notifier).liberar(mesa.id);
+
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Venta completada con $metodoPago'),
+          backgroundColor: AppColors.success,
+        ),
+      );
     }
   }
 
@@ -769,15 +878,10 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
   void _verDetalleTicket(Pedido pedido, DatosNegocio negocio) {
     final baseImponible = pedido.total / (1 + negocio.ivaPorcentaje / 100);
     final importeIva = pedido.total - baseImponible;
-    final numeroTicket =
-        'T-${pedido.horaApertura.year}${pedido.horaApertura.month.toString().padLeft(2, '0')}${pedido.horaApertura.day.toString().padLeft(2, '0')}-${pedido.id.substring(pedido.id.length > 10 ? pedido.id.length - 6 : 0)}';
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.5,
@@ -787,6 +891,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
           controller: scrollController,
           padding: const EdgeInsets.all(24),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
                 child: Container(
@@ -799,100 +904,73 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      negocio.nombre,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    if (negocio.razonSocial != null)
-                      Text(
-                        negocio.razonSocial!,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
+                    child: const Icon(Icons.receipt, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Ticket',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    const SizedBox(height: 8),
-                    Text(
-                      negocio.direccion,
-                      style: const TextStyle(fontSize: 11),
-                    ),
-                    Text(negocio.ciudad, style: const TextStyle(fontSize: 11)),
-                    Text(
-                      'CIF/NIF: ${negocio.cifNif ?? "N/A"}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+                      Text(
+                        DateFormat(
+                          'dd/MM/yyyy HH:mm',
+                        ).format(pedido.horaApertura),
+                        style: const TextStyle(color: AppColors.textSecondary),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 8,
-                  horizontal: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Nº Ticket: $numeroTicket',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '${pedido.horaApertura.day.toString().padLeft(2, '0')}/${pedido.horaApertura.month.toString().padLeft(2, '0')}/${pedido.horaApertura.year} ${pedido.horaApertura.hour.toString().padLeft(2, '0')}:${pedido.horaApertura.minute.toString().padLeft(2, '0')}',
-                      style: const TextStyle(fontSize: 11),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               const Divider(),
               ...pedido.items.map(
                 (item) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Row(
                     children: [
-                      SizedBox(width: 30, child: Text('${item.cantidad}')),
-                      Expanded(child: Text(item.productoNombre)),
-                      SizedBox(
-                        width: 60,
-                        child: Text(
-                          '${item.precioUnitario.toStringAsFixed(2)} €',
-                          textAlign: TextAlign.right,
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '${item.cantidad}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
                         ),
                       ),
-                      SizedBox(
-                        width: 70,
-                        child: Text(
-                          '${item.subtotal.toStringAsFixed(2)} €',
-                          textAlign: TextAlign.right,
-                        ),
+                      const SizedBox(width: 12),
+                      Expanded(child: Text(item.productoNombre)),
+                      Text(
+                        '${item.subtotal.toStringAsFixed(2)} €',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
                 ),
               ),
               const Divider(),
+              const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -908,58 +986,61 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
                   Text('${importeIva.toStringAsFixed(2)} €'),
                 ],
               ),
-              const Divider(),
+              const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
                     'TOTAL:',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   Text(
                     '${pedido.total.toStringAsFixed(2)} €',
                     style: const TextStyle(
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
                       color: AppColors.secondary,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
                 ),
-                child: const Column(
+                decoration: BoxDecoration(
+                  color:
+                      (pedido.metodoPago == 'Efectivo'
+                              ? AppColors.success
+                              : AppColors.primary)
+                          .withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    Icon(
+                      pedido.metodoPago == 'Efectivo'
+                          ? Icons.money
+                          : Icons.credit_card,
+                      size: 16,
+                      color: pedido.metodoPago == 'Efectivo'
+                          ? AppColors.success
+                          : AppColors.primary,
+                    ),
+                    const SizedBox(width: 6),
                     Text(
-                      'FACTURA SIMPLIFICADA',
+                      pedido.metodoPago ?? 'N/A',
                       style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
+                        color: pedido.metodoPago == 'Efectivo'
+                            ? AppColors.success
+                            : AppColors.primary,
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Sin efectos fiscales según Real Decreto 1496/2003',
-                      style: TextStyle(fontSize: 9, color: Colors.grey),
-                    ),
                   ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _imprimirTicket(pedido, negocio);
-                  },
-                  icon: const Icon(Icons.print),
-                  label: const Text('Imprimir Ticket'),
                 ),
               ),
             ],
@@ -968,50 +1049,28 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen> {
       ),
     );
   }
-
-  void _imprimirTicket(Pedido pedido, DatosNegocio negocio) {
-    TicketPrintHelper.printTicket(
-      items: pedido.items,
-      total: pedido.total,
-      porcentajePropina: pedido.porcentajePropina,
-      ivaPorcentaje: negocio.ivaPorcentaje,
-      metodoPago: pedido.metodoPago ?? 'Efectivo',
-      negocio: negocio,
-      mesaNumero: widget.mesa.numero.toString(),
-    );
-  }
 }
 
-class _CobroMesaDialog extends StatefulWidget {
+class _EstadoData {
+  final Color color;
+  final String texto;
+  final IconData icono;
+
+  _EstadoData(this.color, this.texto, this.icono);
+}
+
+class _CobroDialog extends StatefulWidget {
   final double total;
-  final Function(String metodoPago, double? importeRecibido, double cambio)
-  onPago;
+  final Function(String metodoPago) onPago;
 
-  const _CobroMesaDialog({required this.total, required this.onPago});
+  const _CobroDialog({required this.total, required this.onPago});
 
   @override
-  State<_CobroMesaDialog> createState() => _CobroMesaDialogState();
+  State<_CobroDialog> createState() => _CobroDialogState();
 }
 
-class _CobroMesaDialogState extends State<_CobroMesaDialog> {
+class _CobroDialogState extends State<_CobroDialog> {
   String _metodoPago = 'Efectivo';
-  final _efectivoController = TextEditingController();
-  double _cambio = 0;
-
-  @override
-  void dispose() {
-    _efectivoController.dispose();
-    super.dispose();
-  }
-
-  void _calcularCambio() {
-    if (_efectivoController.text.isEmpty) {
-      setState(() => _cambio = 0);
-      return;
-    }
-    final importe = double.tryParse(_efectivoController.text) ?? 0;
-    setState(() => _cambio = importe - widget.total);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1022,187 +1081,201 @@ class _CobroMesaDialogState extends State<_CobroMesaDialog> {
         top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Total a Cobrar',
+            style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${widget.total.toStringAsFixed(2)} €',
+            style: const TextStyle(
+              fontSize: 48,
+              fontWeight: FontWeight.bold,
+              color: AppColors.secondary,
+            ),
+          ),
+          const SizedBox(height: 32),
+          const Text(
+            'Selecciona método de pago:',
+            style: TextStyle(fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildMetodoButton(
+                  Icons.money,
+                  'Efectivo',
+                  'Efectivo',
+                  AppColors.success,
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Total a Cobrar',
-              style: TextStyle(color: AppColors.primary, fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${widget.total.toStringAsFixed(2)} €',
-              style: const TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: AppColors.secondary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Método de pago:',
-              style: TextStyle(fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildMetodoPagoButton(
-                    Icons.money,
-                    'Efectivo',
-                    'Efectivo',
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildMetodoPagoButton(
-                    Icons.credit_card,
-                    'Tarjeta',
-                    'Tarjeta',
-                  ),
-                ),
-              ],
-            ),
-            if (_metodoPago == 'Efectivo') ...[
-              const SizedBox(height: 20),
-              TextField(
-                controller: _efectivoController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Importe recibido',
-                  prefixText: '€ ',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.payments),
-                ),
-                onChanged: (_) => _calcularCambio(),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: _cambio >= 0
-                      ? AppColors.success.withValues(alpha: 0.1)
-                      : AppColors.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: _cambio >= 0 ? AppColors.success : AppColors.error,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _cambio >= 0 ? 'Cambio a devolver:' : 'Falta por pagar:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: _cambio >= 0
-                            ? AppColors.success
-                            : AppColors.error,
-                      ),
-                    ),
-                    Text(
-                      '${_cambio.abs().toStringAsFixed(2)} €',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: _cambio >= 0
-                            ? AppColors.success
-                            : AppColors.error,
-                      ),
-                    ),
-                  ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMetodoButton(
+                  Icons.credit_card,
+                  'Tarjeta',
+                  'Tarjeta',
+                  AppColors.primary,
                 ),
               ),
             ],
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancelar'),
-                  ),
+          ),
+          const SizedBox(height: 32),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _puedeCobrar()
-                        ? () {
-                            final efectivo = _metodoPago == 'Efectivo'
-                                ? double.tryParse(_efectivoController.text) ?? 0
-                                : null;
-                            Navigator.pop(context);
-                            widget.onPago(_metodoPago, efectivo, _cambio);
-                          }
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.success,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text('Cobrar'),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    widget.onPago(_metodoPago);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.success,
+                    minimumSize: const Size(0, 56),
                   ),
+                  child: Text('Cobrar $_metodoPago'),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildMetodoPagoButton(IconData icono, String texto, String valor) {
+  Widget _buildMetodoButton(
+    IconData icon,
+    String texto,
+    String valor,
+    Color color,
+  ) {
     final selected = _metodoPago == valor;
-    return GestureDetector(
-      onTap: () => setState(() => _metodoPago = valor),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.primary
-              : AppColors.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: selected
-                ? AppColors.primary
-                : AppColors.primary.withValues(alpha: 0.3),
-            width: 2,
+    return Material(
+      color: selected ? color : color.withValues(alpha: 0.1),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: () => setState(() => _metodoPago = valor),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              Icon(icon, size: 40, color: selected ? Colors.white : color),
+              const SizedBox(height: 12),
+              Text(
+                texto,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: selected ? Colors.white : color,
+                ),
+              ),
+            ],
           ),
         ),
-        child: Column(
-          children: [
-            Icon(
-              icono,
-              size: 32,
-              color: selected ? Colors.white : AppColors.primary,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              texto,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: selected ? Colors.white : AppColors.primary,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
+}
 
-  bool _puedeCobrar() {
-    if (_metodoPago == 'Tarjeta') return true;
-    if (_efectivoController.text.isEmpty) return false;
-    final importe = double.tryParse(_efectivoController.text) ?? 0;
-    return importe >= widget.total;
+class _EditMesaDialog extends ConsumerStatefulWidget {
+  final Mesa mesa;
+
+  const _EditMesaDialog({required this.mesa});
+
+  @override
+  ConsumerState<_EditMesaDialog> createState() => _EditMesaDialogState();
+}
+
+class _EditMesaDialogState extends ConsumerState<_EditMesaDialog> {
+  late TextEditingController _numeroController;
+  late TextEditingController _capacidadController;
+
+  @override
+  void initState() {
+    super.initState();
+    _numeroController = TextEditingController(
+      text: widget.mesa.numero.toString(),
+    );
+    _capacidadController = TextEditingController(
+      text: widget.mesa.capacidad.toString(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _numeroController.dispose();
+    _capacidadController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Editar Mesa ${widget.mesa.numero}'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _numeroController,
+            decoration: const InputDecoration(
+              labelText: 'Número de mesa',
+              prefixIcon: Icon(Icons.tag),
+            ),
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _capacidadController,
+            decoration: const InputDecoration(
+              labelText: 'Capacidad',
+              prefixIcon: Icon(Icons.people),
+            ),
+            keyboardType: TextInputType.number,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final numero = int.tryParse(_numeroController.text);
+            final capacidad = int.tryParse(_capacidadController.text);
+            if (numero != null && capacidad != null) {
+              final actualizada = widget.mesa.copyWith(
+                numero: numero,
+                capacidad: capacidad,
+              );
+              ref.read(mesasProvider.notifier).actualizar(actualizada);
+              Navigator.pop(context);
+            }
+          },
+          child: const Text('Guardar'),
+        ),
+      ],
+    );
   }
 }

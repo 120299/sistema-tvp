@@ -688,7 +688,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         .toList();
 
     return DropdownButtonFormField<String?>(
-      value: _mesaAsignada,
+      initialValue: _mesaAsignada,
       decoration: const InputDecoration(
         labelText: 'Asignar a mesa (opcional)',
         prefixIcon: Icon(Icons.table_restaurant),

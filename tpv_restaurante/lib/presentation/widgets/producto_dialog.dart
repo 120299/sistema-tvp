@@ -381,7 +381,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
           children: [
             Expanded(
               child: DropdownButtonFormField<String>(
-                value: _categoriaId,
+                initialValue: _categoriaId,
                 decoration: const InputDecoration(
                   labelText: 'Categoría',
                   prefixIcon: Icon(Icons.category),
