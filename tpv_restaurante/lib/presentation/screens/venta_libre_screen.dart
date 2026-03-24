@@ -6,6 +6,7 @@ import '../../data/models/models.dart';
 import '../../data/services/image_storage_service.dart';
 import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
+import 'caja_screen.dart';
 
 class VentaLibreScreen extends ConsumerStatefulWidget {
   const VentaLibreScreen({super.key});
@@ -1012,7 +1013,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           ],
         ),
         content: const Text(
-          'La caja está cerrada. Abre la caja desde el menú de Caja para poder realizar ventas.',
+          'La caja está cerrada. Abre la caja para poder realizar ventas.',
         ),
         actions: [
           TextButton(
@@ -1022,13 +1023,40 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              ref.read(indiceNavegacionProvider.notifier).state = 4;
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CajaScreen()),
+              );
             },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.warning),
             child: const Text('Ir a Caja'),
           ),
         ],
       ),
     );
+  }
+
+  void _cargarProductosMesa(String mesaId) {
+    final mesa = ref.read(mesasProvider).firstWhere((m) => m.id == mesaId);
+
+    if (mesa.pedidoActualId == null) {
+      _carrito.clear();
+      return;
+    }
+
+    final pedido = ref
+        .read(pedidosProvider)
+        .where((p) => p.id == mesa.pedidoActualId)
+        .firstOrNull;
+
+    if (pedido != null && pedido.estado != EstadoPedido.cerrado) {
+      setState(() {
+        _carrito.clear();
+        _carrito.addAll(pedido.items);
+      });
+    } else {
+      _carrito.clear();
+    }
   }
 
   void _guardarPedidoMesa() async {
@@ -1202,7 +1230,54 @@ class _CobroSheetState extends State<_CobroSheet> {
     if (_efectivo > 0) metodos['Efectivo'] = _efectivo;
     if (_tarjeta > 0) metodos['Tarjeta'] = _tarjeta;
 
-    widget.onCobrar(metodos);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: AppColors.success),
+            SizedBox(width: 12),
+            Text('Confirmar Cobro'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Total: ${widget.total.toStringAsFixed(2)} €'),
+            Text('Pagado: ${_totalPagado.toStringAsFixed(2)} €'),
+            if (_cambio > 0)
+              Text(
+                'Cambio: ${_cambio.toStringAsFixed(2)} €',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.success,
+                  fontSize: 18,
+                ),
+              ),
+            const SizedBox(height: 8),
+            Text(
+              '¿Confirmar el cobro?',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              widget.onCobrar(metodos);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

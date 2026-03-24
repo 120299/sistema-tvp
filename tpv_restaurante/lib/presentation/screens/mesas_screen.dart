@@ -58,6 +58,162 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
           Expanded(child: _buildMesasGrid(_getMesasFiltradas(mesas))),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _mostrarDialogoAgregarMesas(),
+        icon: const Icon(Icons.add),
+        label: const Text('Agregar Mesas'),
+      ),
+    );
+  }
+
+  void _mostrarDialogoAgregarMesas() {
+    int cantidad = 1;
+    int capacidad = 4;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.table_restaurant, color: AppColors.primary),
+              SizedBox(width: 12),
+              Text('Agregar Mesas'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  const Text('Cantidad:'),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: cantidad > 1
+                        ? () => setDialogState(() => cantidad--)
+                        : null,
+                    icon: const Icon(Icons.remove_circle_outline),
+                    color: AppColors.error,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$cantidad',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => setDialogState(() => cantidad++),
+                    icon: const Icon(Icons.add_circle_outline),
+                    color: AppColors.success,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Text('Capacidad:'),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: capacidad > 1
+                        ? () => setDialogState(() => capacidad--)
+                        : null,
+                    icon: const Icon(Icons.remove_circle_outline),
+                    color: AppColors.error,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$capacidad pers.',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => setDialogState(() => capacidad++),
+                    icon: const Icon(Icons.add_circle_outline),
+                    color: AppColors.success,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Se crearán $cantidad mesa${cantidad > 1 ? 's' : ''} para $capacidad personas',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final mesasActuales = ref.read(mesasProvider);
+                for (int i = 0; i < cantidad; i++) {
+                  final nuevoNumero = mesasActuales.isEmpty
+                      ? i + 1
+                      : mesasActuales
+                                .map((m) => m.numero)
+                                .reduce((a, b) => a > b ? a : b) +
+                            i +
+                            1;
+                  final nuevaMesa = Mesa(
+                    id: 'mesa_$nuevoNumero',
+                    numero: nuevoNumero,
+                    capacidad: capacidad,
+                    estado: EstadoMesa.libre,
+                  );
+                  ref.read(mesasProvider.notifier).agregar(nuevaMesa);
+                }
+                Navigator.pop(ctx);
+              },
+              child: const Text('Agregar'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -468,8 +624,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                 'Ver Pedido',
                 AppColors.primary,
                 () {
-                  Navigator.pop(context);
-                  _verPedidoMesa(mesa);
+                  _verPedidoMesa(context, mesa);
                 },
               ),
               _buildOpcion(Icons.payment, 'Cobrar', AppColors.success, () {
@@ -537,12 +692,11 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
     await ref.read(mesasProvider.notifier).ocupar(mesa.id, pedidoId);
   }
 
-  void _verPedidoMesa(Mesa mesa) {
-    final scaffoldContext = context;
-    Navigator.pop(scaffoldContext);
+  void _verPedidoMesa(BuildContext context, Mesa mesa) {
+    Navigator.pop(context);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Navigator.push(
-        scaffoldContext,
+        context,
         MaterialPageRoute(
           builder: (context) => MesaProductosScreen(mesa: mesa),
         ),
@@ -730,7 +884,52 @@ class _CobroMesaSheetState extends State<_CobroMesaSheet> {
     if (_efectivo > 0) metodos['Efectivo'] = _efectivo;
     if (_tarjeta > 0) metodos['Tarjeta'] = _tarjeta;
 
-    widget.onCobrar(metodos);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: AppColors.success),
+            SizedBox(width: 12),
+            Text('Confirmar Cobro'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Mesa ${widget.mesaNumero}'),
+            Text('Total: ${widget.total.toStringAsFixed(2)} €'),
+            Text('Pagado: ${_totalPagado.toStringAsFixed(2)} €'),
+            if (_cambio > 0)
+              Text(
+                'Cambio: ${_cambio.toStringAsFixed(2)} €',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.success,
+                  fontSize: 18,
+                ),
+              ),
+            const SizedBox(height: 8),
+            const Text('¿Confirmar el cobro?'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              widget.onCobrar(metodos);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

@@ -270,6 +270,35 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                 ),
               ]),
               const SizedBox(height: 24),
+              _buildSeccion('Almacenamiento', [
+                const Text(
+                  'Selecciona dónde se guardarán los datos del sistema',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildUbicacionTile(
+                  'Dispositivo local',
+                  'Guarda los datos en este dispositivo',
+                  Icons.phone_android,
+                  UbicacionAlmacenamiento.local,
+                ),
+                _buildUbicacionTile(
+                  'USB / Extrensible',
+                  'Guarda los datos en una unidad USB o SD',
+                  Icons.usb,
+                  UbicacionAlmacenamiento.usb,
+                ),
+                _buildUbicacionTile(
+                  'Unidad de red',
+                  'Guarda los datos en un servidor de red',
+                  Icons.lan,
+                  UbicacionAlmacenamiento.red,
+                ),
+              ]),
+              const SizedBox(height: 24),
               _buildSeccion('Apariencia', [
                 ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -384,6 +413,44 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
           child: Column(children: children),
         ),
       ],
+    );
+  }
+
+  Widget _buildUbicacionTile(
+    String title,
+    String subtitle,
+    IconData icon,
+    UbicacionAlmacenamiento value,
+  ) {
+    final currentValue = ref.watch(ubicacionAlmacenamientoProvider);
+    final isSelected = currentValue == value;
+
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.1)
+              : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: isSelected ? AppColors.primary : Colors.grey),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected ? AppColors.primary : null,
+        ),
+      ),
+      subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
+      trailing: isSelected
+          ? const Icon(Icons.check_circle, color: AppColors.primary)
+          : const Icon(Icons.circle_outlined, color: Colors.grey),
+      onTap: () {
+        ref.read(ubicacionAlmacenamientoProvider.notifier).state = value;
+      },
     );
   }
 

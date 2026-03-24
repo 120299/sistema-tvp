@@ -11,6 +11,12 @@ final databaseServiceProvider = Provider<DatabaseService>((ref) {
 
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 
+enum UbicacionAlmacenamiento { local, usb, red }
+
+final ubicacionAlmacenamientoProvider = StateProvider<UbicacionAlmacenamiento>(
+  (ref) => UbicacionAlmacenamiento.local,
+);
+
 final negocioProvider = StateNotifierProvider<NegocioNotifier, DatosNegocio>((
   ref,
 ) {
