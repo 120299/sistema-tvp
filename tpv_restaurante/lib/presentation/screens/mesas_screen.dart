@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
+import 'mesa_productos_screen.dart';
 
 class MesasScreen extends ConsumerStatefulWidget {
   const MesasScreen({super.key});
@@ -537,97 +538,16 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
   }
 
   void _verPedidoMesa(Mesa mesa) {
-    final pedido = mesa.pedidoActualId != null
-        ? ref
-              .read(pedidosProvider)
-              .where((p) => p.id == mesa.pedidoActualId)
-              .firstOrNull
-        : null;
-
-    if (pedido == null) return;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => Column(
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Text(
-                    'Pedido - Mesa ${mesa.numero}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    'Total: ${pedido.total.toStringAsFixed(2)} €',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.success,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                controller: scrollController,
-                itemCount: pedido.items.length,
-                itemBuilder: (context, index) {
-                  final item = pedido.items[index];
-                  return ListTile(
-                    leading: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Center(
-                        child: Text(
-                          '${item.cantidad}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                    title: Text(item.productoNombre),
-                    trailing: Text(
-                      '${item.subtotal.toStringAsFixed(2)} €',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
+    final scaffoldContext = context;
+    Navigator.pop(scaffoldContext);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.push(
+        scaffoldContext,
+        MaterialPageRoute(
+          builder: (context) => MesaProductosScreen(mesa: mesa),
         ),
-      ),
-    );
+      );
+    });
   }
 
   void _cobrarMesa(Mesa mesa) async {
@@ -648,167 +568,51 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Container(
-                width: 50,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.success,
-                    AppColors.success.withValues(alpha: 0.8),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'TOTAL A COBRAR',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white70,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${pedido.total.toStringAsFixed(2)} €',
-                    style: const TextStyle(
-                      fontSize: 56,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    'Mesa ${mesa.numero}',
-                    style: const TextStyle(fontSize: 16, color: Colors.white70),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            const Text(
-              'Selecciona método de pago',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildMetodoButtonMesa(
-                    Icons.money,
-                    'Efectivo',
-                    AppColors.success,
-                    () async {
-                      await _procesarCobro(mesa, pedido, 'Efectivo', negocio);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildMetodoButtonMesa(
-                    Icons.credit_card,
-                    'Tarjeta',
-                    AppColors.primary,
-                    () async {
-                      await _procesarCobro(mesa, pedido, 'Tarjeta', negocio);
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
+      builder: (context) => _CobroMesaSheet(
+        total: pedido.total,
+        mesaNumero: mesa.numero,
+        onCobrar: (metodosPago) async {
+          Navigator.pop(context);
+          await _procesarCobroMesa(mesa, pedido, metodosPago, negocio);
+        },
       ),
     );
   }
 
-  Widget _buildMetodoButtonMesa(
-    IconData icon,
-    String texto,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 48, color: color),
-            const SizedBox(height: 12),
-            Text(
-              texto,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _procesarCobro(
+  Future<void> _procesarCobroMesa(
     Mesa mesa,
     Pedido pedido,
-    String metodoPago,
+    Map<String, double> metodosPago,
     DatosNegocio negocio,
   ) async {
-    Navigator.pop(context);
+    final metodoPrincipal = metodosPago.keys.first;
 
-    await ref.read(pedidosProvider.notifier).cerrar(pedido.id, metodoPago);
+    await ref.read(pedidosProvider.notifier).cerrar(pedido.id, metodoPrincipal);
     await ref.read(mesasProvider.notifier).liberar(mesa.id);
     await ref
         .read(cajaProvider.notifier)
-        .registrarVenta(pedido.total, metodoPago, pedidoId: pedido.id);
+        .registrarVenta(pedido.total, metodoPrincipal, pedidoId: pedido.id);
+
+    final metodoTexto = metodosPago.entries
+        .map((e) => '${e.key}: ${e.value.toStringAsFixed(2)}€')
+        .join(' + ');
 
     await PrintService.printTicket(
       items: pedido.items,
       total: pedido.total,
       ivaPorcentaje: negocio.ivaPorcentaje,
-      metodoPago: metodoPago,
+      metodoPago: metodoTexto,
       negocio: negocio,
       mesaNumero: mesa.numero.toString(),
     );
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Venta completada - $metodoPago'),
-          backgroundColor: AppColors.success,
-          duration: const Duration(seconds: 1),
-        ),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Venta completada'),
+        backgroundColor: AppColors.success,
+        duration: Duration(seconds: 1),
+      ),
+    );
   }
 
   void _cancelarMesa(Mesa mesa) {
@@ -877,4 +681,327 @@ class _EstadoData {
   final IconData icono;
 
   _EstadoData(this.color, this.texto, this.icono);
+}
+
+class _CobroMesaSheet extends StatefulWidget {
+  final double total;
+  final int mesaNumero;
+  final Function(Map<String, double>) onCobrar;
+
+  const _CobroMesaSheet({
+    required this.total,
+    required this.mesaNumero,
+    required this.onCobrar,
+  });
+
+  @override
+  State<_CobroMesaSheet> createState() => _CobroMesaSheetState();
+}
+
+class _CobroMesaSheetState extends State<_CobroMesaSheet> {
+  final _efectivoController = TextEditingController();
+  final _tarjetaController = TextEditingController();
+  bool _dividirPago = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _efectivoController.text = widget.total.toStringAsFixed(2);
+  }
+
+  @override
+  void dispose() {
+    _efectivoController.dispose();
+    _tarjetaController.dispose();
+    super.dispose();
+  }
+
+  double get _efectivo => double.tryParse(_efectivoController.text) ?? 0;
+  double get _tarjeta => double.tryParse(_tarjetaController.text) ?? 0;
+  double get _totalPagado => _efectivo + _tarjeta;
+  double get _cambio => _totalPagado - widget.total;
+  double get _faltaPagar => widget.total - _totalPagado;
+  bool get _pagoCompleto => _totalPagado >= widget.total;
+
+  void _cobrar() {
+    if (!_pagoCompleto) return;
+
+    final metodos = <String, double>{};
+    if (_efectivo > 0) metodos['Efectivo'] = _efectivo;
+    if (_tarjeta > 0) metodos['Tarjeta'] = _tarjeta;
+
+    widget.onCobrar(metodos);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Container(
+                width: 50,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.success,
+                    AppColors.success.withValues(alpha: 0.8),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'TOTAL A COBRAR',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white70,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${widget.total.toStringAsFixed(2)} €',
+                    style: const TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    'Mesa ${widget.mesaNumero}',
+                    style: const TextStyle(fontSize: 16, color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => setState(() {
+                      _dividirPago = false;
+                      _efectivoController.text = widget.total.toStringAsFixed(
+                        2,
+                      );
+                      _tarjetaController.clear();
+                    }),
+                    icon: Icon(
+                      _dividirPago
+                          ? Icons.radio_button_unchecked
+                          : Icons.check_circle,
+                      size: 20,
+                    ),
+                    label: const Text('Pago Completo'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: !_dividirPago
+                          ? AppColors.primary.withValues(alpha: 0.1)
+                          : null,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => setState(() {
+                      _dividirPago = true;
+                      _efectivoController.text = '';
+                      _tarjetaController.text = '';
+                    }),
+                    icon: Icon(
+                      _dividirPago
+                          ? Icons.check_circle
+                          : Icons.radio_button_unchecked,
+                      size: 20,
+                    ),
+                    label: const Text('Dividir'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: _dividirPago
+                          ? AppColors.primary.withValues(alpha: 0.1)
+                          : null,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            if (!_dividirPago)
+              _buildImporteField(
+                controller: _efectivoController,
+                label: 'Importe recibido (Efectivo)',
+                color: AppColors.success,
+              )
+            else ...[
+              _buildImporteField(
+                controller: _efectivoController,
+                label: 'Efectivo',
+                color: AppColors.success,
+              ),
+              const SizedBox(height: 12),
+              _buildImporteField(
+                controller: _tarjetaController,
+                label: 'Tarjeta',
+                color: AppColors.primary,
+              ),
+            ],
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  _buildInfoRow(
+                    'Total:',
+                    '${widget.total.toStringAsFixed(2)} €',
+                  ),
+                  if (_dividirPago || _efectivo > 0)
+                    _buildInfoRow(
+                      'Efectivo:',
+                      '${_efectivo.toStringAsFixed(2)} €',
+                    ),
+                  if (_tarjeta > 0)
+                    _buildInfoRow(
+                      'Tarjeta:',
+                      '${_tarjeta.toStringAsFixed(2)} €',
+                    ),
+                  const Divider(),
+                  _buildInfoRow(
+                    'Pagado:',
+                    '${_totalPagado.toStringAsFixed(2)} €',
+                    bold: true,
+                  ),
+                  if (_faltaPagar > 0)
+                    _buildInfoRow(
+                      'Falta:',
+                      '${_faltaPagar.toStringAsFixed(2)} €',
+                      color: AppColors.error,
+                    )
+                  else
+                    _buildInfoRow(
+                      'Cambio:',
+                      '${_cambio.toStringAsFixed(2)} €',
+                      color: AppColors.success,
+                      bold: true,
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: ElevatedButton(
+                onPressed: _pagoCompleto ? _cobrar : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.success,
+                  disabledBackgroundColor: Colors.grey.shade300,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.check_circle, size: 28),
+                    const SizedBox(width: 12),
+                    Text(
+                      _pagoCompleto
+                          ? 'COBRAR'
+                          : 'FALTAN ${_faltaPagar.toStringAsFixed(2)} €',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImporteField({
+    required TextEditingController controller,
+    required String label,
+    required Color color,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      decoration: InputDecoration(
+        labelText: label,
+        prefixText: '€ ',
+        prefixStyle: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: color, width: 2),
+        ),
+      ),
+      onChanged: (_) => setState(() {}),
+    );
+  }
+
+  Widget _buildInfoRow(
+    String label,
+    String value, {
+    Color? color,
+    bool bold = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+              color: color,
+              fontSize: bold ? 18 : 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
