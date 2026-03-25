@@ -4,6 +4,9 @@ class Cliente {
   final String? telefono;
   final String? email;
   final String? nif;
+  final String? cid;
+  final String? nie;
+  final String? ciudad;
   final String? direccion;
   final String? codigoPostal;
   final String? poblacion;
@@ -18,6 +21,9 @@ class Cliente {
     this.telefono,
     this.email,
     this.nif,
+    this.cid,
+    this.nie,
+    this.ciudad,
     this.direccion,
     this.codigoPostal,
     this.poblacion,
@@ -33,6 +39,9 @@ class Cliente {
     String? telefono,
     String? email,
     String? nif,
+    String? cid,
+    String? nie,
+    String? ciudad,
     String? direccion,
     String? codigoPostal,
     String? poblacion,
@@ -47,6 +56,9 @@ class Cliente {
       telefono: telefono ?? this.telefono,
       email: email ?? this.email,
       nif: nif ?? this.nif,
+      cid: cid ?? this.cid,
+      nie: nie ?? this.nie,
+      ciudad: ciudad ?? this.ciudad,
       direccion: direccion ?? this.direccion,
       codigoPostal: codigoPostal ?? this.codigoPostal,
       poblacion: poblacion ?? this.poblacion,
@@ -64,6 +76,9 @@ class Cliente {
       'telefono': telefono,
       'email': email,
       'nif': nif,
+      'cid': cid,
+      'nie': nie,
+      'ciudad': ciudad,
       'direccion': direccion,
       'codigoPostal': codigoPostal,
       'poblacion': poblacion,
@@ -81,6 +96,9 @@ class Cliente {
       telefono: json['telefono'] as String?,
       email: json['email'] as String?,
       nif: json['nif'] as String?,
+      cid: json['cid'] as String?,
+      nie: json['nie'] as String?,
+      ciudad: json['ciudad'] as String?,
       direccion: json['direccion'] as String?,
       codigoPostal: json['codigoPostal'] as String?,
       poblacion: json['poblacion'] as String?,

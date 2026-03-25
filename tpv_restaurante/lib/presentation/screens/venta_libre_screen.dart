@@ -23,6 +23,63 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
   bool _isProcessing = false;
   bool _mesaCargada = false;
 
+  Future<void> _editarPrecioUnitario(PedidoItem item) async {
+    if (_mesaAsignada == null) return;
+    final mesa = ref
+        .read(mesasProvider)
+        .where((m) => m.id == _mesaAsignada)
+        .firstOrNull;
+    final pedidoId = mesa?.pedidoActualId;
+    if (pedidoId == null) return;
+
+    final precioController = TextEditingController(
+      text: item.precioUnitario.toStringAsFixed(2),
+    );
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Editar precio unitario'),
+          content: TextField(
+            controller: precioController,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(labelText: 'Precio unitario (€)'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final nuevo = double.tryParse(
+                  precioController.text.replaceAll(',', '.'),
+                );
+                if (nuevo != null && nuevo > 0) {
+                  // Actualizar en BD
+                  ref
+                      .read(pedidosProvider.notifier)
+                      .actualizarPrecio(pedidoId, item.id, nuevo);
+                  // Actualizar en carrito de UI
+                  setState(() {
+                    final idx = _carrito.indexWhere((i) => i.id == item.id);
+                    if (idx >= 0) {
+                      _carrito[idx] = _carrito[idx].copyWith(
+                        precioUnitario: nuevo,
+                      );
+                    }
+                  });
+                }
+                Navigator.pop(ctx);
+              },
+              child: const Text('Actualizar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -134,7 +191,9 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       ),
       child: SafeArea(
         top: false,
-        child: Row(
+        child: InkWell(
+          onTap: () => _editarPrecioUnitario(item),
+          child: Row(
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1017,7 +1076,9 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         }
         onRemove();
       },
-      child: Container(
+      child: InkWell(
+        onTap: () => _editarPrecioUnitario(item),
+        child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: Colors.grey.shade200)),

@@ -273,12 +273,12 @@ class PrintService {
                 children: [
                   pw.Expanded(
                     child: pw.Text(
-                      '${item.cantidad}x ${item.productoNombre}',
+                      '${item.cantidad}x ${item.productoNombre} @ €${item.precioUnitario.toStringAsFixed(2)}',
                       style: const pw.TextStyle(fontSize: 10),
                     ),
                   ),
                   pw.Text(
-                    '${item.subtotal.toStringAsFixed(2)}',
+                    '€${item.subtotal.toStringAsFixed(2)}',
                     style: const pw.TextStyle(fontSize: 10),
                   ),
                 ],

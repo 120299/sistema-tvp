@@ -458,6 +458,8 @@ class _CobroSheetState extends State<CobroSheet> {
             _buildQuickButton(20),
             const SizedBox(width: 6),
             _buildQuickButton(50),
+            const SizedBox(width: 6),
+            _buildQuickButton(100),
           ],
         ),
         const SizedBox(height: 10),

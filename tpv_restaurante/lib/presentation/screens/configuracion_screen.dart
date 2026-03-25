@@ -153,34 +153,7 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                 ),
               ]),
               const SizedBox(height: 24),
-              _buildSeccion('Datos del TPV', [
-                TextFormField(
-                  controller: _numeroSerieController,
-                  decoration: const InputDecoration(
-                    labelText: 'Número de serie del terminal',
-                    prefixIcon: Icon(Icons.confirmation_number),
-                    helperText: 'Identificador único del terminal TPV',
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _numeroLicenciaController,
-                  decoration: const InputDecoration(
-                    labelText: 'Número de licencia software',
-                    prefixIcon: Icon(Icons.key),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Imprimir logo en tickets'),
-                  subtitle: const Text(
-                    'Incluye el logo del negocio en los tickets',
-                  ),
-                  value: _imprimeLogo,
-                  onChanged: (value) => setState(() => _imprimeLogo = value),
-                ),
-              ]),
+              // Datos del TPV eliminado
               const SizedBox(height: 24),
               _buildSeccion('Datos del Negocio', [
                 TextFormField(
@@ -272,80 +245,7 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                 ),
               ]),
               const SizedBox(height: 24),
-              _buildSeccion('Almacenamiento', [
-                const Text(
-                  'Selecciona dónde se guardarán los datos del sistema',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _buildUbicacionTile(
-                  'Dispositivo local',
-                  'Guarda los datos en este dispositivo',
-                  Icons.phone_android,
-                  UbicacionAlmacenamiento.local,
-                ),
-                _buildUbicacionTile(
-                  'USB / Extrensible',
-                  'Guarda los datos en una unidad USB o SD',
-                  Icons.usb,
-                  UbicacionAlmacenamiento.usb,
-                ),
-                _buildUbicacionTile(
-                  'Carpeta personalizada',
-                  'Elige una carpeta específica',
-                  Icons.folder_open,
-                  UbicacionAlmacenamiento.personalizado,
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.folder, color: Colors.grey),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Ubicación actual:',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            Text(
-                              ref.watch(ubicacionAlmacenamientoProvider) ==
-                                      UbicacionAlmacenamiento.local
-                                  ? 'Documentos/TPV_Datos'
-                                  : ref.watch(
-                                          ubicacionAlmacenamientoProvider,
-                                        ) ==
-                                        UbicacionAlmacenamiento.usb
-                                  ? 'USB/TPV_Datos'
-                                  : 'Documentos/TPV_Datos',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => _cambiarUbicacion(),
-                        child: const Text('Cambiar'),
-                      ),
-                    ],
-                  ),
-                ),
-              ]),
+              // Almacenamiento eliminado
               const SizedBox(height: 24),
               _buildSeccion('Copia de Seguridad', [
                 ListTile(

@@ -471,6 +471,25 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
     _refresh();
   }
 
+  Future<void> actualizarPrecio(
+    String pedidoId,
+    String itemId,
+    double precioUnitario,
+  ) async {
+    final pedidoIndex = state.indexWhere((p) => p.id == pedidoId);
+    if (pedidoIndex < 0) return;
+    final pedido = state[pedidoIndex];
+    final nuevosItems = pedido.items.map((i) {
+      if (i.id == itemId) {
+        return i.copyWith(precioUnitario: precioUnitario);
+      }
+      return i;
+    }).toList();
+    final actualizado = pedido.copyWith(items: nuevosItems);
+    await _db.pedidosBox.putAt(pedidoIndex, actualizado);
+    _refresh();
+  }
+
   Future<void> eliminarItem(String pedidoId, String itemId) async {
     final pedidoIndex = state.indexWhere((p) => p.id == pedidoId);
     if (pedidoIndex < 0) return;
@@ -685,14 +704,29 @@ class CajaNotifier extends StateNotifier<Caja?> {
   }
 
   Future<void> abrirCaja({
-    double fondoInicial = 0,
+    double? fondoInicial,
     String? cajeroId,
     String? cajeroNombre,
   }) async {
+    // Determinar fondo inicial: si hay caja previa cerrada, usar su saldoFinal
+    double fondoInicio = fondoInicial ?? 0;
+    final cerradas = _db.cajaBox.values
+        .where((c) => c.estado == EstadoCaja.cerrada)
+        .toList();
+    if (fondoInicial == null && cerradas.isNotEmpty) {
+      cerradas.sort((a, b) {
+        final af = a.fechaCierre ?? a.fechaApertura;
+        final bf = b.fechaCierre ?? b.fechaApertura;
+        return bf.compareTo(af);
+      });
+      final ultima = cerradas.first;
+      fondoInicio = ultima.saldoFinal ?? 0;
+    }
+
     final caja = Caja(
       id: 'caja_${DateTime.now().millisecondsSinceEpoch}',
       fechaApertura: DateTime.now(),
-      fondoInicial: fondoInicial,
+      fondoInicial: fondoInicio,
       estado: EstadoCaja.abierta,
       cajeroId: cajeroId,
       cajeroNombre: cajeroNombre,
