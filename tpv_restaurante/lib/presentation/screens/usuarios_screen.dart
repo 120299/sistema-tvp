@@ -185,11 +185,16 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: cajero.isAdministrador
-                    ? AppColors.warning.withValues(alpha: 0.2)
-                    : AppColors.primary.withValues(alpha: 0.1),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: cajero.isAdministrador
+                      ? AppColors.warning.withValues(alpha: 0.2)
+                      : AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
                 child: Icon(
                   cajero.isAdministrador
                       ? Icons.admin_panel_settings
@@ -197,6 +202,7 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                   color: cajero.isAdministrador
                       ? AppColors.warning
                       : AppColors.primary,
+                  size: 24,
                 ),
               ),
               const SizedBox(width: 16),

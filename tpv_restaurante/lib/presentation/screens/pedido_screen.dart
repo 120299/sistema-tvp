@@ -123,7 +123,7 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
                   color: categoriaSeleccionada == null
                       ? AppColors.secondary
                       : AppColors.surface,
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: categoriaSeleccionada == null
                         ? AppColors.secondary

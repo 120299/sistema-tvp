@@ -268,79 +268,70 @@ class AppShell extends ConsumerWidget {
     bool isWide = false,
     bool isMedium = false,
   }) {
-    final anchoMenu = isWide ? 140.0 : (isMedium ? 80.0 : 70.0);
-    final mostrarTexto = isWide || isMedium;
-    final textoCompleto = isWide;
+    final anchoMenu = isWide ? 120.0 : 60.0;
+    final mostrarTexto = isWide;
 
     return Container(
       width: anchoMenu,
-      color: AppColors.darkSurface,
+      color: AppColors.primary,
       child: Column(
         children: [
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           _buildMenuVerticalItem(
             icon: Icons.point_of_sale,
-            label: textoCompleto ? 'Venta' : 'Ven',
+            label: 'Venta',
             isSelected: indiceActual == 0,
-            color: Colors.green,
             onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 0,
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
             icon: Icons.inventory_2,
-            label: textoCompleto ? 'Productos' : 'Prod',
+            label: 'Productos',
             isSelected: indiceActual == 1,
-            color: Colors.blue,
             onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 1,
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
             icon: Icons.table_restaurant,
-            label: textoCompleto ? 'Mesas' : 'Mes',
+            label: 'Mesas',
             isSelected: indiceActual == 2,
-            color: Colors.orange,
             onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 2,
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
             icon: Icons.account_balance_wallet,
-            label: textoCompleto ? 'Caja' : 'Caj',
+            label: 'Caja',
             isSelected: indiceActual == 3,
-            color: Colors.teal,
             onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 3,
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
             icon: Icons.people,
-            label: textoCompleto ? 'Clientes' : 'Cli',
+            label: 'Clientes',
             isSelected: indiceActual == 4,
-            color: Colors.purple,
             onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 4,
             mostrarTexto: mostrarTexto,
           ),
-          const Divider(color: Colors.white24, height: 32),
+          const Divider(color: Colors.white24, height: 24),
           _buildMenuVerticalItem(
             icon: Icons.analytics,
-            label: textoCompleto ? 'Informes' : 'Inf',
+            label: 'Informes',
             isSelected: indiceActual == 5,
-            color: Colors.indigo,
             onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 5,
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
             icon: Icons.settings,
-            label: textoCompleto ? 'Config' : 'Cfg',
+            label: 'Config',
             isSelected: indiceActual == 6,
-            color: Colors.grey,
             onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 6,
             mostrarTexto: mostrarTexto,
           ),
           if (cajeroActual?.isAdministrador == true)
             _buildMenuVerticalItem(
               icon: Icons.people_alt,
-              label: textoCompleto ? 'Usuarios' : 'Usu',
+              label: 'Usuarios',
               isSelected: indiceActual == 7,
-              color: Colors.cyan,
               onTap: () =>
                   ref.read(indiceNavegacionProvider.notifier).state = 7,
               mostrarTexto: mostrarTexto,
@@ -354,54 +345,46 @@ class AppShell extends ConsumerWidget {
     required IconData icon,
     required String label,
     required bool isSelected,
-    required Color color,
     required VoidCallback onTap,
     bool mostrarTexto = true,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-      child: Material(
-        color: isSelected ? color.withValues(alpha: 0.2) : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: onTap,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isSelected ? color : Colors.transparent,
-                width: 2,
-              ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? AppColors.primary : Colors.white70,
+              size: 24,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  color: isSelected ? color : Colors.white70,
-                  size: 26,
-                ),
-                if (mostrarTexto) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: isSelected ? color : Colors.white70,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      fontSize: 11,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            if (mostrarTexto) ...[
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: isSelected ? AppColors.primary : Colors.white70,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    fontSize: 10,
                   ),
-                ],
-              ],
-            ),
-          ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );

@@ -262,7 +262,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
         .length;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
@@ -273,7 +273,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
@@ -281,7 +281,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                 child: const Icon(
                   Icons.table_restaurant,
                   color: Colors.white,
-                  size: 24,
+                  size: 20,
                 ),
               ),
               const SizedBox(width: 12),
@@ -290,19 +290,19 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                   'Mesas',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+                  horizontal: 10,
+                  vertical: 4,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   '${mesas.length}',
@@ -314,7 +314,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           Row(
             children: [
               _buildStatBadge(libres, 'Libres', AppColors.success),
@@ -332,24 +332,24 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
   Widget _buildStatBadge(int count, String label, Color color) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
           children: [
             Text(
               '$count',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
             Text(
               label,
-              style: const TextStyle(fontSize: 10, color: Colors.white70),
+              style: const TextStyle(fontSize: 9, color: Colors.white70),
             ),
           ],
         ),
@@ -375,12 +375,12 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
     }
 
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 1.1,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 1.05,
       ),
       itemCount: mesas.length,
       itemBuilder: (context, index) => _buildMesaCard(mesas[index]),
@@ -404,7 +404,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
 
     return Card(
       clipBehavior: Clip.antiAlias,
-      elevation: 2,
+      elevation: 1,
       child: InkWell(
         onTap: () => _mostrarOpcionesMesa(context, mesa),
         child: Container(
@@ -419,10 +419,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
             children: [
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                 decoration: BoxDecoration(
                   color: estadoData.color.withValues(alpha: 0.2),
                 ),
@@ -434,14 +431,14 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                       children: [
                         Icon(
                           estadoData.icono,
-                          size: 14,
+                          size: 10,
                           color: estadoData.color,
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 2),
                         Text(
                           estadoData.texto,
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 9,
                             fontWeight: FontWeight.w600,
                             color: estadoData.color,
                           ),
@@ -450,26 +447,26 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
+                        horizontal: 4,
+                        vertical: 1,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(
                             Icons.people,
-                            size: 12,
+                            size: 9,
                             color: AppColors.textSecondary,
                           ),
-                          const SizedBox(width: 2),
+                          const SizedBox(width: 1),
                           Text(
                             '${mesa.capacidad}',
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 9,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -486,33 +483,33 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                     children: [
                       Icon(
                         Icons.table_restaurant,
-                        size: 40,
+                        size: 28,
                         color: estadoData.color,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
                       Text(
                         'Mesa ${mesa.numero}',
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       if (mesa.estado == EstadoMesa.ocupada &&
                           totalPedido > 0) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
+                            horizontal: 6,
+                            vertical: 1,
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.success.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             '${totalPedido.toStringAsFixed(2)} €',
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: AppColors.success,
                             ),
@@ -1121,7 +1118,7 @@ class _CobroMesaSheetState extends State<_CobroMesaSheet> {
                     AppColors.success.withValues(alpha: 0.8),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
                 children: [
@@ -1276,7 +1273,7 @@ class _CobroMesaSheetState extends State<_CobroMesaSheet> {
                   backgroundColor: AppColors.success,
                   disabledBackgroundColor: Colors.grey.shade300,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 child: Row(

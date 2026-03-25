@@ -149,7 +149,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
@@ -1202,12 +1202,12 @@ class _CobroSheetState extends State<_CobroSheet> {
     final selected = _metodoPago == texto;
     return InkWell(
       onTap: () => setState(() => _metodoPago = texto),
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: selected ? color : color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [

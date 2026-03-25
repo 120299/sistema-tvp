@@ -77,7 +77,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
   Widget _buildEstadoHeader(Mesa mesa, _EstadoData estadoData) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: estadoData.color,
         boxShadow: [
@@ -93,14 +93,14 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(estadoData.icono, color: Colors.white, size: 32),
+              child: Icon(estadoData.icono, color: Colors.white, size: 24),
             ),
-            const SizedBox(width: 20),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,37 +109,40 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                     estadoData.texto,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   if (mesa.horaApertura != null)
                     Text(
                       'Desde ${DateFormat('HH:mm').format(mesa.horaApertura!)}',
-                      style: const TextStyle(color: Colors.white70),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
                     ),
                 ],
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
                 children: [
                   Text(
                     '${mesa.capacidad}',
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: estadoData.color,
                     ),
                   ),
                   Text(
                     'pers.',
-                    style: TextStyle(fontSize: 12, color: estadoData.color),
+                    style: TextStyle(fontSize: 10, color: estadoData.color),
                   ),
                 ],
               ),
@@ -155,19 +158,19 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
     final pedidoActual = _getPedidoActual(mesa);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (pedidoActual != null) ...[
             _buildPedidoCard(mesa, pedidoActual, negocio),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
           ],
           _buildAccionesCard(mesa),
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
           if (mesa.estado == EstadoMesa.ocupada) ...[
             _buildTiempoCard(mesa),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
           ],
           _buildInfoCard(mesa),
         ],
@@ -178,21 +181,25 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
   Widget _buildPedidoCard(Mesa mesa, Pedido pedido, DatosNegocio negocio) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: AppColors.secondary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.receipt, color: AppColors.secondary),
+                  child: const Icon(
+                    Icons.receipt,
+                    color: AppColors.secondary,
+                    size: 20,
+                  ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,14 +207,14 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                       Text(
                         'Pedido Activo',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
                         'En curso',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           color: AppColors.textSecondary,
                         ),
                       ),
@@ -216,16 +223,17 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                    horizontal: 10,
+                    vertical: 4,
                   ),
                   decoration: BoxDecoration(
                     color: AppColors.secondary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     '${pedido.items.length} items',
                     style: const TextStyle(
+                      fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: AppColors.secondary,
                     ),
@@ -233,19 +241,19 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            const Divider(),
             const SizedBox(height: 12),
+            const Divider(),
+            const SizedBox(height: 8),
             ...pedido.items
                 .take(3)
                 .map(
                   (item) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       children: [
                         Container(
-                          width: 28,
-                          height: 28,
+                          width: 24,
+                          height: 24,
                           decoration: BoxDecoration(
                             color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
@@ -254,46 +262,56 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                             child: Text(
                               '${item.cantidad}',
                               style: const TextStyle(
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.primary,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(child: Text(item.productoNombre)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            item.productoNombre,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
                         Text(
                           '${item.subtotal.toStringAsFixed(2)} €',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
             if (pedido.items.length > 3) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 '+${pedido.items.length - 3} más...',
                 style: const TextStyle(
+                  fontSize: 11,
                   color: AppColors.textSecondary,
                   fontStyle: FontStyle.italic,
                 ),
               ),
             ],
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             const Divider(),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
                   'Total:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 Text(
                   '${pedido.total.toStringAsFixed(2)} €',
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: AppColors.secondary,
                   ),
@@ -309,18 +327,18 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
   Widget _buildAccionesCard(Mesa mesa) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Acciones Rápidas',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Wrap(
-              spacing: 12,
-              runSpacing: 12,
+              spacing: 10,
+              runSpacing: 10,
               children: [
                 if (mesa.estado == EstadoMesa.libre) ...[
                   _buildAccionBoton(
@@ -337,19 +355,14 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                   ),
                 ],
                 if (mesa.estado == EstadoMesa.ocupada) ...[
-                  _buildAccionBoton(
-                    Icons.restaurant_menu,
-                    'Añadir Productos',
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MesaProductosScreen(mesa: mesa),
-                        ),
-                      );
-                    },
-                    AppColors.primary,
-                  ),
+                  _buildAccionBoton(Icons.restaurant_menu, 'Añadir', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MesaProductosScreen(mesa: mesa),
+                      ),
+                    );
+                  }, AppColors.primary),
                   _buildAccionBoton(
                     Icons.payment,
                     'Cobrar',
@@ -358,7 +371,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                   ),
                   _buildAccionBoton(
                     Icons.cancel,
-                    'Cancelar Pedido',
+                    'Cancelar',
                     () => _cancelarPedido(mesa),
                     AppColors.error,
                   ),
@@ -366,7 +379,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                 if (mesa.estado == EstadoMesa.reservada)
                   _buildAccionBoton(
                     Icons.check_circle,
-                    'Activar Reserva',
+                    'Activar',
                     () => _nuevoPedido(mesa),
                     AppColors.success,
                   ),
@@ -379,7 +392,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                   ),
                 _buildAccionBoton(
                   Icons.edit,
-                  'Editar Mesa',
+                  'Editar',
                   () => showDialog(
                     context: context,
                     builder: (context) => _EditMesaDialog(mesa: mesa),
@@ -402,20 +415,24 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
   ) {
     return Material(
       color: color.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 20, color: color),
-              const SizedBox(width: 8),
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 6),
               Text(
                 texto,
-                style: TextStyle(color: color, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -432,18 +449,18 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(14),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.timer, color: color, size: 28),
+              child: Icon(Icons.timer, color: color, size: 20),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,14 +468,14 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                   const Text(
                     'Tiempo en mesa',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11,
                       color: AppColors.textSecondary,
                     ),
                   ),
                   Text(
                     _formatearTiempo(tiempo),
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: color,
                     ),
@@ -467,19 +484,23 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.access_time, size: 14, color: color),
+                  Icon(Icons.access_time, size: 12, color: color),
                   const SizedBox(width: 4),
                   Text(
                     _getTiempoLabel(tiempo),
-                    style: TextStyle(fontWeight: FontWeight.w600, color: color),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
                   ),
                 ],
               ),
@@ -493,23 +514,23 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
   Widget _buildInfoCard(Mesa mesa) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Información',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
-            _buildInfoRow(Icons.tag, 'Número', 'Mesa ${mesa.numero}'),
             const SizedBox(height: 12),
+            _buildInfoRow(Icons.tag, 'Número', 'Mesa ${mesa.numero}'),
+            const SizedBox(height: 10),
             _buildInfoRow(
               Icons.people,
               'Capacidad',
               '${mesa.capacidad} personas',
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             _buildInfoRow(
               Icons.access_time,
               'Última apertura',
@@ -526,11 +547,17 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
   Widget _buildInfoRow(IconData icon, String label, String valor) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: AppColors.textSecondary),
-        const SizedBox(width: 12),
-        Text(label, style: const TextStyle(color: AppColors.textSecondary)),
+        Icon(icon, size: 16, color: AppColors.textSecondary),
+        const SizedBox(width: 10),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        ),
         const Spacer(),
-        Text(valor, style: const TextStyle(fontWeight: FontWeight.w600)),
+        Text(
+          valor,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
       ],
     );
   }
@@ -613,27 +640,28 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
     final esEfectivo = pedido.metodoPago == 'Efectivo';
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       child: InkWell(
         onTap: () => _verDetalleTicket(pedido, negocio),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: (esEfectivo ? AppColors.success : AppColors.primary)
                       .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   esEfectivo ? Icons.money : Icons.credit_card,
                   color: esEfectivo ? AppColors.success : AppColors.primary,
+                  size: 20,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -642,12 +670,15 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                       DateFormat(
                         'dd/MM/yyyy HH:mm',
                       ).format(pedido.horaApertura),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
                     ),
                     Text(
                       '${pedido.items.length} productos - ${pedido.metodoPago ?? 'N/A'}',
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 10,
                         color: AppColors.textSecondary,
                       ),
                     ),
@@ -658,7 +689,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                 '${pedido.total.toStringAsFixed(2)} €',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 18,
+                  fontSize: 14,
                   color: AppColors.secondary,
                 ),
               ),
@@ -1016,7 +1047,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                               ? AppColors.success
                               : AppColors.primary)
                           .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1173,10 +1204,10 @@ class _CobroDialogState extends State<_CobroDialog> {
     final selected = _metodoPago == valor;
     return Material(
       color: selected ? color : color.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: () => setState(() => _metodoPago = valor),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.all(24),
           child: Column(

@@ -140,7 +140,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -267,7 +267,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -600,9 +600,9 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           padding: const EdgeInsets.all(12),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 0.75,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 0.80,
           ),
           itemCount: productos.length,
           itemBuilder: (context, index) {
@@ -652,23 +652,23 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     ),
                   if (itemEnCarrito != null)
                     Positioned(
-                      top: 6,
-                      right: 6,
+                      top: 4,
+                      right: 4,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                          horizontal: 6,
+                          vertical: 3,
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
                           '${itemEnCarrito.cantidad}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            fontSize: 10,
                           ),
                         ),
                       ),
@@ -677,25 +677,25 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     producto.nombre,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: producto.disponible ? null : Colors.grey,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     '${producto.precio.toStringAsFixed(2)} €',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: producto.disponible
                           ? AppColors.secondary
@@ -750,7 +750,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       child: Center(
         child: Text(
           categoria?.icono ?? '🍽️',
-          style: const TextStyle(fontSize: 40),
+          style: const TextStyle(fontSize: 32),
         ),
       ),
     );
@@ -1002,58 +1002,61 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         onRemove();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
         ),
         child: Row(
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(6),
               ),
-              child: Center(
-                child: Text(
-                  '${item.cantidad}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
+              alignment: Alignment.center,
+              child: Text(
+                '${item.cantidad}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 6),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     item.productoNombre,
                     style: const TextStyle(
-                      fontSize: 15,
+                      fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    '${item.precioUnitario.toStringAsFixed(2)} € x ${item.cantidad}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                    '${item.precioUnitario.toStringAsFixed(2)} € x${item.cantidad}',
+                    style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
                   ),
                 ],
               ),
             ),
+            const SizedBox(width: 6),
             Text(
               '${item.subtotal.toStringAsFixed(2)} €',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 6),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                InkWell(
+                GestureDetector(
                   onTap: () {
                     if (item.cantidad > 1) {
                       _actualizarCantidad(item, item.cantidad - 1);
@@ -1062,35 +1065,37 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     }
                   },
                   child: Container(
-                    width: 40,
-                    height: 40,
+                    width: 26,
+                    height: 26,
                     decoration: BoxDecoration(
                       color: AppColors.error.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(6),
                     ),
+                    alignment: Alignment.center,
                     child: const Icon(
                       Icons.remove,
                       color: AppColors.error,
-                      size: 24,
+                      size: 14,
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                InkWell(
+                const SizedBox(width: 4),
+                GestureDetector(
                   onTap: () {
                     _actualizarCantidad(item, item.cantidad + 1);
                   },
                   child: Container(
-                    width: 40,
-                    height: 40,
+                    width: 26,
+                    height: 26,
                     decoration: BoxDecoration(
                       color: AppColors.success.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(6),
                     ),
+                    alignment: Alignment.center,
                     child: const Icon(
                       Icons.add,
                       color: AppColors.success,
-                      size: 24,
+                      size: 14,
                     ),
                   ),
                 ),
@@ -1282,6 +1287,10 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
 
   Future<void> _cargarProductosMesa(String mesaId) async {
     try {
+      // FORZAR refresh desde la base de datos para evitar datos obsoletos
+      ref.read(pedidosProvider.notifier).actualizarLista();
+      ref.read(mesasProvider.notifier).actualizarLista();
+
       final todasMesas = ref.read(mesasProvider);
       final mesa = todasMesas.where((m) => m.id == mesaId).firstOrNull;
 

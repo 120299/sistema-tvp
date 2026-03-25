@@ -188,9 +188,14 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
                 child: Text(
                   cliente.nombre.isNotEmpty
                       ? cliente.nombre[0].toUpperCase()
@@ -198,7 +203,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                   style: const TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                    fontSize: 18,
                   ),
                 ),
               ),
@@ -632,11 +637,14 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundColor: AppColors.primary.withValues(
-                            alpha: 0.2,
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
                           ),
+                          alignment: Alignment.center,
                           child: Text(
                             cliente.nombre.isNotEmpty
                                 ? cliente.nombre[0].toUpperCase()
@@ -644,7 +652,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                             style: const TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
-                              fontSize: 20,
+                              fontSize: 18,
                             ),
                           ),
                         ),

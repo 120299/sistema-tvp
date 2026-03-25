@@ -103,14 +103,14 @@ class _CobroSheetState extends State<CobroSheet> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: AppColors.success.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.check_circle, color: AppColors.success),
             ),
@@ -199,6 +199,9 @@ class _CobroSheetState extends State<CobroSheet> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.success,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
             child: const Text(
@@ -216,7 +219,7 @@ class _CobroSheetState extends State<CobroSheet> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: SafeArea(
         child: Column(
@@ -224,39 +227,39 @@ class _CobroSheetState extends State<CobroSheet> {
           children: [
             Container(
               width: 50,
-              height: 4,
+              height: 5,
               margin: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(3),
               ),
             ),
-            Flexible(
+            Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _buildHeaderTotal(),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildMetodoPagoSelector(),
                     const SizedBox(height: 12),
                     _buildClienteSelector(),
                     if (_metodoSeleccionado == 'Efectivo') ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _buildImporteEntregado(),
                       if (_pagoCompleto && _cambio > 0) ...[
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
                         _buildCambioDisplay(),
                       ],
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _buildKeypad(),
                     ],
                     if (_metodoSeleccionado == 'Tarjeta') ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _buildTarjetaInfo(),
                     ],
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildBotonCobrar(),
                   ],
                 ),
@@ -270,28 +273,26 @@ class _CobroSheetState extends State<CobroSheet> {
 
   Widget _buildHeaderTotal() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
-        ),
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           const Text(
             'TOTAL A PAGAR',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               color: Colors.white70,
               letterSpacing: 1,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             '${widget.total.toStringAsFixed(2)} €',
             style: const TextStyle(
-              fontSize: 40,
+              fontSize: 32,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -317,75 +318,72 @@ class _CobroSheetState extends State<CobroSheet> {
 
   Widget _buildMetodoBoton(String metodo, IconData icono, Color color) {
     final isSelected = _metodoSeleccionado == metodo;
-    return Material(
-      color: isSelected ? color : Colors.grey.shade100,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: () => setState(() => _metodoSeleccionado = metodo),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            children: [
-              Icon(
-                icono,
+    return GestureDetector(
+      onTap: () => setState(() => _metodoSeleccionado = metodo),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? color : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icono,
+              color: isSelected ? Colors.white : Colors.grey,
+              size: 24,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              metodo,
+              style: TextStyle(
+                fontSize: 12,
                 color: isSelected ? Colors.white : Colors.grey,
-                size: 28,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 8),
-              Text(
-                metodo,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.grey,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildClienteSelector() {
-    return Material(
-      color: Colors.grey.shade100,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: _mostrarSelectorCliente,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(
-                _clienteSeleccionado != null ? Icons.person : Icons.person_add,
-                color: _clienteSeleccionado != null
-                    ? AppColors.primary
-                    : Colors.grey,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  _clienteSeleccionado?.nombre ?? 'Sin cliente',
-                  style: TextStyle(
-                    color: _clienteSeleccionado != null
-                        ? Colors.black
-                        : Colors.grey,
-                  ),
+    return GestureDetector(
+      onTap: _mostrarSelectorCliente,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              _clienteSeleccionado != null ? Icons.person : Icons.person_add,
+              color: _clienteSeleccionado != null
+                  ? AppColors.primary
+                  : Colors.grey,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _clienteSeleccionado?.nombre ?? 'Sin cliente',
+                style: TextStyle(
+                  color: _clienteSeleccionado != null
+                      ? Colors.black
+                      : Colors.grey,
                 ),
               ),
-              if (_clienteSeleccionado != null)
-                IconButton(
-                  icon: const Icon(Icons.close, size: 18),
-                  onPressed: () => setState(() => _clienteSeleccionado = null),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                )
-              else
-                const Icon(Icons.chevron_right, color: Colors.grey),
-            ],
-          ),
+            ),
+            if (_clienteSeleccionado != null)
+              GestureDetector(
+                onTap: () => setState(() => _clienteSeleccionado = null),
+                child: const Icon(Icons.close, size: 20, color: Colors.grey),
+              )
+            else
+              const Icon(Icons.chevron_right, color: Colors.grey),
+          ],
         ),
       ),
     );
@@ -393,7 +391,7 @@ class _CobroSheetState extends State<CobroSheet> {
 
   Widget _buildImporteEntregado() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(12),
@@ -403,16 +401,16 @@ class _CobroSheetState extends State<CobroSheet> {
           Text(
             'IMPORTE ENTREGADO',
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 9,
               color: Colors.grey.shade600,
               letterSpacing: 1,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
             '${_formatearImporte(_importe)} €',
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               color: _pagoCompleto ? AppColors.success : Colors.black87,
             ),
@@ -424,7 +422,7 @@ class _CobroSheetState extends State<CobroSheet> {
 
   Widget _buildCambioDisplay() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: AppColors.success.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
@@ -433,12 +431,12 @@ class _CobroSheetState extends State<CobroSheet> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.euro_symbol, color: AppColors.success),
-          const SizedBox(width: 8),
+          const Icon(Icons.euro_symbol, color: AppColors.success, size: 18),
+          const SizedBox(width: 6),
           Text(
             'CAMBIO: ${_cambio.toStringAsFixed(2)} €',
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
               color: AppColors.success,
             ),
@@ -453,45 +451,24 @@ class _CobroSheetState extends State<CobroSheet> {
       children: [
         Row(
           children: [
-            Expanded(child: _buildQuickButton(5)),
-            const SizedBox(width: 8),
-            Expanded(child: _buildQuickButton(10)),
-            const SizedBox(width: 8),
-            Expanded(child: _buildQuickButton(20)),
-            const SizedBox(width: 8),
-            Expanded(child: _buildQuickButton(50)),
-            const SizedBox(width: 8),
-            Expanded(child: _buildExactButton()),
+            _buildQuickButton(5),
+            const SizedBox(width: 6),
+            _buildQuickButton(10),
+            const SizedBox(width: 6),
+            _buildQuickButton(20),
+            const SizedBox(width: 6),
+            _buildQuickButton(50),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
+        Row(children: [_buildTecla('1'), _buildTecla('2'), _buildTecla('3')]),
+        const SizedBox(height: 6),
+        Row(children: [_buildTecla('4'), _buildTecla('5'), _buildTecla('6')]),
+        const SizedBox(height: 6),
+        Row(children: [_buildTecla('7'), _buildTecla('8'), _buildTecla('9')]),
+        const SizedBox(height: 6),
         Row(
-          children: [
-            Expanded(child: _buildTecla('1')),
-            Expanded(child: _buildTecla('2')),
-            Expanded(child: _buildTecla('3')),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(child: _buildTecla('4')),
-            Expanded(child: _buildTecla('5')),
-            Expanded(child: _buildTecla('6')),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(child: _buildTecla('7')),
-            Expanded(child: _buildTecla('8')),
-            Expanded(child: _buildTecla('9')),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(child: _buildTecla(',')),
-            Expanded(child: _buildTecla('0')),
-            Expanded(child: _buildTeclaAccion()),
-          ],
+          children: [_buildTecla(','), _buildTecla('0'), _buildTeclaAccion()],
         ),
       ],
     );
@@ -502,7 +479,7 @@ class _CobroSheetState extends State<CobroSheet> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.blue.shade200),
       ),
       child: Column(
@@ -529,30 +506,29 @@ class _CobroSheetState extends State<CobroSheet> {
 
   Widget _buildBotonCobrar() {
     final canCobrar = _pagoCompleto;
-    return SizedBox(
-      height: 56,
-      child: ElevatedButton(
-        onPressed: canCobrar ? _cobrar : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: canCobrar ? AppColors.success : Colors.grey.shade300,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+    return GestureDetector(
+      onTap: canCobrar ? _cobrar : null,
+      child: Container(
+        height: 50,
+        decoration: BoxDecoration(
+          color: canCobrar ? AppColors.success : Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.check_circle,
+              size: 22,
               color: canCobrar ? Colors.white : Colors.grey,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Text(
               canCobrar
                   ? 'COBRAR ${widget.total.toStringAsFixed(2)} €'
                   : 'FALTAN ${(widget.total - _importeNumerico).toStringAsFixed(2)} €',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: canCobrar ? Colors.white : Colors.grey,
               ),
@@ -564,19 +540,20 @@ class _CobroSheetState extends State<CobroSheet> {
   }
 
   Widget _buildTecla(String valor) {
-    return Padding(
-      padding: const EdgeInsets.all(4),
-      child: Material(
-        color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: () => _agregarDigito(valor),
-          borderRadius: BorderRadius.circular(12),
-          child: Center(
-            child: Text(
-              valor == ',' ? ',' : valor,
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _agregarDigito(valor),
+        child: Container(
+          height: 56,
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            valor == ',' ? ',' : valor,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
         ),
       ),
@@ -584,56 +561,42 @@ class _CobroSheetState extends State<CobroSheet> {
   }
 
   Widget _buildTeclaAccion() {
-    return Padding(
-      padding: const EdgeInsets.all(4),
-      child: Material(
-        color: Colors.grey.shade400,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: () => _agregarDigito('⌫'),
-          onLongPress: () => _agregarDigito('C'),
-          borderRadius: BorderRadius.circular(12),
-          child: const Center(child: Icon(Icons.backspace_outlined, size: 26)),
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _agregarDigito('⌫'),
+        onLongPress: () => _agregarDigito('C'),
+        child: Container(
+          height: 56,
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade400,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          alignment: Alignment.center,
+          child: const Icon(Icons.backspace_outlined, size: 22),
         ),
       ),
     );
   }
 
   Widget _buildQuickButton(double amount) {
-    return Material(
-      color: AppColors.primary.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
+    return Expanded(
+      child: GestureDetector(
         onTap: () => _setImporte(amount),
-        borderRadius: BorderRadius.circular(12),
-        child: Center(
+        child: Container(
+          height: 44,
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          alignment: Alignment.center,
           child: Text(
             '€${amount.toInt()}',
             style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildExactButton() {
-    return Material(
-      color: AppColors.success.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: () => _setImporte(widget.total),
-        borderRadius: BorderRadius.circular(12),
-        child: const Center(
-          child: Text(
-            'EXACTO',
-            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: AppColors.success,
+              color: AppColors.primary,
             ),
           ),
         ),
@@ -681,17 +644,17 @@ class _SelectorClienteSheetState extends ConsumerState<_SelectorClienteSheet> {
       height: MediaQuery.of(context).size.height * 0.7,
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Column(
         children: [
           Container(
             width: 50,
-            height: 4,
+            height: 5,
             margin: const EdgeInsets.only(top: 12),
             decoration: BoxDecoration(
               color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(3),
             ),
           ),
           Padding(
@@ -723,14 +686,21 @@ class _SelectorClienteSheetState extends ConsumerState<_SelectorClienteSheet> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => widget.onClienteSelected(null),
-                icon: const Icon(Icons.person_add),
-                label: const Text('Venta sin cliente'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+            child: GestureDetector(
+              onTap: () => widget.onClienteSelected(null),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.person_add, color: Colors.grey),
+                    SizedBox(width: 8),
+                    Text('Venta sin cliente'),
+                  ],
                 ),
               ),
             ),
@@ -762,26 +732,55 @@ class _SelectorClienteSheetState extends ConsumerState<_SelectorClienteSheet> {
                     itemCount: clientesFiltrados.length,
                     itemBuilder: (context, index) {
                       final cliente = clientesFiltrados[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: AppColors.primary.withValues(
-                              alpha: 0.1,
-                            ),
-                            child: const Icon(
-                              Icons.person,
-                              color: AppColors.primary,
-                            ),
+                      return GestureDetector(
+                        onTap: () => widget.onClienteSelected(cliente),
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          title: Text(
-                            cliente.nombre,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.person,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      cliente.nombre,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    if (cliente.telefono != null)
+                                      Text(
+                                        cliente.telefono!,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          subtitle: cliente.telefono != null
-                              ? Text(cliente.telefono!)
-                              : null,
-                          onTap: () => widget.onClienteSelected(cliente),
                         ),
                       );
                     },

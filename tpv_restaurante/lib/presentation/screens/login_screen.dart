@@ -312,7 +312,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: const Text(
               'Sistema de Punto de Venta',

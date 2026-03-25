@@ -488,7 +488,7 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05),
