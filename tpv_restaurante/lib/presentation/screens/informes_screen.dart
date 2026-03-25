@@ -59,11 +59,14 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     final negocio = ref.watch(negocioProvider);
     final pedidosNotifier = ref.watch(pedidosProvider.notifier);
     final cajeros = ref.watch(cajerosProvider);
+    final cajeroActual = ref.watch(cajeroActualProvider);
+    final isAdmin = cajeroActual?.isAdministrador ?? false;
 
     final pedidosFiltrados = pedidosNotifier.getFiltrados(
       fechaInicio: _fechaInicio,
-      fechaFin: _fechaFin?.add(const Duration(days: 1)),
+      fechaFin: _fechaFin,
       metodoPago: _filtroMetodo != 'Todos' ? _filtroMetodo : null,
+      cajeroId: isAdmin ? _filtroCajero : null,
     );
 
     final totalVentas = pedidosFiltrados.fold<double>(
@@ -90,7 +93,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
 
             return Column(
               children: [
-                _buildFiltros(context, cajeros),
+                _buildFiltros(context, cajeros, isAdmin),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(20),
@@ -193,7 +196,11 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     );
   }
 
-  Widget _buildFiltros(BuildContext context, List<Cajero> cajeros) {
+  Widget _buildFiltros(
+    BuildContext context,
+    List<Cajero> cajeros,
+    bool isAdmin,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -310,37 +317,39 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String?>(
-                      value: _filtroCajero,
-                      hint: const Text('Todos'),
-                      isExpanded: true,
-                      items: [
-                        const DropdownMenuItem(
-                          value: null,
-                          child: Text('Todos'),
-                        ),
-                        ...cajeros.map((c) {
-                          return DropdownMenuItem(
-                            value: c.id,
-                            child: Text(c.nombre),
-                          );
-                        }),
-                      ],
-                      onChanged: (v) {
-                        setState(() => _filtroCajero = v);
-                      },
+              if (isAdmin) ...[
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String?>(
+                        value: _filtroCajero,
+                        hint: const Text('Todos'),
+                        isExpanded: true,
+                        items: [
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('Todos'),
+                          ),
+                          ...cajeros.map((c) {
+                            return DropdownMenuItem(
+                              value: c.id,
+                              child: Text(c.nombre),
+                            );
+                          }),
+                        ],
+                        onChanged: (v) {
+                          setState(() => _filtroCajero = v);
+                        },
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
         ],
@@ -641,7 +650,6 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     if (ventasPorMetodo.isEmpty ||
         ventasPorMetodo.values.every((v) => v == 0)) {
       return Container(
-        height: 200,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -653,11 +661,25 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
             ),
           ],
         ),
-        child: Center(
-          child: Text(
-            'Sin datos de métodos de pago',
-            style: TextStyle(color: Colors.grey.shade500),
-          ),
+        child: Column(
+          children: [
+            const Text(
+              'Método de Pago',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 40),
+            Icon(
+              Icons.pie_chart_outline,
+              size: 64,
+              color: Colors.grey.shade300,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Sin datos de métodos de pago',
+              style: TextStyle(color: Colors.grey.shade500),
+            ),
+            const SizedBox(height: 40),
+          ],
         ),
       );
     }
@@ -674,9 +696,9 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
             color: colores[metodo] ?? Colors.grey,
             value: cantidad,
             title: '${porcentaje.toStringAsFixed(0)}%',
-            radius: 60,
+            radius: 80,
             titleStyle: const TextStyle(
-              fontSize: 14,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -686,7 +708,6 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     });
 
     return Container(
-      height: 200,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -699,58 +720,80 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             'Método de Pago',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: PieChart(
-                    PieChartData(
-                      sections: secciones,
-                      centerSpaceRadius: 30,
-                      sectionsSpace: 2,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: ventasPorMetodo.entries
-                      .where((e) => e.value > 0)
-                      .map((e) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: colores[e.key] ?? Colors.grey,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${e.key}: €${e.value.toStringAsFixed(2)}',
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            ],
-                          ),
-                        );
-                      })
-                      .toList(),
-                ),
-              ],
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 180,
+            child: PieChart(
+              PieChartData(
+                sections: secciones,
+                centerSpaceRadius: 40,
+                sectionsSpace: 4,
+              ),
             ),
           ),
+          const SizedBox(height: 20),
+          ...ventasPorMetodo.entries.where((e) => e.value > 0).map((e) {
+            final porcentaje = (e.value / total * 100);
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: colores[e.key] ?? Colors.grey,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          e.key,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 4),
+                        LinearProgressIndicator(
+                          value: porcentaje / 100,
+                          backgroundColor: Colors.grey.shade200,
+                          valueColor: AlwaysStoppedAnimation(
+                            colores[e.key] ?? Colors.grey,
+                          ),
+                          minHeight: 8,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '€${e.value.toStringAsFixed(2)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '${porcentaje.toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );

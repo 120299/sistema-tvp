@@ -605,22 +605,40 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
     DateTime? fechaFin,
     String? metodoPago,
     String? mesaId,
+    String? cajeroId,
   }) {
     var result = state.where((p) => p.estado == EstadoPedido.cerrado).toList();
 
     if (fechaInicio != null) {
-      result = result
-          .where((p) => p.horaApertura.isAfter(fechaInicio))
-          .toList();
+      final inicio = DateTime(
+        fechaInicio.year,
+        fechaInicio.month,
+        fechaInicio.day,
+        0,
+        0,
+        0,
+      );
+      result = result.where((p) => !p.horaApertura.isBefore(inicio)).toList();
     }
     if (fechaFin != null) {
-      result = result.where((p) => p.horaApertura.isBefore(fechaFin)).toList();
+      final fin = DateTime(
+        fechaFin.year,
+        fechaFin.month,
+        fechaFin.day,
+        23,
+        59,
+        59,
+      );
+      result = result.where((p) => !p.horaApertura.isAfter(fin)).toList();
     }
     if (metodoPago != null && metodoPago.isNotEmpty) {
       result = result.where((p) => p.metodoPago == metodoPago).toList();
     }
     if (mesaId != null && mesaId.isNotEmpty) {
       result = result.where((p) => p.mesaId == mesaId).toList();
+    }
+    if (cajeroId != null && cajeroId.isNotEmpty) {
+      result = result.where((p) => p.cajeroId == cajeroId).toList();
     }
 
     return result..sort((a, b) => b.horaApertura.compareTo(a.horaApertura));

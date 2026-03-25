@@ -5,6 +5,33 @@ import 'package:pdf/widgets.dart' as pw;
 import '../../data/models/models.dart';
 
 class PrintService {
+  static Future<void> abrirCajon() async {
+    try {
+      final pdf = pw.Document();
+      pdf.addPage(
+        pw.Page(
+          pageFormat: const PdfPageFormat(
+            80 * PdfPageFormat.mm,
+            30 * PdfPageFormat.mm,
+          ),
+          build: (pw.Context context) {
+            return pw.Container();
+          },
+        ),
+      );
+
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+        name: 'Abrir Cajón',
+      );
+
+      debugPrint('Comando abrir cajón enviado');
+    } catch (e) {
+      debugPrint('Error al abrir cajón: $e');
+      rethrow;
+    }
+  }
+
   static Future<void> printTicket({
     required List<PedidoItem> items,
     required double subtotal,

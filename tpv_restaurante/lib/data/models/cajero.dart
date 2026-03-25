@@ -7,6 +7,11 @@ class Cajero {
   final DateTime fechaCreacion;
   final bool activo;
   final RolCajero rol;
+  final String? telefono;
+  final String? direccion;
+  final String? ciudad;
+  final String? codigoPostal;
+  final String? provincia;
 
   const Cajero({
     required this.id,
@@ -15,6 +20,11 @@ class Cajero {
     required this.fechaCreacion,
     this.activo = true,
     this.rol = RolCajero.cajero,
+    this.telefono,
+    this.direccion,
+    this.ciudad,
+    this.codigoPostal,
+    this.provincia,
   });
 
   bool get isAdministrador => rol == RolCajero.administrador;
@@ -26,6 +36,11 @@ class Cajero {
     DateTime? fechaCreacion,
     bool? activo,
     RolCajero? rol,
+    String? telefono,
+    String? direccion,
+    String? ciudad,
+    String? codigoPostal,
+    String? provincia,
   }) {
     return Cajero(
       id: id ?? this.id,
@@ -34,6 +49,11 @@ class Cajero {
       fechaCreacion: fechaCreacion ?? this.fechaCreacion,
       activo: activo ?? this.activo,
       rol: rol ?? this.rol,
+      telefono: telefono ?? this.telefono,
+      direccion: direccion ?? this.direccion,
+      ciudad: ciudad ?? this.ciudad,
+      codigoPostal: codigoPostal ?? this.codigoPostal,
+      provincia: provincia ?? this.provincia,
     );
   }
 
@@ -45,6 +65,11 @@ class Cajero {
       'fechaCreacion': fechaCreacion.toIso8601String(),
       'activo': activo,
       'rol': rol.index,
+      'telefono': telefono,
+      'direccion': direccion,
+      'ciudad': ciudad,
+      'codigoPostal': codigoPostal,
+      'provincia': provincia,
     };
   }
 
@@ -56,6 +81,11 @@ class Cajero {
       fechaCreacion: DateTime.parse(json['fechaCreacion'] as String),
       activo: json['activo'] as bool? ?? true,
       rol: RolCajero.values[json['rol'] as int? ?? 1],
+      telefono: json['telefono'] as String?,
+      direccion: json['direccion'] as String?,
+      ciudad: json['ciudad'] as String?,
+      codigoPostal: json['codigoPostal'] as String?,
+      provincia: json['provincia'] as String?,
     );
   }
 }

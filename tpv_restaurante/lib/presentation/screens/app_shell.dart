@@ -381,7 +381,7 @@ class AppShell extends ConsumerWidget {
                 Icon(
                   icon,
                   color: isSelected ? color : Colors.white70,
-                  size: mostrarTexto ? 26 : 24,
+                  size: 26,
                 ),
                 if (mostrarTexto) ...[
                   const SizedBox(height: 4),

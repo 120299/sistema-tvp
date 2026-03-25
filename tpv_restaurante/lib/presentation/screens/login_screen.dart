@@ -472,6 +472,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             _error = null;
           });
           Navigator.pop(ctx);
+
+          if (cajero.pin == null || cajero.pin!.isEmpty) {
+            _loginDirecto();
+          }
         },
       ),
     );

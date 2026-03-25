@@ -269,220 +269,418 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
     final esEdicion = cajero != null;
     final nombreController = TextEditingController(text: cajero?.nombre ?? '');
     final pinController = TextEditingController(text: cajero?.pin ?? '');
+    final telefonoController = TextEditingController(
+      text: cajero?.telefono ?? '',
+    );
+    final direccionController = TextEditingController(
+      text: cajero?.direccion ?? '',
+    );
+    final ciudadController = TextEditingController(text: cajero?.ciudad ?? '');
+    final cpController = TextEditingController(
+      text: cajero?.codigoPostal ?? '',
+    );
+    final provinciaController = TextEditingController(
+      text: cajero?.provincia ?? '',
+    );
     RolCajero rolSeleccionado = cajero?.rol ?? RolCajero.cajero;
+    bool activo = cajero?.activo ?? true;
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Row(
-            children: [
-              Icon(
-                esEdicion ? Icons.edit : Icons.person_add,
-                color: AppColors.primary,
-              ),
-              const SizedBox(width: 12),
-              Text(esEdicion ? 'Editar Usuario' : 'Nuevo Usuario'),
-            ],
-          ),
-          content: SingleChildScrollView(
+        builder: (ctx, setDialogState) => Dialog(
+          child: Container(
+            width: 500,
+            constraints: const BoxConstraints(maxHeight: 700),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextField(
-                  controller: nombreController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre *',
-                    prefixIcon: Icon(Icons.person),
-                    border: OutlineInputBorder(),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
                   ),
-                  textCapitalization: TextCapitalization.words,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: pinController,
-                  decoration: const InputDecoration(
-                    labelText: 'PIN (opcional)',
-                    prefixIcon: Icon(Icons.pin),
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  maxLength: 4,
-                  obscureText: true,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Rol',
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => setDialogState(
-                          () => rolSeleccionado = RolCajero.cajero,
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: rolSeleccionado == RolCajero.cajero
-                                ? AppColors.primary.withValues(alpha: 0.1)
-                                : Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: rolSeleccionado == RolCajero.cajero
-                                  ? AppColors.primary
-                                  : Colors.grey.shade300,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.person,
-                                color: rolSeleccionado == RolCajero.cajero
-                                    ? AppColors.primary
-                                    : Colors.grey,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Cajero',
-                                style: TextStyle(
-                                  color: rolSeleccionado == RolCajero.cajero
-                                      ? AppColors.primary
-                                      : Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        esEdicion ? Icons.edit : Icons.person_add,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        esEdicion ? 'Editar Usuario' : 'Nuevo Usuario',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => setDialogState(
-                          () => rolSeleccionado = RolCajero.administrador,
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: rolSeleccionado == RolCajero.administrador
-                                ? AppColors.warning.withValues(alpha: 0.2)
-                                : Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: rolSeleccionado == RolCajero.administrador
-                                  ? AppColors.warning
-                                  : Colors.grey.shade300,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.admin_panel_settings,
-                                color:
-                                    rolSeleccionado == RolCajero.administrador
-                                    ? AppColors.warning
-                                    : Colors.grey,
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: TextField(
+                                controller: nombreController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Nombre *',
+                                  prefixIcon: Icon(Icons.person),
+                                  border: OutlineInputBorder(),
+                                ),
+                                textCapitalization: TextCapitalization.words,
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Admin',
-                                style: TextStyle(
-                                  color:
-                                      rolSeleccionado == RolCajero.administrador
-                                      ? AppColors.warning
-                                      : Colors.grey,
-                                  fontWeight: FontWeight.w500,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextField(
+                                controller: pinController,
+                                decoration: const InputDecoration(
+                                  labelText: 'PIN',
+                                  prefixIcon: Icon(Icons.pin),
+                                  border: OutlineInputBorder(),
+                                ),
+                                keyboardType: TextInputType.number,
+                                maxLength: 4,
+                                obscureText: true,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Rol',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: InkWell(
+                                onTap: () => setDialogState(
+                                  () => rolSeleccionado = RolCajero.cajero,
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: rolSeleccionado == RolCajero.cajero
+                                        ? AppColors.primary.withValues(
+                                            alpha: 0.1,
+                                          )
+                                        : Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: rolSeleccionado == RolCajero.cajero
+                                          ? AppColors.primary
+                                          : Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.person,
+                                        color:
+                                            rolSeleccionado == RolCajero.cajero
+                                            ? AppColors.primary
+                                            : Colors.grey,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Cajero',
+                                        style: TextStyle(
+                                          color:
+                                              rolSeleccionado ==
+                                                  RolCajero.cajero
+                                              ? AppColors.primary
+                                              : Colors.grey,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ],
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: InkWell(
+                                onTap: () => setDialogState(
+                                  () =>
+                                      rolSeleccionado = RolCajero.administrador,
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        rolSeleccionado ==
+                                            RolCajero.administrador
+                                        ? AppColors.warning.withValues(
+                                            alpha: 0.2,
+                                          )
+                                        : Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color:
+                                          rolSeleccionado ==
+                                              RolCajero.administrador
+                                          ? AppColors.warning
+                                          : Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.admin_panel_settings,
+                                        color:
+                                            rolSeleccionado ==
+                                                RolCajero.administrador
+                                            ? AppColors.warning
+                                            : Colors.grey,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Admin',
+                                        style: TextStyle(
+                                          color:
+                                              rolSeleccionado ==
+                                                  RolCajero.administrador
+                                              ? AppColors.warning
+                                              : Colors.grey,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        const Divider(),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Datos de Contacto',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: telefonoController,
+                          decoration: const InputDecoration(
+                            labelText: 'Teléfono',
+                            prefixIcon: Icon(Icons.phone),
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.phone,
+                        ),
+                        const SizedBox(height: 16),
+                        const Divider(),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Dirección',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: direccionController,
+                          decoration: const InputDecoration(
+                            labelText: 'Dirección',
+                            prefixIcon: Icon(Icons.location_on),
+                            border: OutlineInputBorder(),
+                          ),
+                          textCapitalization: TextCapitalization.words,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 100,
+                              child: TextField(
+                                controller: cpController,
+                                decoration: const InputDecoration(
+                                  labelText: 'C.P.',
+                                  border: OutlineInputBorder(),
+                                ),
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextField(
+                                controller: ciudadController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Ciudad',
+                                  border: OutlineInputBorder(),
+                                ),
+                                textCapitalization: TextCapitalization.words,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: provinciaController,
+                          decoration: const InputDecoration(
+                            labelText: 'Provincia',
+                            prefixIcon: Icon(Icons.map),
+                            border: OutlineInputBorder(),
+                          ),
+                          textCapitalization: TextCapitalization.words,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: Checkbox(
+                                value: activo,
+                                onChanged: (v) =>
+                                    setDialogState(() => activo = v ?? true),
+                                activeColor: AppColors.success,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text('Usuario activo'),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(16),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      if (esEdicion)
+                        TextButton(
+                          onPressed: () {
+                            showDialog(
+                              context: ctx,
+                              builder: (ctx2) => AlertDialog(
+                                title: const Text('Eliminar Usuario'),
+                                content: Text('¿Eliminar a ${cajero.nombre}?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx2),
+                                    child: const Text('Cancelar'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      ref
+                                          .read(cajerosProvider.notifier)
+                                          .eliminar(cajero.id);
+                                      Navigator.pop(ctx2);
+                                      Navigator.pop(ctx);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.error,
+                                    ),
+                                    child: const Text('Eliminar'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'Eliminar',
+                            style: TextStyle(color: AppColors.error),
+                          ),
+                        ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Cancelar'),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (nombreController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('El nombre es obligatorio'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          final nuevoCajero = Cajero(
+                            id:
+                                cajero?.id ??
+                                'cajero_${DateTime.now().millisecondsSinceEpoch}',
+                            nombre: nombreController.text.trim(),
+                            pin: pinController.text.trim().isNotEmpty
+                                ? pinController.text.trim()
+                                : null,
+                            fechaCreacion:
+                                cajero?.fechaCreacion ?? DateTime.now(),
+                            activo: activo,
+                            rol: rolSeleccionado,
+                            telefono: telefonoController.text.trim().isNotEmpty
+                                ? telefonoController.text.trim()
+                                : null,
+                            direccion:
+                                direccionController.text.trim().isNotEmpty
+                                ? direccionController.text.trim()
+                                : null,
+                            ciudad: ciudadController.text.trim().isNotEmpty
+                                ? ciudadController.text.trim()
+                                : null,
+                            codigoPostal: cpController.text.trim().isNotEmpty
+                                ? cpController.text.trim()
+                                : null,
+                            provincia:
+                                provinciaController.text.trim().isNotEmpty
+                                ? provinciaController.text.trim()
+                                : null,
+                          );
+
+                          if (esEdicion) {
+                            ref
+                                .read(cajerosProvider.notifier)
+                                .actualizar(nuevoCajero);
+                          } else {
+                            ref
+                                .read(cajerosProvider.notifier)
+                                .agregar(nuevoCajero);
+                          }
+                          Navigator.pop(ctx);
+                        },
+                        child: Text(esEdicion ? 'Guardar' : 'Añadir'),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          actions: [
-            if (esEdicion)
-              TextButton(
-                onPressed: () {
-                  showDialog(
-                    context: ctx,
-                    builder: (ctx2) => AlertDialog(
-                      title: const Text('Eliminar Usuario'),
-                      content: Text('¿Eliminar a ${cajero.nombre}?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx2),
-                          child: const Text('Cancelar'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            ref
-                                .read(cajerosProvider.notifier)
-                                .eliminar(cajero.id);
-                            Navigator.pop(ctx2);
-                            Navigator.pop(ctx);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.error,
-                          ),
-                          child: const Text('Eliminar'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                child: const Text(
-                  'Eliminar',
-                  style: TextStyle(color: AppColors.error),
-                ),
-              ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (nombreController.text.trim().isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('El nombre es obligatorio')),
-                  );
-                  return;
-                }
-
-                final nuevoCajero = Cajero(
-                  id:
-                      cajero?.id ??
-                      'cajero_${DateTime.now().millisecondsSinceEpoch}',
-                  nombre: nombreController.text.trim(),
-                  pin: pinController.text.trim().isNotEmpty
-                      ? pinController.text.trim()
-                      : null,
-                  fechaCreacion: cajero?.fechaCreacion ?? DateTime.now(),
-                  activo: cajero?.activo ?? true,
-                  rol: rolSeleccionado,
-                );
-
-                if (esEdicion) {
-                  ref.read(cajerosProvider.notifier).actualizar(nuevoCajero);
-                } else {
-                  ref.read(cajerosProvider.notifier).agregar(nuevoCajero);
-                }
-                Navigator.pop(ctx);
-              },
-              child: Text(esEdicion ? 'Guardar' : 'Añadir'),
-            ),
-          ],
         ),
       ),
     );
