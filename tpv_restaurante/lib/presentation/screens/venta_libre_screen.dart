@@ -602,7 +602,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             crossAxisCount: crossAxisCount,
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
-            childAspectRatio: 0.80,
+            childAspectRatio: 1.0,
           ),
           itemCount: productos.length,
           itemBuilder: (context, index) {
@@ -626,20 +626,31 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     return Card(
       clipBehavior: Clip.antiAlias,
       elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: producto.disponible ? () => _agregarProducto(producto) : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            AspectRatio(
-              aspectRatio: 1,
+            Expanded(
+              flex: 3,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  _buildProductImage(producto, categoria),
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
+                    child: _buildProductImage(producto, categoria),
+                  ),
                   if (!producto.disponible)
                     Container(
-                      color: Colors.black45,
+                      decoration: BoxDecoration(
+                        color: Colors.black45,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
+                      ),
                       child: const Center(
                         child: Text(
                           'AGOTADO',
@@ -652,23 +663,23 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     ),
                   if (itemEnCarrito != null)
                     Positioned(
-                      top: 4,
-                      right: 4,
+                      top: 8,
+                      right: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 3,
+                          horizontal: 8,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           '${itemEnCarrito.cantidad}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 10,
+                            fontSize: 12,
                           ),
                         ),
                       ),
@@ -676,33 +687,38 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    producto.nombre,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: producto.disponible ? null : Colors.grey,
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        producto.nombre,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: producto.disponible ? null : Colors.grey,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${producto.precio.toStringAsFixed(2)} €',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: producto.disponible
-                          ? AppColors.secondary
-                          : Colors.grey,
+                    Text(
+                      '${producto.precio.toStringAsFixed(2)} €',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: producto.disponible
+                            ? AppColors.secondary
+                            : Colors.grey,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -750,7 +766,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       child: Center(
         child: Text(
           categoria?.icono ?? '🍽️',
-          style: const TextStyle(fontSize: 32),
+          style: const TextStyle(fontSize: 36),
         ),
       ),
     );
@@ -1002,30 +1018,30 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         onRemove();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
         ),
         child: Row(
           children: [
             Container(
-              width: 28,
-              height: 28,
+              width: 32,
+              height: 32,
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(8),
               ),
               alignment: Alignment.center,
               child: Text(
                 '${item.cantidad}',
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                 ),
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1034,7 +1050,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                   Text(
                     item.productoNombre,
                     style: const TextStyle(
-                      fontSize: 11,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
@@ -1042,17 +1058,17 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                   ),
                   Text(
                     '${item.precioUnitario.toStringAsFixed(2)} € x${item.cantidad}',
-                    style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 10),
             Text(
               '${item.subtotal.toStringAsFixed(2)} €',
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 10),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1065,8 +1081,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     }
                   },
                   child: Container(
-                    width: 26,
-                    height: 26,
+                    width: 28,
+                    height: 28,
                     decoration: BoxDecoration(
                       color: AppColors.error.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
@@ -1075,18 +1091,18 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     child: const Icon(
                       Icons.remove,
                       color: AppColors.error,
-                      size: 14,
+                      size: 16,
                     ),
                   ),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 6),
                 GestureDetector(
                   onTap: () {
                     _actualizarCantidad(item, item.cantidad + 1);
                   },
                   child: Container(
-                    width: 26,
-                    height: 26,
+                    width: 28,
+                    height: 28,
                     decoration: BoxDecoration(
                       color: AppColors.success.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
@@ -1095,7 +1111,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     child: const Icon(
                       Icons.add,
                       color: AppColors.success,
-                      size: 14,
+                      size: 16,
                     ),
                   ),
                 ),

@@ -403,12 +403,12 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
         }
 
         return GridView.builder(
-          padding: const EdgeInsets.all(6),
+          padding: const EdgeInsets.all(12),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            mainAxisSpacing: 6,
-            crossAxisSpacing: 6,
-            childAspectRatio: 0.70,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.0,
           ),
           itemCount: productos.length,
           itemBuilder: (context, index) {
@@ -428,20 +428,31 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     return Card(
       clipBehavior: Clip.antiAlias,
       elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () => _editarProducto(context, producto),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            AspectRatio(
-              aspectRatio: 1,
+            Expanded(
+              flex: 3,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  _buildProductImage(producto, categoria),
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
+                    child: _buildProductImage(producto, categoria),
+                  ),
                   if (!producto.disponible)
                     Container(
-                      color: Colors.black45,
+                      decoration: BoxDecoration(
+                        color: Colors.black45,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
+                      ),
                       child: const Center(
                         child: Text(
                           'AGOTADO',
@@ -454,17 +465,17 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                     ),
                   if (producto.esAlergenico)
                     Positioned(
-                      top: 4,
-                      left: 4,
+                      top: 6,
+                      left: 6,
                       child: Container(
-                        padding: const EdgeInsets.all(3),
+                        padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
                           color: AppColors.warning,
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
                           Icons.warning_amber,
-                          size: 12,
+                          size: 14,
                           color: Colors.white,
                         ),
                       ),
@@ -473,29 +484,32 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
               ),
             ),
             Expanded(
+              flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      producto.nombre,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: producto.disponible ? null : Colors.grey,
+                    Expanded(
+                      child: Text(
+                        producto.nombre,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: producto.disponible ? null : Colors.grey,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    const Spacer(),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           '${producto.precio.toStringAsFixed(2)} €',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: producto.disponible
                                 ? AppColors.secondary
@@ -508,7 +522,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                             producto.disponible
                                 ? Icons.visibility_off
                                 : Icons.visibility,
-                            size: 16,
+                            size: 20,
                             color: producto.disponible
                                 ? Colors.grey
                                 : AppColors.success,
@@ -563,7 +577,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
         ),
       ),
       child: Center(
-        child: Text(categoria.icono, style: const TextStyle(fontSize: 28)),
+        child: Text(categoria.icono, style: const TextStyle(fontSize: 36)),
       ),
     );
   }
