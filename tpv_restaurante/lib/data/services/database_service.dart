@@ -17,6 +17,8 @@ class DatabaseService {
   static const String _configBox = 'config';
   static const String _cajaBox = 'caja';
   static const String _movimientosBox = 'movimientos';
+  static const String _cajerosBox = 'cajeros';
+  static const String _clientesBox = 'clientes';
 
   late Box<Producto> productosBox;
   late Box<CategoriaProducto> categoriasBox;
@@ -26,6 +28,8 @@ class DatabaseService {
   late Box<dynamic> configBox;
   late Box<Caja> cajaBox;
   late Box<MovimientoCaja> movimientosBox;
+  late Box<Cajero> cajerosBox;
+  late Box<Cliente> clientesBox;
 
   late ProductoRepositorio productoRepositorio;
   late CategoriaRepositorio categoriaRepositorio;
@@ -59,6 +63,8 @@ class DatabaseService {
     Hive.registerAdapter(DatosNegocioAdapter());
     Hive.registerAdapter(CajaAdapter());
     Hive.registerAdapter(MovimientoCajaAdapter());
+    Hive.registerAdapter(CajeroAdapter());
+    Hive.registerAdapter(ClienteAdapter());
 
     productosBox = await Hive.openBox<Producto>(_productosBox);
     categoriasBox = await Hive.openBox<CategoriaProducto>(_categoriasBox);
@@ -68,6 +74,8 @@ class DatabaseService {
     configBox = await Hive.openBox(_configBox);
     cajaBox = await Hive.openBox<Caja>(_cajaBox);
     movimientosBox = await Hive.openBox<MovimientoCaja>(_movimientosBox);
+    cajerosBox = await Hive.openBox<Cajero>(_cajerosBox);
+    clientesBox = await Hive.openBox<Cliente>(_clientesBox);
 
     _setupListeners();
 

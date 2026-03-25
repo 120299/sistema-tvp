@@ -159,6 +159,11 @@ class CajaRepositorio extends Repositorio<Caja> {
       return null;
     }
   }
+
+  List<Caja> getHistorial() {
+    return getAll().where((c) => c.estado == EstadoCaja.cerrada).toList()
+      ..sort((a, b) => (b.fechaApertura).compareTo(a.fechaApertura));
+  }
 }
 
 class MovimientoRepositorio extends Repositorio<MovimientoCaja> {

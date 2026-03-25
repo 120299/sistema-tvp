@@ -42,6 +42,8 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
   @override
   Widget build(BuildContext context) {
     ref.watch(imageRefreshTriggerProvider);
+    ref.watch(mesasProvider);
+    ref.watch(pedidosProvider);
     final categorias = ref.watch(categoriasProvider);
     final productos = ref.watch(productosProvider);
     final categoriaSeleccionada = ref.watch(categoriaSeleccionadaProvider);
@@ -62,24 +64,9 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               .toList()
         : productosFiltrados;
 
-    return Scaffold(
-      backgroundColor: AppColors.lightBackground,
-      appBar: AppBar(
-        title: Text('Mesa ${widget.mesa.numero}'),
-        backgroundColor: AppColors.secondary,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.print),
-            tooltip: 'Imprimir cocina',
-            onPressed: _imprimirCocina,
-          ),
-        ],
-      ),
-      body: Row(
+    return Container(
+      color: AppColors.lightBackground,
+      child: Row(
         children: [
           Expanded(
             flex: 3,
@@ -457,10 +444,15 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
   }
 
   List<PedidoItem> _getPedidoActual() {
-    if (widget.mesa.pedidoActualId == null) return [];
+    final mesas = ref.read(mesasProvider);
+    final mesaActual = mesas.firstWhere(
+      (m) => m.id == widget.mesa.id,
+      orElse: () => widget.mesa,
+    );
+    if (mesaActual.pedidoActualId == null) return [];
     final pedidos = ref.read(pedidosProvider);
     final pedido = pedidos
-        .where((p) => p.id == widget.mesa.pedidoActualId)
+        .where((p) => p.id == mesaActual.pedidoActualId)
         .firstOrNull;
     return pedido?.items ?? [];
   }
@@ -761,7 +753,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => _EditarItemSheet(
+      builder: (ctx) => _EditarItemSheet(
         item: item,
         onGuardar: (cantidad, precio, notas) async {
           final mesaActual = ref
@@ -779,6 +771,10 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                 .indexWhere((p) => p.id == mesaActual.pedidoActualId);
             if (pedidoIndex >= 0) {
               final pedido = ref.read(pedidosProvider)[pedidoIndex];
+              final pedidoItem = pedido.items.firstWhere(
+                (i) => i.id == item.id,
+                orElse: () => item,
+              );
               final itemsActualizados = pedido.items.map((i) {
                 if (i.id == item.id)
                   return PedidoItem(
@@ -798,7 +794,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
           }
 
           if (mounted) {
-            Navigator.pop(context);
+            Navigator.pop(ctx);
             setState(() {});
           }
         },
@@ -811,7 +807,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               .read(pedidosProvider.notifier)
               .actualizarCantidad(mesaActual.pedidoActualId!, item.id, 0);
           if (mounted) {
-            Navigator.pop(context);
+            Navigator.pop(ctx);
             setState(() {});
           }
         },
@@ -864,7 +860,10 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
 
           await PrintService.printTicket(
             items: pedidoActual,
-            total: total,
+            subtotal: pedidoActual.fold<double>(
+              0,
+              (sum, item) => sum + item.subtotal,
+            ),
             ivaPorcentaje: negocio.ivaPorcentaje,
             metodoPago: metodoPago,
             negocio: negocio,

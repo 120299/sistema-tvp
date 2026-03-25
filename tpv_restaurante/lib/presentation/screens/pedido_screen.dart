@@ -714,7 +714,6 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
 
     if (pedido != null) {
       final itemsParaTicket = List<PedidoItem>.from(pedido.items);
-      final totalConPropina = pedido.total * (1 + porcentajePropina / 100);
 
       notifier.cerrar(_pedidoId, metodoPago);
       ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
@@ -725,7 +724,7 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
       TicketPrintHelper.showPrintDialog(
         context,
         items: itemsParaTicket,
-        total: totalConPropina,
+        subtotal: pedido.subtotal,
         porcentajePropina: porcentajePropina,
         ivaPorcentaje: negocio.ivaPorcentaje,
         metodoPago: metodoPago,

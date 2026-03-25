@@ -98,6 +98,10 @@ class Pedido {
   double porcentajePropina;
   double descuento;
   int? numeroPersonas;
+  final String? cajeroId;
+  final String? cajeroNombre;
+  final String? clienteId;
+  final String? clienteNombre;
 
   Pedido({
     required this.id,
@@ -111,6 +115,10 @@ class Pedido {
     this.porcentajePropina = 0,
     this.descuento = 0,
     this.numeroPersonas,
+    this.cajeroId,
+    this.cajeroNombre,
+    this.clienteId,
+    this.clienteNombre,
   }) : items = items ?? [],
        horaApertura = horaApertura ?? DateTime.now();
 
@@ -118,8 +126,8 @@ class Pedido {
   double get montoPropina => subtotal * (porcentajePropina / 100);
   double get montoDescuento => descuento;
   double get subtotalConDescuento => subtotal - montoDescuento;
-  double get impuesto => subtotalConDescuento * 0.10;
-  double get total => subtotalConDescuento + impuesto + montoPropina;
+  double get impuesto => 0;
+  double get total => subtotalConDescuento + montoPropina;
   double get totalPorPersona => numeroPersonas != null && numeroPersonas! > 0
       ? total / numeroPersonas!
       : total;
@@ -138,6 +146,10 @@ class Pedido {
     double? porcentajePropina,
     double? descuento,
     int? numeroPersonas,
+    String? cajeroId,
+    String? cajeroNombre,
+    String? clienteId,
+    String? clienteNombre,
   }) {
     return Pedido(
       id: id ?? this.id,
@@ -151,6 +163,10 @@ class Pedido {
       porcentajePropina: porcentajePropina ?? this.porcentajePropina,
       descuento: descuento ?? this.descuento,
       numeroPersonas: numeroPersonas ?? this.numeroPersonas,
+      cajeroId: cajeroId ?? this.cajeroId,
+      cajeroNombre: cajeroNombre ?? this.cajeroNombre,
+      clienteId: clienteId ?? this.clienteId,
+      clienteNombre: clienteNombre ?? this.clienteNombre,
     );
   }
 
@@ -167,6 +183,10 @@ class Pedido {
       'porcentajePropina': porcentajePropina,
       'descuento': descuento,
       'numeroPersonas': numeroPersonas,
+      'cajeroId': cajeroId,
+      'cajeroNombre': cajeroNombre,
+      'clienteId': clienteId,
+      'clienteNombre': clienteNombre,
     };
   }
 
@@ -187,6 +207,10 @@ class Pedido {
       porcentajePropina: (json['porcentajePropina'] as num?)?.toDouble() ?? 0,
       descuento: (json['descuento'] as num?)?.toDouble() ?? 0,
       numeroPersonas: json['numeroPersonas'] as int?,
+      cajeroId: json['cajeroId'] as String?,
+      cajeroNombre: json['cajeroNombre'] as String?,
+      clienteId: json['clienteId'] as String?,
+      clienteNombre: json['clienteNombre'] as String?,
     );
   }
 }

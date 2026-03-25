@@ -51,8 +51,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
       body: Column(
         children: [
           _buildHeader(),
-          _buildToolbar(busqueda, categoriaSeleccionada, categorias),
           _buildCategoriasToolbar(categoriaSeleccionada, categorias),
+          _buildToolbar(busqueda, categoriaSeleccionada, categorias),
           Expanded(
             child: productosFiltrados.isEmpty
                 ? _buildEmptyState()
@@ -60,10 +60,31 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _agregarProducto(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Nuevo'),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton.extended(
+            heroTag: 'nuevo',
+            onPressed: () => _agregarProducto(context),
+            backgroundColor: AppColors.primary,
+            icon: const Icon(Icons.add, color: Colors.white),
+            label: const Text(
+              'Nuevo producto',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton.extended(
+            heroTag: 'categorias',
+            onPressed: () => _gestionarCategorias(context),
+            backgroundColor: AppColors.secondary,
+            icon: const Icon(Icons.category, color: Colors.white),
+            label: const Text(
+              'Categoría',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -73,7 +94,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     final disponibles = productos.where((p) => p.disponible).length;
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
@@ -81,71 +102,44 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
       ),
       child: SafeArea(
         bottom: false,
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.inventory_2,
-                color: Colors.white,
-                size: 28,
-              ),
-            ),
-            const SizedBox(width: 16),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Gestión de Productos',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  Text(
-                    'Administra tu catálogo de productos',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  child: const Icon(
+                    Icons.inventory_2,
+                    color: Colors.white,
+                    size: 24,
                   ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  _buildStatItem('${productos.length}', 'Total'),
-                  const SizedBox(width: 16),
-                  Container(width: 1, height: 30, color: Colors.white24),
-                  const SizedBox(width: 16),
-                  _buildStatItem('$disponibles', 'Activos'),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            TextButton.icon(
-              onPressed: () => _gestionarCategorias(context),
-              icon: const Icon(Icons.category, color: Colors.white),
-              label: const Text(
-                'Categorías',
-                style: TextStyle(color: Colors.white),
-              ),
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: 0.2),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Productos',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '${productos.length} total • $disponibles activos',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -226,34 +220,72 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     String? categoriaSeleccionada,
     List<CategoriaProducto> categorias,
   ) {
+    final sortedCategorias = List<CategoriaProducto>.from(categorias)
+      ..sort((a, b) => a.orden.compareTo(b.orden));
+
     return Container(
-      height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      height: 56,
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(bottom: BorderSide(color: AppColors.lightDivider)),
       ),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
+      child: Row(
         children: [
-          _buildCategoriaChip(
-            'Todos',
-            null,
-            categoriaSeleccionada == null,
-            Icons.apps,
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 8),
+            child: _buildCategoriaChip(
+              'Todos',
+              null,
+              categoriaSeleccionada == null,
+              Icons.apps,
+            ),
           ),
-          const SizedBox(width: 8),
-          ...categorias.map(
-            (cat) => Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: _buildCategoriaChip(
-                cat.nombre,
-                cat.id,
-                categoriaSeleccionada == cat.id,
-                null,
-                cat.icono,
-                cat.color,
-              ),
+          Expanded(
+            child: ReorderableListView.builder(
+              scrollDirection: Axis.horizontal,
+              buildDefaultDragHandles: false,
+              proxyDecorator: (child, index, animation) {
+                return Material(
+                  elevation: 4,
+                  borderRadius: BorderRadius.circular(20),
+                  child: child,
+                );
+              },
+              itemCount: sortedCategorias.length,
+              onReorder: (oldIndex, newIndex) {
+                ref
+                    .read(categoriasProvider.notifier)
+                    .reorder(oldIndex, newIndex);
+              },
+              itemBuilder: (context, index) {
+                final cat = sortedCategorias[index];
+                return Padding(
+                  key: ValueKey(cat.id),
+                  padding: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
+                  child: ReorderableDragStartListener(
+                    index: index,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildCategoriaChip(
+                          cat.nombre,
+                          cat.id,
+                          categoriaSeleccionada == cat.id,
+                          null,
+                          cat.icono,
+                          cat.color,
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.drag_handle,
+                          size: 16,
+                          color: Colors.grey.shade400,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],

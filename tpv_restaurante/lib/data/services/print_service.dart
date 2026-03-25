@@ -7,67 +7,95 @@ import '../../data/models/models.dart';
 class PrintService {
   static Future<void> printTicket({
     required List<PedidoItem> items,
-    required double total,
+    required double subtotal,
     required double ivaPorcentaje,
     required String metodoPago,
     required DatosNegocio negocio,
     String? mesaNumero,
+    String? cajeroNombre,
     double porcentajePropina = 0,
+    String? clienteNombre,
+    String? clienteNif,
   }) async {
-    final pdf = pw.Document();
+    try {
+      final pdf = pw.Document();
 
-    pdf.addPage(
-      pw.Page(
-        pageFormat: const PdfPageFormat(
-          80 * PdfPageFormat.mm,
-          double.infinity,
-          marginAll: 5 * PdfPageFormat.mm,
+      final baseImponible = subtotal / (1 + ivaPorcentaje / 100);
+      final importeIva = subtotal - baseImponible;
+      final totalConIva = subtotal;
+      final montoPropina = totalConIva * (porcentajePropina / 100);
+      final totalFinal = totalConIva + montoPropina;
+
+      pdf.addPage(
+        pw.Page(
+          pageFormat: const PdfPageFormat(
+            80 * PdfPageFormat.mm,
+            double.infinity,
+            marginAll: 5 * PdfPageFormat.mm,
+          ),
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.center,
+              mainAxisSize: pw.MainAxisSize.min,
+              children: [
+                _buildHeader(negocio),
+                pw.SizedBox(height: 5),
+                _buildFechaHora(),
+                if (mesaNumero != null)
+                  pw.Text(
+                    'MESA: $mesaNumero',
+                    style: pw.TextStyle(
+                      fontSize: 11,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                if (cajeroNombre != null)
+                  pw.Text(
+                    'Cajero: $cajeroNombre',
+                    style: const pw.TextStyle(fontSize: 8),
+                  ),
+                pw.SizedBox(height: 4),
+                pw.Divider(thickness: 0.5),
+                _buildItems(items),
+                pw.Divider(thickness: 0.5),
+                _buildTotalsImproved(
+                  baseImponible: baseImponible,
+                  ivaPorcentaje: ivaPorcentaje,
+                  importeIva: importeIva,
+                  totalConIva: totalConIva,
+                  montoPropina: montoPropina,
+                  totalFinal: totalFinal,
+                ),
+                pw.SizedBox(height: 4),
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(vertical: 4),
+                  decoration: pw.BoxDecoration(border: pw.Border.all()),
+                  child: pw.Text(
+                    'PAGO: ${metodoPago.toUpperCase()}',
+                    style: pw.TextStyle(
+                      fontSize: 11,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                ),
+                pw.SizedBox(height: 6),
+                pw.Divider(thickness: 0.5),
+                _buildFooter(
+                  clienteNombre: clienteNombre,
+                  clienteNif: clienteNif,
+                ),
+              ],
+            );
+          },
         ),
-        build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
-            mainAxisSize: pw.MainAxisSize.min,
-            children: [
-              _buildHeader(negocio),
-              pw.SizedBox(height: 6),
-              _buildFechaHora(),
-              if (mesaNumero != null)
-                pw.Text(
-                  'MESA: $mesaNumero',
-                  style: pw.TextStyle(
-                    fontSize: 12,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-              pw.SizedBox(height: 6),
-              pw.Divider(thickness: 0.5),
-              _buildItems(items),
-              pw.Divider(thickness: 0.5),
-              _buildTotals(total, ivaPorcentaje, porcentajePropina),
-              pw.SizedBox(height: 4),
-              pw.Container(
-                padding: const pw.EdgeInsets.symmetric(vertical: 4),
-                decoration: pw.BoxDecoration(border: pw.Border.all()),
-                child: pw.Text(
-                  'PAGO: ${metodoPago.toUpperCase()}',
-                  style: pw.TextStyle(
-                    fontSize: 12,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-              ),
-              pw.SizedBox(height: 8),
-              pw.Divider(thickness: 0.5),
-              _buildFooter(),
-            ],
-          );
-        },
-      ),
-    );
+      );
 
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-    );
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+      );
+    } catch (e) {
+      debugPrint('Error al imprimir ticket: $e');
+    }
   }
 
   static Future<void> printCocinaTicket({
@@ -260,7 +288,7 @@ class PrintService {
           mainAxisAlignment: pw.MainAxisAlignment.end,
           children: [
             pw.Text(
-              'IVA ${ivaPorcentaje.toStringAsFixed(0)}%: ',
+              'IVA ${ivaPorcentaje.toStringAsFixed(0)}% (incl.): ',
               style: const pw.TextStyle(fontSize: 9),
             ),
             pw.Text(
@@ -298,15 +326,121 @@ class PrintService {
     );
   }
 
-  static pw.Widget _buildFooter() {
+  static pw.Widget _buildTotalsImproved({
+    required double baseImponible,
+    required double ivaPorcentaje,
+    required double importeIva,
+    required double totalConIva,
+    required double montoPropina,
+    required double totalFinal,
+  }) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.end,
+      children: [
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.end,
+          children: [
+            pw.Text('Base imponible: ', style: const pw.TextStyle(fontSize: 9)),
+            pw.Text(
+              '${baseImponible.toStringAsFixed(2)} EUR',
+              style: const pw.TextStyle(fontSize: 9),
+            ),
+          ],
+        ),
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.end,
+          children: [
+            pw.Text(
+              'IVA ${ivaPorcentaje.toStringAsFixed(0)}% (incl.): ',
+              style: const pw.TextStyle(fontSize: 9),
+            ),
+            pw.Text(
+              '${importeIva.toStringAsFixed(2)} EUR',
+              style: const pw.TextStyle(fontSize: 9),
+            ),
+          ],
+        ),
+        if (montoPropina > 0)
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.end,
+            children: [
+              pw.Text('Propina: ', style: const pw.TextStyle(fontSize: 9)),
+              pw.Text(
+                '${montoPropina.toStringAsFixed(2)} EUR',
+                style: const pw.TextStyle(fontSize: 9),
+              ),
+            ],
+          ),
+        pw.SizedBox(height: 4),
+        pw.Container(
+          padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+          decoration: pw.BoxDecoration(color: PdfColors.grey200),
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.end,
+            children: [
+              pw.Text(
+                'TOTAL: ',
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.Text(
+                '${totalFinal.toStringAsFixed(2)} EUR',
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  static pw.Widget _buildFooter({String? clienteNombre, String? clienteNif}) {
     return pw.Column(
       children: [
-        pw.Text(
-          'FACTURA SIMPLIFICADA',
-          style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
-        ),
-        pw.Text('Sin efectos fiscales', style: const pw.TextStyle(fontSize: 7)),
-        pw.Text('RD 1496/2003', style: const pw.TextStyle(fontSize: 7)),
+        if (clienteNombre != null && clienteNif != null) ...[
+          pw.Container(
+            padding: const pw.EdgeInsets.all(4),
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: PdfColors.grey400),
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'DATOS CLIENTE',
+                  style: pw.TextStyle(
+                    fontSize: 8,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.Text(clienteNombre, style: const pw.TextStyle(fontSize: 8)),
+                pw.Text(
+                  'NIF/CIF: $clienteNif',
+                  style: const pw.TextStyle(fontSize: 8),
+                ),
+              ],
+            ),
+          ),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            'FACTURA SIMPLIFICADA',
+            style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+          ),
+        ] else ...[
+          pw.Text(
+            'RECIBO',
+            style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.Text(
+            'Factura simplificada',
+            style: const pw.TextStyle(fontSize: 7),
+          ),
+        ],
         pw.SizedBox(height: 4),
         pw.Text(
           '!Gracias por su visita!',

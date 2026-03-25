@@ -1,10 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../providers/providers.dart';
-import '../widgets/ticket_widget.dart';
 
 class InformesScreen extends ConsumerStatefulWidget {
   const InformesScreen({super.key});
@@ -17,7 +20,8 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
   DateTime? _fechaInicio;
   DateTime? _fechaFin;
   String _filtroMetodo = 'Todos';
-  String? _filtroMesa;
+  String? _filtroCajero;
+  String _periodoSeleccionado = 'semana';
 
   @override
   void initState() {
@@ -26,16 +30,40 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     _fechaInicio = DateTime.now().subtract(const Duration(days: 7));
   }
 
+  void _cambiarPeriodo(String periodo) {
+    setState(() {
+      _periodoSeleccionado = periodo;
+      _fechaFin = DateTime.now();
+      switch (periodo) {
+        case 'hoy':
+          _fechaInicio = DateTime.now();
+          break;
+        case 'semana':
+          _fechaInicio = DateTime.now().subtract(const Duration(days: 7));
+          break;
+        case 'mes':
+          _fechaInicio = DateTime.now().subtract(const Duration(days: 30));
+          break;
+        case 'trimestre':
+          _fechaInicio = DateTime.now().subtract(const Duration(days: 90));
+          break;
+        case 'ano':
+          _fechaInicio = DateTime.now().subtract(const Duration(days: 365));
+          break;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final negocio = ref.watch(negocioProvider);
     final pedidosNotifier = ref.watch(pedidosProvider.notifier);
+    final cajeros = ref.watch(cajerosProvider);
 
     final pedidosFiltrados = pedidosNotifier.getFiltrados(
       fechaInicio: _fechaInicio,
       fechaFin: _fechaFin?.add(const Duration(days: 1)),
       metodoPago: _filtroMetodo != 'Todos' ? _filtroMetodo : null,
-      mesaId: _filtroMesa,
     );
 
     final totalVentas = pedidosFiltrados.fold<double>(
@@ -52,279 +80,207 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
       productos,
     );
     final ventasPorMetodo = _getVentasPorMetodo(pedidosFiltrados);
+    final datosGrafico = _getDatosGrafico(pedidosFiltrados);
 
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildFiltros(context),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildTarjetaEstadistica(
-                            'Total Ventas',
-                            '${totalVentas.toStringAsFixed(2)} €',
-                            Icons.euro,
-                            AppColors.success,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth > 900;
+
+            return Column(
+              children: [
+                _buildFiltros(context, cajeros),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: isWide
+                        ? _buildLayoutWide(
+                            totalVentas,
+                            pedidosFiltrados.length,
+                            ticketPromedio,
+                            productosMasVendidos,
+                            ventasPorMetodo,
+                            datosGrafico,
+                            pedidosFiltrados,
+                          )
+                        : _buildLayoutNarrow(
+                            totalVentas,
+                            pedidosFiltrados.length,
+                            ticketPromedio,
+                            productosMasVendidos,
+                            ventasPorMetodo,
+                            datosGrafico,
+                            pedidosFiltrados,
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildTarjetaEstadistica(
-                            'Pedidos',
-                            '${pedidosFiltrados.length}',
-                            Icons.receipt_long,
-                            AppColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildTarjetaEstadistica(
-                            'Ticket Promedio',
-                            '${ticketPromedio.toStringAsFixed(2)} €',
-                            Icons.trending_up,
-                            AppColors.secondary,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildTarjetaEstadistica(
-                            'Mesas Activas',
-                            '${ref.watch(mesasProvider).where((m) => m.estado == EstadoMesa.ocupada).length}',
-                            Icons.table_restaurant,
-                            AppColors.warning,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    _buildSeccion(
-                      'Productos Más Vendidos',
-                      productosMasVendidos.isEmpty
-                          ? const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(20),
-                                child: Text(
-                                  'Sin datos disponibles',
-                                  style: TextStyle(
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ),
-                            )
-                          : Column(
-                              children: productosMasVendidos.take(10).map((
-                                entry,
-                              ) {
-                                return _buildItemLista(
-                                  entry.key,
-                                  '${entry.value} uds',
-                                );
-                              }).toList(),
-                            ),
-                    ),
-                    const SizedBox(height: 24),
-                    _buildSeccion(
-                      'Ventas por Método de Pago',
-                      ventasPorMetodo.isEmpty
-                          ? const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(20),
-                                child: Text(
-                                  'Sin datos disponibles',
-                                  style: TextStyle(
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ),
-                            )
-                          : Column(
-                              children: ventasPorMetodo.entries.map((entry) {
-                                return _buildItemLista(
-                                  entry.key,
-                                  '${entry.value.toStringAsFixed(2)} €',
-                                );
-                              }).toList(),
-                            ),
-                    ),
-                    const SizedBox(height: 24),
-                    _buildSeccion(
-                      'Detalle de Pedidos',
-                      pedidosFiltrados.isEmpty
-                          ? const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(20),
-                                child: Text(
-                                  'No hay pedidos en este período',
-                                  style: TextStyle(
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ),
-                            )
-                          : Column(
-                              children: pedidosFiltrados.take(20).map((pedido) {
-                                final mesa = ref
-                                    .read(mesasProvider.notifier)
-                                    .getPorId(pedido.mesaId);
-                                return _buildPedidoItem(pedido, mesa, negocio);
-                              }).toList(),
-                            ),
-                    ),
-                    const SizedBox(height: 32),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildFiltros(BuildContext context) {
+  Widget _buildLayoutWide(
+    double totalVentas,
+    int numPedidos,
+    double ticketPromedio,
+    List<MapEntry<String, int>> productosMasVendidos,
+    Map<String, double> ventasPorMetodo,
+    List<MapEntry<DateTime, double>> datosGrafico,
+    List<Pedido> pedidosFiltrados,
+  ) {
+    return Column(
+      children: [
+        _buildResumenCards(totalVentas, numPedidos, ticketPromedio),
+        const SizedBox(height: 20),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Column(
+                children: [
+                  _buildGraficoTendencia(datosGrafico),
+                  const SizedBox(height: 20),
+                  _buildAccionesExport(pedidosFiltrados, totalVentas),
+                ],
+              ),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                children: [
+                  _buildGraficoMetodosPago(ventasPorMetodo),
+                  const SizedBox(height: 20),
+                  _buildProductosMasVendidos(productosMasVendidos),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLayoutNarrow(
+    double totalVentas,
+    int numPedidos,
+    double ticketPromedio,
+    List<MapEntry<String, int>> productosMasVendidos,
+    Map<String, double> ventasPorMetodo,
+    List<MapEntry<DateTime, double>> datosGrafico,
+    List<Pedido> pedidosFiltrados,
+  ) {
+    return Column(
+      children: [
+        _buildResumenCards(totalVentas, numPedidos, ticketPromedio),
+        const SizedBox(height: 20),
+        _buildGraficoTendencia(datosGrafico),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Expanded(child: _buildGraficoMetodosPago(ventasPorMetodo)),
+            const SizedBox(width: 16),
+            Expanded(child: _buildProductosMasVendidos(productosMasVendidos)),
+          ],
+        ),
+        const SizedBox(height: 20),
+        _buildAccionesExport(pedidosFiltrados, totalVentas),
+      ],
+    );
+  }
+
+  Widget _buildFiltros(BuildContext context, List<Cajero> cajeros) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Informes y Estadísticas',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildPeriodoChip('Hoy', 'hoy'),
+                const SizedBox(width: 8),
+                _buildPeriodoChip('Semana', 'semana'),
+                const SizedBox(width: 8),
+                _buildPeriodoChip('Mes', 'mes'),
+                const SizedBox(width: 8),
+                _buildPeriodoChip('Trimestre', 'trimestre'),
+                const SizedBox(width: 8),
+                _buildPeriodoChip('Año', 'ano'),
+              ],
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            _fechaInicio != null && _fechaFin != null
-                ? 'Desde ${DateFormat('dd/MM/yyyy').format(_fechaInicio!)} hasta ${DateFormat('dd/MM/yyyy').format(_fechaFin!)}'
-                : 'Selecciona un período',
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  onTap: () => _seleccionarFechaInicio(context),
-                  child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'Desde',
-                      prefixIcon: Icon(Icons.calendar_today),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                    ),
-                    child: Text(
-                      _fechaInicio != null
-                          ? DateFormat('dd/MM/yyyy').format(_fechaInicio!)
-                          : 'Seleccionar',
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: InkWell(
-                  onTap: () => _seleccionarFechaFin(context),
-                  child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'Hasta',
-                      prefixIcon: Icon(Icons.calendar_today),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                    ),
-                    child: Text(
-                      _fechaFin != null
-                          ? DateFormat('dd/MM/yyyy').format(_fechaFin!)
-                          : 'Seleccionar',
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
-                child: DropdownButtonFormField<String>(
-                  initialValue: _filtroMetodo,
-                  decoration: const InputDecoration(
-                    labelText: 'Método de pago',
-                    prefixIcon: Icon(Icons.payment),
-                    contentPadding: EdgeInsets.symmetric(
+                child: InkWell(
+                  onTap: () => _seleccionarFecha(true),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: 12,
-                      vertical: 8,
+                      vertical: 10,
                     ),
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: 'Todos', child: Text('Todos')),
-                    DropdownMenuItem(
-                      value: 'Efectivo',
-                      child: Text('Efectivo'),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    DropdownMenuItem(value: 'Tarjeta', child: Text('Tarjeta')),
-                  ],
-                  onChanged: (value) {
-                    setState(() => _filtroMetodo = value ?? 'Todos');
-                  },
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: DropdownButtonFormField<String?>(
-                  initialValue: _filtroMesa,
-                  decoration: const InputDecoration(
-                    labelText: 'Mesa',
-                    prefixIcon: Icon(Icons.table_restaurant),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                  ),
-                  items: [
-                    const DropdownMenuItem(value: null, child: Text('Todas')),
-                    ...ref
-                        .watch(mesasProvider)
-                        .map(
-                          (m) => DropdownMenuItem(
-                            value: m.id,
-                            child: Text('Mesa ${m.numero}'),
-                          ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_today, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          _fechaInicio != null
+                              ? DateFormat('dd/MM/yyyy').format(_fechaInicio!)
+                              : 'Desde',
                         ),
-                  ],
-                  onChanged: (value) {
-                    setState(() => _filtroMesa = value);
-                  },
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Text('→'),
+              ),
+              Expanded(
+                child: InkWell(
+                  onTap: () => _seleccionarFecha(false),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_today, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          _fechaFin != null
+                              ? DateFormat('dd/MM/yyyy').format(_fechaFin!)
+                              : 'Hasta',
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -332,38 +288,56 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              ElevatedButton.icon(
-                onPressed: _hoy,
-                icon: const Icon(Icons.today, size: 18),
-                label: const Text('Hoy'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _filtroMetodo,
+                      isExpanded: true,
+                      items: ['Todos', 'Efectivo', 'Tarjeta'].map((m) {
+                        return DropdownMenuItem(value: m, child: Text(m));
+                      }).toList(),
+                      onChanged: (v) {
+                        setState(() => _filtroMetodo = v!);
+                      },
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: _semana,
-                icon: const Icon(Icons.date_range, size: 18),
-                label: const Text('Esta semana'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: _mes,
-                icon: const Icon(Icons.calendar_month, size: 18),
-                label: const Text('Este mes'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String?>(
+                      value: _filtroCajero,
+                      hint: const Text('Todos'),
+                      isExpanded: true,
+                      items: [
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('Todos'),
+                        ),
+                        ...cajeros.map((c) {
+                          return DropdownMenuItem(
+                            value: c.id,
+                            child: Text(c.nombre),
+                          );
+                        }),
+                      ],
+                      onChanged: (v) {
+                        setState(() => _filtroCajero = v);
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -374,22 +348,73 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     );
   }
 
-  Widget _buildTarjetaEstadistica(
-    String titulo,
-    String valor,
-    IconData icono,
+  Widget _buildPeriodoChip(String label, String value) {
+    final isSelected = _periodoSeleccionado == value;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => _cambiarPeriodo(value),
+      selectedColor: AppColors.primary.withValues(alpha: 0.2),
+      labelStyle: TextStyle(
+        color: isSelected ? AppColors.primary : Colors.grey.shade700,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      ),
+    );
+  }
+
+  Widget _buildResumenCards(
+    double totalVentas,
+    int numPedidos,
+    double ticketPromedio,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(
+            'Total Ventas',
+            '€${totalVentas.toStringAsFixed(2)}',
+            Icons.euro,
+            AppColors.success,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildStatCard(
+            'Pedidos',
+            '$numPedidos',
+            Icons.receipt_long,
+            AppColors.primary,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildStatCard(
+            'Ticket Promedio',
+            '€${ticketPromedio.toStringAsFixed(2)}',
+            Icons.trending_up,
+            AppColors.secondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(
+    String label,
+    String value,
+    IconData icon,
     Color color,
   ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -404,14 +429,14 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icono, color: color, size: 20),
+                child: Icon(icon, color: color, size: 20),
               ),
               const Spacer(),
             ],
           ),
           const SizedBox(height: 12),
           Text(
-            valor,
+            value,
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -420,10 +445,191 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            titulo,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
+            label,
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGraficoTendencia(List<MapEntry<DateTime, double>> datos) {
+    if (datos.isEmpty) {
+      return Container(
+        height: 300,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.show_chart, size: 48, color: Colors.grey.shade300),
+              const SizedBox(height: 12),
+              Text(
+                'Sin datos para el período seleccionado',
+                style: TextStyle(color: Colors.grey.shade500),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final spots = <FlSpot>[];
+    for (int i = 0; i < datos.length; i++) {
+      spots.add(FlSpot(i.toDouble(), datos[i].value));
+    }
+
+    final maxY =
+        datos.map((e) => e.value).reduce((a, b) => a > b ? a : b) * 1.2;
+
+    return Container(
+      height: 300,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                'Tendencia de Ventas',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(width: 12, height: 3, color: AppColors.primary),
+                    const SizedBox(width: 4),
+                    Text(
+                      '€',
+                      style: TextStyle(fontSize: 10, color: AppColors.primary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Expanded(
+            child: LineChart(
+              LineChartData(
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: maxY > 0 ? maxY / 4 : 1,
+                  getDrawingHorizontalLine: (value) {
+                    return FlLine(color: Colors.grey.shade200, strokeWidth: 1);
+                  },
+                ),
+                titlesData: FlTitlesData(
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 30,
+                      interval: datos.length > 7
+                          ? (datos.length / 7).ceilToDouble()
+                          : 1,
+                      getTitlesWidget: (value, meta) {
+                        final index = value.toInt();
+                        if (index >= 0 && index < datos.length) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              DateFormat('dd').format(datos[index].key),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 50,
+                      getTitlesWidget: (value, meta) {
+                        return Text(
+                          '€${value.toInt()}',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey.shade600,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                ),
+                borderData: FlBorderData(show: false),
+                minX: 0,
+                maxX: (datos.length - 1).toDouble(),
+                minY: 0,
+                maxY: maxY,
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: spots,
+                    isCurved: true,
+                    color: AppColors.primary,
+                    barWidth: 3,
+                    isStrokeCapRound: true,
+                    dotData: const FlDotData(show: false),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                    ),
+                  ),
+                ],
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipItems: (touchedSpots) {
+                      return touchedSpots.map((spot) {
+                        return LineTooltipItem(
+                          '€${spot.y.toStringAsFixed(2)}',
+                          const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -431,251 +637,377 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     );
   }
 
-  Widget _buildSeccion(String titulo, Widget contenido) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          titulo,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+  Widget _buildGraficoMetodosPago(Map<String, double> ventasPorMetodo) {
+    if (ventasPorMetodo.isEmpty ||
+        ventasPorMetodo.values.every((v) => v == 0)) {
+      return Container(
+        height: 200,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            'Sin datos de métodos de pago',
+            style: TextStyle(color: Colors.grey.shade500),
           ),
         ),
-        const SizedBox(height: 12),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+      );
+    }
+
+    final total = ventasPorMetodo.values.fold<double>(0, (a, b) => a + b);
+    final secciones = <PieChartSectionData>[];
+    final colores = {'Efectivo': Colors.green, 'Tarjeta': Colors.blue};
+
+    ventasPorMetodo.forEach((metodo, cantidad) {
+      if (cantidad > 0) {
+        final porcentaje = (cantidad / total * 100);
+        secciones.add(
+          PieChartSectionData(
+            color: colores[metodo] ?? Colors.grey,
+            value: cantidad,
+            title: '${porcentaje.toStringAsFixed(0)}%',
+            radius: 60,
+            titleStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
-          child: contenido,
+        );
+      }
+    });
+
+    return Container(
+      height: 200,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Método de Pago',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: PieChart(
+                    PieChartData(
+                      sections: secciones,
+                      centerSpaceRadius: 30,
+                      sectionsSpace: 2,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: ventasPorMetodo.entries
+                      .where((e) => e.value > 0)
+                      .map((e) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: colores[e.key] ?? Colors.grey,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${e.key}: €${e.value.toStringAsFixed(2)}',
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        );
+                      })
+                      .toList(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductosMasVendidos(List<MapEntry<String, int>> productos) {
+    if (productos.isEmpty) {
+      return Container(
+        height: 200,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            'Sin productos vendidos',
+            style: TextStyle(color: Colors.grey.shade500),
+          ),
+        ),
+      );
+    }
+
+    final maxCantidad = productos.first.value.toDouble();
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Productos Más Vendidos',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          ...productos.take(5).map((producto) {
+            final porcentaje = producto.value / maxCantidad;
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          producto.key,
+                          style: const TextStyle(fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        '${producto.value}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  LinearProgressIndicator(
+                    value: porcentaje,
+                    backgroundColor: Colors.grey.shade200,
+                    valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                    minHeight: 6,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAccionesExport(List<Pedido> pedidos, double total) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => _exportarCSV(pedidos, total),
+            icon: const Icon(Icons.table_chart),
+            label: const Text('Exportar CSV'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => _exportarPDF(pedidos, total),
+            icon: const Icon(Icons.print),
+            label: const Text('Imprimir'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildItemLista(String titulo, String valor, {String? subtitulo}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  titulo,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                if (subtitulo != null)
-                  Text(
-                    subtitulo,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          Text(
-            valor,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: AppColors.secondary,
-            ),
-          ),
-        ],
-      ),
+  Future<void> _seleccionarFecha(bool esInicio) async {
+    final fecha = await showDatePicker(
+      context: context,
+      initialDate: esInicio
+          ? _fechaInicio ?? DateTime.now()
+          : _fechaFin ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
     );
-  }
-
-  Widget _buildPedidoItem(Pedido pedido, Mesa? mesa, DatosNegocio negocio) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade200),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.receipt,
-              color: AppColors.primary,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Mesa ${mesa?.numero ?? '?'}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  DateFormat('dd/MM HH:mm').format(pedido.horaApertura),
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${pedido.total.toStringAsFixed(2)} €',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.success,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  pedido.metodoPago ?? 'N/A',
-                  style: const TextStyle(fontSize: 10),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.print, size: 20),
-            onPressed: () => _imprimirTicket(pedido, negocio),
-            tooltip: 'Imprimir ticket',
-          ),
-        ],
-      ),
-    );
+    if (fecha != null) {
+      setState(() {
+        if (esInicio) {
+          _fechaInicio = fecha;
+        } else {
+          _fechaFin = fecha;
+        }
+        _periodoSeleccionado = '';
+      });
+    }
   }
 
   List<MapEntry<String, int>> _getProductosMasVendidos(
     List<Pedido> pedidos,
     List<Producto> productos,
   ) {
-    final Map<String, int> conteo = {};
+    final ventas = <String, int>{};
     for (final pedido in pedidos) {
       for (final item in pedido.items) {
-        conteo[item.productoNombre] =
-            (conteo[item.productoNombre] ?? 0) + item.cantidad;
+        ventas[item.productoNombre] =
+            (ventas[item.productoNombre] ?? 0) + item.cantidad;
       }
     }
-    final entries = conteo.entries.toList();
-    entries.sort((a, b) => b.value.compareTo(a.value));
-    return entries;
+    final lista = ventas.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return lista;
   }
 
   Map<String, double> _getVentasPorMetodo(List<Pedido> pedidos) {
-    final Map<String, double> ventas = {};
+    final ventas = <String, double>{'Efectivo': 0, 'Tarjeta': 0};
     for (final pedido in pedidos) {
-      final metodo = pedido.metodoPago ?? 'Otro';
+      final metodo = pedido.metodoPago ?? 'Efectivo';
       ventas[metodo] = (ventas[metodo] ?? 0) + pedido.total;
     }
     return ventas;
   }
 
-  void _imprimirTicket(Pedido pedido, DatosNegocio negocio) {
-    TicketPrintHelper.showPrintDialog(
-      context,
-      items: pedido.items,
-      total: pedido.total,
-      porcentajePropina: pedido.porcentajePropina,
-      ivaPorcentaje: negocio.ivaPorcentaje,
-      metodoPago: pedido.metodoPago ?? 'Efectivo',
-      negocio: negocio,
-      mesaNumero: ref
-          .read(mesasProvider.notifier)
-          .getPorId(pedido.mesaId)
-          ?.numero
-          .toString(),
-      onImprimir: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Abriendo diálogo de impresión...'),
-            backgroundColor: AppColors.primary,
-          ),
-        );
-      },
-      onCerrar: () {},
-    );
-  }
-
-  Future<void> _seleccionarFechaInicio(BuildContext context) async {
-    final fecha = await showDatePicker(
-      context: context,
-      initialDate: _fechaInicio ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-    );
-    if (fecha != null) {
-      setState(() => _fechaInicio = fecha);
-    }
-  }
-
-  Future<void> _seleccionarFechaFin(BuildContext context) async {
-    final fecha = await showDatePicker(
-      context: context,
-      initialDate: _fechaFin ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-    );
-    if (fecha != null) {
-      setState(() => _fechaFin = fecha);
-    }
-  }
-
-  void _hoy() {
-    final now = DateTime.now();
-    setState(() {
-      _fechaInicio = DateTime(now.year, now.month, now.day);
-      _fechaFin = DateTime(now.year, now.month, now.day, 23, 59, 59);
-    });
-  }
-
-  void _semana() {
-    final now = DateTime.now();
-    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-    setState(() {
-      _fechaInicio = DateTime(
-        startOfWeek.year,
-        startOfWeek.month,
-        startOfWeek.day,
+  List<MapEntry<DateTime, double>> _getDatosGrafico(List<Pedido> pedidos) {
+    final ventasPorDia = <DateTime, double>{};
+    for (final pedido in pedidos) {
+      final dia = DateTime(
+        pedido.horaApertura.year,
+        pedido.horaApertura.month,
+        pedido.horaApertura.day,
       );
-      _fechaFin = DateTime(now.year, now.month, now.day, 23, 59, 59);
-    });
+      ventasPorDia[dia] = (ventasPorDia[dia] ?? 0) + pedido.total;
+    }
+    final lista = ventasPorDia.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    return lista;
   }
 
-  void _mes() {
-    final now = DateTime.now();
-    setState(() {
-      _fechaInicio = DateTime(now.year, now.month, 1);
-      _fechaFin = DateTime(now.year, now.month, now.day, 23, 59, 59);
-    });
+  void _exportarCSV(List<Pedido> pedidos, double total) async {
+    try {
+      final buffer = StringBuffer();
+      buffer.writeln('Fecha,Hora,Productos,Total,Método,Cajero');
+      for (final p in pedidos) {
+        final productos = p.items
+            .map((i) => '${i.cantidad}x ${i.productoNombre}')
+            .join('; ');
+        buffer.writeln(
+          '${DateFormat('dd/MM/yyyy').format(p.horaApertura)},'
+          '${DateFormat('HH:mm').format(p.horaApertura)},'
+          '"$productos",'
+          '${p.total.toStringAsFixed(2)},'
+          '${p.metodoPago ?? "N/A"},'
+          '${p.cajeroNombre ?? "N/A"}',
+        );
+      }
+      buffer.writeln('');
+      buffer.writeln('Total,,,${total.toStringAsFixed(2)}');
+
+      final directory = await getTemporaryDirectory();
+      final file = File(
+        '${directory.path}/informe_${DateFormat('yyyyMMdd').format(DateTime.now())}.csv',
+      );
+      await file.writeAsString(buffer.toString());
+
+      await Share.shareXFiles([XFile(file.path)], text: 'Informe de ventas');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al exportar: $e')));
+      }
+    }
+  }
+
+  void _exportarPDF(List<Pedido> pedidos, double total) async {
+    try {
+      final negocio = ref.read(negocioProvider);
+      final buffer = StringBuffer();
+      buffer.writeln('=================================');
+      buffer.writeln('  ${negocio.nombre}');
+      buffer.writeln('=================================');
+      buffer.writeln('');
+      buffer.writeln('INFORME DE VENTAS');
+      buffer.writeln(
+        'Fecha: ${DateFormat('dd/MM/yyyy').format(_fechaInicio!)} - ${DateFormat('dd/MM/yyyy').format(_fechaFin!)}',
+      );
+      buffer.writeln('=================================');
+      buffer.writeln('');
+      buffer.writeln('TOTAL VENTAS: €${total.toStringAsFixed(2)}');
+      buffer.writeln('NUM PEDIDOS: ${pedidos.length}');
+      buffer.writeln('=================================');
+      buffer.writeln('');
+
+      for (final p in pedidos) {
+        buffer.writeln(
+          '${DateFormat('dd/MM HH:mm').format(p.horaApertura)} - €${p.total.toStringAsFixed(2)} (${p.metodoPago})',
+        );
+      }
+
+      final directory = await getTemporaryDirectory();
+      final file = File(
+        '${directory.path}/informe_${DateFormat('yyyyMMdd').format(DateTime.now())}.txt',
+      );
+      await file.writeAsString(buffer.toString());
+
+      await Share.shareXFiles([XFile(file.path)], text: 'Informe de ventas');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al generar informe: $e')));
+      }
+    }
   }
 }

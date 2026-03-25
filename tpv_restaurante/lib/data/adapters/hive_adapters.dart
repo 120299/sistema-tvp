@@ -189,13 +189,15 @@ class PedidoAdapter extends TypeAdapter<Pedido> {
       porcentajePropina: fields[8] as double? ?? 0,
       descuento: fields[9] as double? ?? 0,
       numeroPersonas: fields[10] as int?,
+      cajeroId: fields[11] as String?,
+      cajeroNombre: fields[12] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Pedido obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -217,7 +219,11 @@ class PedidoAdapter extends TypeAdapter<Pedido> {
       ..writeByte(9)
       ..write(obj.descuento)
       ..writeByte(10)
-      ..write(obj.numeroPersonas);
+      ..write(obj.numeroPersonas)
+      ..writeByte(11)
+      ..write(obj.cajeroId)
+      ..writeByte(12)
+      ..write(obj.cajeroNombre);
   }
 }
 
@@ -329,6 +335,92 @@ class MovimientoCajaAdapter extends TypeAdapter<MovimientoCaja> {
   }
 }
 
+class CajeroAdapter extends TypeAdapter<Cajero> {
+  @override
+  final int typeId = 8;
+
+  @override
+  Cajero read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return Cajero(
+      id: fields[0] as String,
+      nombre: fields[1] as String,
+      pin: fields[2] as String?,
+      fechaCreacion: fields[3] as DateTime,
+      activo: fields[4] as bool? ?? true,
+      rol: fields[5] != null
+          ? RolCajero.values[fields[5] as int]
+          : RolCajero.cajero,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, Cajero obj) {
+    writer
+      ..writeByte(6)
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
+      ..write(obj.nombre)
+      ..writeByte(2)
+      ..write(obj.pin)
+      ..writeByte(3)
+      ..write(obj.fechaCreacion)
+      ..writeByte(4)
+      ..write(obj.activo)
+      ..writeByte(5)
+      ..write(obj.rol.index);
+  }
+}
+
+class ClienteAdapter extends TypeAdapter<Cliente> {
+  @override
+  final int typeId = 9;
+
+  @override
+  Cliente read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return Cliente(
+      id: fields[0] as String,
+      nombre: fields[1] as String,
+      telefono: fields[2] as String?,
+      email: fields[3] as String?,
+      observaciones: fields[4] as String?,
+      fechaCreacion: fields[5] as DateTime,
+      totalPedidos: fields[6] as int? ?? 0,
+      totalGastado: fields[7] as double? ?? 0,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, Cliente obj) {
+    writer
+      ..writeByte(8)
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
+      ..write(obj.nombre)
+      ..writeByte(2)
+      ..write(obj.telefono)
+      ..writeByte(3)
+      ..write(obj.email)
+      ..writeByte(4)
+      ..write(obj.observaciones)
+      ..writeByte(5)
+      ..write(obj.fechaCreacion)
+      ..writeByte(6)
+      ..write(obj.totalPedidos)
+      ..writeByte(7)
+      ..write(obj.totalGastado);
+  }
+}
+
 class CajaAdapter extends TypeAdapter<Caja> {
   @override
   final int typeId = 7;
@@ -350,13 +442,15 @@ class CajaAdapter extends TypeAdapter<Caja> {
       movimientos: (fields[7] as List?)?.cast<MovimientoCaja>() ?? [],
       estado: EstadoCaja.values[fields[8] as int? ?? 0],
       saldoFinal: fields[9] as double?,
+      cajeroId: fields[10] as String?,
+      cajeroNombre: fields[11] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Caja obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -376,6 +470,10 @@ class CajaAdapter extends TypeAdapter<Caja> {
       ..writeByte(8)
       ..write(obj.estado.index)
       ..writeByte(9)
-      ..write(obj.saldoFinal);
+      ..write(obj.saldoFinal)
+      ..writeByte(10)
+      ..write(obj.cajeroId)
+      ..writeByte(11)
+      ..write(obj.cajeroNombre);
   }
 }

@@ -6,6 +6,7 @@ class CategoriaProducto {
   final String icono;
   final Color color;
   final String? imagenUrl;
+  final int orden;
 
   const CategoriaProducto({
     required this.id,
@@ -13,6 +14,7 @@ class CategoriaProducto {
     required this.icono,
     required this.color,
     this.imagenUrl,
+    this.orden = 0,
   });
 
   CategoriaProducto copyWith({
@@ -21,6 +23,7 @@ class CategoriaProducto {
     String? icono,
     Color? color,
     String? imagenUrl,
+    int? orden,
   }) {
     return CategoriaProducto(
       id: id ?? this.id,
@@ -28,6 +31,7 @@ class CategoriaProducto {
       icono: icono ?? this.icono,
       color: color ?? this.color,
       imagenUrl: imagenUrl ?? this.imagenUrl,
+      orden: orden ?? this.orden,
     );
   }
 
@@ -38,6 +42,7 @@ class CategoriaProducto {
       'icono': icono,
       'color': color.toHex(),
       'imagenUrl': imagenUrl,
+      'orden': orden,
     };
   }
 
@@ -48,6 +53,7 @@ class CategoriaProducto {
       icono: json['icono'] as String,
       color: HexColor.fromHex(json['color'] as String),
       imagenUrl: json['imagenUrl'] as String?,
+      orden: json['orden'] as int? ?? 0,
     );
   }
 

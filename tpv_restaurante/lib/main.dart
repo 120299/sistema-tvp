@@ -6,6 +6,7 @@ import 'data/services/database_service.dart';
 import 'presentation/screens/app_shell.dart';
 import 'presentation/screens/mesas_screen.dart';
 import 'presentation/screens/configuracion_screen.dart';
+import 'presentation/screens/login_screen.dart';
 import 'presentation/providers/providers.dart';
 
 Future<void> main() async {
@@ -41,6 +42,7 @@ class TPVRestauranteApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+    final isLoggedIn = ref.watch(isLoggedInProvider);
 
     return MaterialApp(
       title: 'TPV Restaurante',
@@ -48,7 +50,13 @@ class TPVRestauranteApp extends ConsumerWidget {
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
       themeMode: themeMode,
-      home: const AppShell(),
+      home: isLoggedIn
+          ? const AppShell()
+          : LoginScreen(
+              onLoginSuccess: () {
+                ref.read(isLoggedInProvider.notifier).state = true;
+              },
+            ),
       routes: {
         '/mesas': (context) => const MesasScreen(),
         '/configuracion': (context) => const ConfiguracionScreen(),

@@ -5,17 +5,154 @@ import '../../data/services/database_service.dart';
 import '../../data/services/image_storage_service.dart';
 import '../../data/models/models.dart';
 
+final isLoggedInProvider = StateProvider<bool>((ref) => false);
+
 final databaseServiceProvider = Provider<DatabaseService>((ref) {
   throw UnimplementedError('DatabaseService must be initialized before use');
 });
 
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 
-enum UbicacionAlmacenamiento { local, usb, red }
+enum UbicacionAlmacenamiento { local, usb, personalizado }
 
 final ubicacionAlmacenamientoProvider = StateProvider<UbicacionAlmacenamiento>(
   (ref) => UbicacionAlmacenamiento.local,
 );
+
+final rutaPersonalizadaProvider = StateProvider<String?>((ref) => null);
+
+final cajerosProvider = StateNotifierProvider<CajerosNotifier, List<Cajero>>((
+  ref,
+) {
+  final db = ref.watch(databaseServiceProvider);
+  return CajerosNotifier(db);
+});
+
+class CajerosNotifier extends StateNotifier<List<Cajero>> {
+  final DatabaseService _db;
+
+  CajerosNotifier(this._db) : super(_loadCajeros(_db));
+
+  static List<Cajero> _loadCajeros(DatabaseService db) {
+    final box = db.cajerosBox;
+    if (box.isEmpty) {
+      final defaultCajero = Cajero(
+        id: 'cajero_1',
+        nombre: 'Administrador',
+        fechaCreacion: DateTime.now(),
+        activo: true,
+        rol: RolCajero.administrador,
+      );
+      box.add(defaultCajero);
+      return [defaultCajero];
+    }
+    return box.values.toList();
+  }
+
+  Future<void> agregar(Cajero cajero) async {
+    await _db.cajerosBox.add(cajero);
+    state = [...state, cajero];
+  }
+
+  Future<void> actualizar(Cajero cajero) async {
+    final index = state.indexWhere((c) => c.id == cajero.id);
+    if (index >= 0) {
+      await _db.cajerosBox.putAt(index, cajero);
+      state = [
+        for (int i = 0; i < state.length; i++)
+          if (i == index) cajero else state[i],
+      ];
+    }
+  }
+
+  Future<void> eliminar(String id) async {
+    final index = state.indexWhere((c) => c.id == id);
+    if (index >= 0) {
+      await _db.cajerosBox.deleteAt(index);
+      state = state.where((c) => c.id != id).toList();
+    }
+  }
+
+  void actualizarLista() {
+    state = _db.cajerosBox.values.toList();
+  }
+}
+
+final cajeroActualProvider = StateProvider<Cajero?>((ref) => null);
+
+final clientesProvider = StateNotifierProvider<ClientesNotifier, List<Cliente>>(
+  (ref) {
+    final db = ref.watch(databaseServiceProvider);
+    return ClientesNotifier(db);
+  },
+);
+
+class ClientesNotifier extends StateNotifier<List<Cliente>> {
+  final DatabaseService _db;
+
+  ClientesNotifier(this._db) : super([]);
+
+  Future<void> agregar(Cliente cliente) async {
+    await _db.clientesBox.add(cliente);
+    state = [...state, cliente];
+  }
+
+  Future<void> actualizar(Cliente cliente) async {
+    final index = state.indexWhere((c) => c.id == cliente.id);
+    if (index >= 0) {
+      await _db.clientesBox.putAt(index, cliente);
+      state = [
+        for (int i = 0; i < state.length; i++)
+          if (i == index) cliente else state[i],
+      ];
+    }
+  }
+
+  Future<void> eliminar(String id) async {
+    final index = state.indexWhere((c) => c.id == id);
+    if (index >= 0) {
+      await _db.clientesBox.deleteAt(index);
+      state = state.where((c) => c.id != id).toList();
+    }
+  }
+
+  Cliente? buscarPorTelefono(String telefono) {
+    try {
+      return state.firstWhere((c) => c.telefono == telefono);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> registrarVenta(String clienteId, double importe) async {
+    final index = state.indexWhere((c) => c.id == clienteId);
+    if (index < 0) return;
+
+    final cliente = state[index];
+    final actualizado = cliente.copyWith(
+      totalPedidos: cliente.totalPedidos + 1,
+      totalGastado: cliente.totalGastado + importe,
+    );
+
+    await _db.clientesBox.putAt(index, actualizado);
+    state = [
+      for (int i = 0; i < state.length; i++)
+        if (i == index) actualizado else state[i],
+    ];
+  }
+
+  Cliente? getPorId(String id) {
+    try {
+      return state.firstWhere((c) => c.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void actualizarLista() {
+    state = _db.clientesBox.values.toList();
+  }
+}
 
 final negocioProvider = StateNotifierProvider<NegocioNotifier, DatosNegocio>((
   ref,
@@ -77,6 +214,10 @@ class ProductosNotifier extends StateNotifier<List<Producto>> {
     final actualizado = producto.copyWith(disponible: !producto.disponible);
     await actualizar(actualizado);
   }
+
+  void actualizarLista() {
+    _refresh();
+  }
 }
 
 final categoriasProvider =
@@ -113,6 +254,23 @@ class CategoriasNotifier extends StateNotifier<List<CategoriaProducto>> {
       await _db.categoriasBox.deleteAt(index);
       _refresh();
     }
+  }
+
+  Future<void> reorder(int oldIndex, int newIndex) async {
+    final categorias = List<CategoriaProducto>.from(state);
+    if (newIndex > oldIndex) newIndex--;
+    final item = categorias.removeAt(oldIndex);
+    categorias.insert(newIndex, item);
+
+    for (int i = 0; i < categorias.length; i++) {
+      final updated = categorias[i].copyWith(orden: i);
+      await _db.categoriasBox.putAt(i, updated);
+    }
+    _refresh();
+  }
+
+  void actualizarLista() {
+    _refresh();
   }
 }
 
@@ -193,12 +351,34 @@ class MesasNotifier extends StateNotifier<List<Mesa>> {
     await actualizar(mesa.copyWith(estado: EstadoMesa.necesitaAtencion));
   }
 
+  Future<void> actualizarMesa(
+    String mesaId, {
+    int? numero,
+    String? nombre,
+    int? capacidad,
+    DateTime? fechaReserva,
+  }) async {
+    final mesa = state.firstWhere((m) => m.id == mesaId);
+    await actualizar(
+      mesa.copyWith(
+        numero: numero ?? mesa.numero,
+        nombre: nombre,
+        capacidad: capacidad ?? mesa.capacidad,
+        fechaReserva: fechaReserva,
+      ),
+    );
+  }
+
   Mesa? getPorId(String id) {
     try {
       return state.firstWhere((m) => m.id == id);
     } catch (_) {
       return null;
     }
+  }
+
+  void actualizarLista() {
+    _refresh();
   }
 }
 
@@ -218,13 +398,24 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
     state = _db.pedidoRepositorio.getAll();
   }
 
-  Future<String> crear(String mesaId, {double porcentajePropina = 0}) async {
+  Future<String> crear(
+    String mesaId, {
+    double porcentajePropina = 0,
+    String? clienteId,
+    String? clienteNombre,
+    String? cajeroId,
+    String? cajeroNombre,
+  }) async {
     final id = 'pedido_${DateTime.now().millisecondsSinceEpoch}';
     final pedido = Pedido(
       id: id,
       mesaId: mesaId,
       mesero: 'Camarero',
       porcentajePropina: porcentajePropina,
+      clienteId: clienteId,
+      clienteNombre: clienteNombre,
+      cajeroId: cajeroId,
+      cajeroNombre: cajeroNombre,
     );
     await _db.pedidosBox.add(pedido);
     _refresh();
@@ -280,6 +471,17 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
     _refresh();
   }
 
+  Future<void> eliminarItem(String pedidoId, String itemId) async {
+    final pedidoIndex = state.indexWhere((p) => p.id == pedidoId);
+    if (pedidoIndex < 0) return;
+
+    final pedido = state[pedidoIndex];
+    final nuevosItems = pedido.items.where((i) => i.id != itemId).toList();
+    final actualizado = pedido.copyWith(items: nuevosItems);
+    await _db.pedidosBox.putAt(pedidoIndex, actualizado);
+    _refresh();
+  }
+
   Future<void> enviarACocina(String pedidoId) async {
     await _cambiarEstado(pedidoId, EstadoPedido.enviadoCocina);
   }
@@ -290,6 +492,17 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
 
   Future<void> marcarListo(String pedidoId) async {
     await _cambiarEstado(pedidoId, EstadoPedido.listo);
+  }
+
+  Future<void> cancelar(String pedidoId) async {
+    await _cambiarEstado(pedidoId, EstadoPedido.cancelado);
+  }
+
+  Future<void> eliminar(String pedidoId) async {
+    final pedidoIndex = state.indexWhere((p) => p.id == pedidoId);
+    if (pedidoIndex < 0) return;
+    await _db.pedidosBox.deleteAt(pedidoIndex);
+    _refresh();
   }
 
   Future<void> actualizar(Pedido pedido) async {
@@ -412,9 +625,15 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
 
     return result..sort((a, b) => b.horaApertura.compareTo(a.horaApertura));
   }
+
+  void actualizarLista() {
+    _refresh();
+  }
 }
 
 final indiceNavegacionProvider = StateProvider<int>((ref) => 0);
+
+final mesaVentaSeleccionadaProvider = StateProvider<String?>((ref) => null);
 
 final imageRefreshProvider = StreamProvider<void>((ref) {
   return imageStorageService.onImageChanged;
@@ -447,12 +666,18 @@ class CajaNotifier extends StateNotifier<Caja?> {
     });
   }
 
-  Future<void> abrirCaja({double fondoInicial = 0}) async {
+  Future<void> abrirCaja({
+    double fondoInicial = 0,
+    String? cajeroId,
+    String? cajeroNombre,
+  }) async {
     final caja = Caja(
       id: 'caja_${DateTime.now().millisecondsSinceEpoch}',
       fechaApertura: DateTime.now(),
       fondoInicial: fondoInicial,
       estado: EstadoCaja.abierta,
+      cajeroId: cajeroId,
+      cajeroNombre: cajeroNombre,
     );
     await _db.cajaBox.add(caja);
     state = caja;
@@ -564,3 +789,36 @@ final cajaStreamProvider = StreamProvider<void>((ref) {
   final db = ref.watch(databaseServiceProvider);
   return db.onBoxChanged.where((boxName) => boxName == 'caja').map((_) {});
 });
+
+final cajasHistorialProvider =
+    StateNotifierProvider<CajasHistorialNotifier, List<Caja>>((ref) {
+      final db = ref.watch(databaseServiceProvider);
+      return CajasHistorialNotifier(db);
+    });
+
+class CajasHistorialNotifier extends StateNotifier<List<Caja>> {
+  final DatabaseService _db;
+  StreamSubscription<String>? _subscription;
+
+  CajasHistorialNotifier(this._db) : super(_db.cajaRepositorio.getHistorial()) {
+    _setupListener();
+  }
+
+  void _setupListener() {
+    _subscription = _db.onBoxChanged.listen((boxName) {
+      if (boxName == 'caja') {
+        refresh();
+      }
+    });
+  }
+
+  void refresh() {
+    state = _db.cajaRepositorio.getHistorial();
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+}

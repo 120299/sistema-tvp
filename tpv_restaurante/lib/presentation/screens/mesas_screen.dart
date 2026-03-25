@@ -4,7 +4,6 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
-import 'mesa_productos_screen.dart';
 
 class MesasScreen extends ConsumerStatefulWidget {
   const MesasScreen({super.key});
@@ -59,6 +58,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'agregar_mesa',
         onPressed: () => _mostrarDialogoAgregarMesas(),
         icon: const Icon(Icons.add),
         label: const Text('Agregar Mesas'),
@@ -73,146 +73,152 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.table_restaurant, color: AppColors.primary),
-              SizedBox(width: 12),
-              Text('Agregar Mesas'),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  const Text('Cantidad:'),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: cantidad > 1
-                        ? () => setDialogState(() => cantidad--)
-                        : null,
-                    icon: const Icon(Icons.remove_circle_outline),
-                    color: AppColors.error,
+        builder: (context, setDialogState) {
+          final mesasActuales = ref.read(mesasProvider);
+          final maxNumero = mesasActuales.isEmpty
+              ? 0
+              : mesasActuales
+                    .map((m) => m.numero)
+                    .reduce((a, b) => a > b ? a : b);
+          final primeraMesa = maxNumero + 1;
+          final ultimaMesa = maxNumero + cantidad;
+
+          return AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.table_restaurant, color: AppColors.primary),
+                SizedBox(width: 12),
+                Text('Agregar Mesas'),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '$cantidad',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        size: 18,
+                        color: AppColors.primary,
                       ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => setDialogState(() => cantidad++),
-                    icon: const Icon(Icons.add_circle_outline),
-                    color: AppColors.success,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Text('Capacidad:'),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: capacidad > 1
-                        ? () => setDialogState(() => capacidad--)
-                        : null,
-                    icon: const Icon(Icons.remove_circle_outline),
-                    color: AppColors.error,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '$capacidad pers.',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(width: 8),
+                      Text(
+                        cantidad == 1
+                            ? 'Mesa $primeraMesa'
+                            : 'Mesas $primeraMesa - $ultimaMesa',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  IconButton(
-                    onPressed: () => setDialogState(() => capacidad++),
-                    icon: const Icon(Icons.add_circle_outline),
-                    color: AppColors.success,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                const SizedBox(height: 16),
+                Row(
                   children: [
-                    const Icon(
-                      Icons.info_outline,
-                      size: 16,
-                      color: Colors.grey,
+                    const Text('Cantidad:'),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: cantidad > 1
+                          ? () => setDialogState(() => cantidad--)
+                          : null,
+                      icon: const Icon(Icons.remove_circle_outline),
+                      color: AppColors.error,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Se crearán $cantidad mesa${cantidad > 1 ? 's' : ''} para $capacidad personas',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 12,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
                       ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$cantidad',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => setDialogState(() => cantidad++),
+                      icon: const Icon(Icons.add_circle_outline),
+                      color: AppColors.success,
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Text('Capacidad:'),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: capacidad > 1
+                          ? () => setDialogState(() => capacidad--)
+                          : null,
+                      icon: const Icon(Icons.remove_circle_outline),
+                      color: AppColors.error,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$capacidad pers.',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => setDialogState(() => capacidad++),
+                      icon: const Icon(Icons.add_circle_outline),
+                      color: AppColors.success,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  for (int i = 0; i < cantidad; i++) {
+                    final nuevoNumero = maxNumero + 1 + i;
+                    final nuevaMesa = Mesa(
+                      id: 'mesa_$nuevoNumero',
+                      numero: nuevoNumero,
+                      capacidad: capacidad,
+                      estado: EstadoMesa.libre,
+                    );
+                    ref.read(mesasProvider.notifier).agregar(nuevaMesa);
+                  }
+                  Navigator.pop(ctx);
+                },
+                child: const Text('Agregar'),
               ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final mesasActuales = ref.read(mesasProvider);
-                for (int i = 0; i < cantidad; i++) {
-                  final nuevoNumero = mesasActuales.isEmpty
-                      ? i + 1
-                      : mesasActuales
-                                .map((m) => m.numero)
-                                .reduce((a, b) => a > b ? a : b) +
-                            i +
-                            1;
-                  final nuevaMesa = Mesa(
-                    id: 'mesa_$nuevoNumero',
-                    numero: nuevoNumero,
-                    capacidad: capacidad,
-                    estado: EstadoMesa.libre,
-                  );
-                  ref.read(mesasProvider.notifier).agregar(nuevaMesa);
-                }
-                Navigator.pop(ctx);
-              },
-              child: const Text('Agregar'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -599,47 +605,47 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
             ),
             const SizedBox(height: 20),
             if (mesa.estado == EstadoMesa.libre) ...[
-              _buildOpcion(
-                Icons.add_circle,
-                'Abrir Mesa',
-                AppColors.success,
-                () {
-                  Navigator.pop(context);
-                  _abrirMesa(mesa);
-                },
-              ),
+              _buildOpcion(Icons.edit, 'Editar', AppColors.primary, () {
+                Navigator.pop(context);
+                _editarMesa(context, mesa);
+              }),
               _buildOpcion(
                 Icons.event_available,
                 'Reservar',
                 AppColors.mesaReservada,
                 () {
                   Navigator.pop(context);
-                  ref.read(mesasProvider.notifier).marcarReservada(mesa.id);
+                  _mostrarDialogoReserva(mesa);
                 },
               ),
             ],
             if (mesa.estado == EstadoMesa.ocupada) ...[
-              _buildOpcion(
-                Icons.visibility,
-                'Ver Pedido',
-                AppColors.primary,
-                () {
-                  _verPedidoMesa(context, mesa);
-                },
-              ),
+              _buildOpcion(Icons.edit, 'Editar', AppColors.primary, () {
+                Navigator.pop(context);
+                _editarMesa(context, mesa);
+              }),
               _buildOpcion(Icons.payment, 'Cobrar', AppColors.success, () {
                 Navigator.pop(context);
                 _cobrarMesa(mesa);
               }),
-              _buildOpcion(Icons.cancel, 'Cancelar', AppColors.error, () {
-                Navigator.pop(context);
-                _cancelarMesa(mesa);
-              }),
+              _buildOpcion(
+                Icons.remove_circle,
+                'Quitar',
+                AppColors.warning,
+                () {
+                  Navigator.pop(context);
+                  _cancelarMesa(mesa);
+                },
+              ),
             ],
             if (mesa.estado == EstadoMesa.reservada) ...[
+              _buildOpcion(Icons.edit, 'Editar', AppColors.primary, () {
+                Navigator.pop(context);
+                _editarMesa(context, mesa);
+              }),
               _buildOpcion(
                 Icons.check_circle,
-                'Activar Reserva',
+                'Activar',
                 AppColors.success,
                 () {
                   Navigator.pop(context);
@@ -648,6 +654,10 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
               ),
             ],
             if (mesa.estado == EstadoMesa.necesitaAtencion) ...[
+              _buildOpcion(Icons.edit, 'Editar', AppColors.primary, () {
+                Navigator.pop(context);
+                _editarMesa(context, mesa);
+              }),
               _buildOpcion(Icons.check, 'Atender', AppColors.primary, () {
                 Navigator.pop(context);
                 ref.read(mesasProvider.notifier).liberar(mesa.id);
@@ -692,16 +702,170 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
     await ref.read(mesasProvider.notifier).ocupar(mesa.id, pedidoId);
   }
 
-  void _verPedidoMesa(BuildContext context, Mesa mesa) {
-    Navigator.pop(context);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MesaProductosScreen(mesa: mesa),
+  void _editarMesa(BuildContext context, Mesa mesa) {
+    final numeroController = TextEditingController(
+      text: mesa.numero.toString(),
+    );
+    final nombreController = TextEditingController(text: mesa.nombre ?? '');
+    final capacidadController = TextEditingController(
+      text: mesa.capacidad.toString(),
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Editar ${mesa.nombreMostrar}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: numeroController,
+              decoration: const InputDecoration(
+                labelText: 'Número',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.tag),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: nombreController,
+              decoration: const InputDecoration(
+                labelText: 'Nombre (opcional)',
+                hintText: 'Ej: Terraza, VIP...',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.label),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: capacidadController,
+              decoration: const InputDecoration(
+                labelText: 'Capacidad',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.people),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ],
         ),
-      );
-    });
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final numero = int.tryParse(numeroController.text);
+              final capacidad = int.tryParse(capacidadController.text);
+              final nombre = nombreController.text.trim();
+              if (numero != null && capacidad != null) {
+                await ref
+                    .read(mesasProvider.notifier)
+                    .actualizarMesa(
+                      mesa.id,
+                      numero: numero,
+                      nombre: nombre.isEmpty ? null : nombre,
+                      capacidad: capacidad,
+                    );
+                if (context.mounted) Navigator.pop(context);
+              }
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarDialogoReserva(Mesa mesa) {
+    DateTime fechaReserva = DateTime.now().add(const Duration(hours: 1));
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.event_available, color: AppColors.mesaReservada),
+              const SizedBox(width: 12),
+              Text('Reservar ${mesa.nombreMostrar}'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.calendar_today),
+                title: Text(
+                  '${fechaReserva.day}/${fechaReserva.month}/${fechaReserva.year}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                onTap: () async {
+                  final fecha = await showDatePicker(
+                    context: context,
+                    initialDate: fechaReserva,
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
+                  if (fecha != null) {
+                    setDialogState(() {
+                      fechaReserva = DateTime(
+                        fecha.year,
+                        fecha.month,
+                        fecha.day,
+                        fechaReserva.hour,
+                        fechaReserva.minute,
+                      );
+                    });
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.access_time),
+                title: Text(
+                  '${fechaReserva.hour.toString().padLeft(2, '0')}:${fechaReserva.minute.toString().padLeft(2, '0')}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                onTap: () async {
+                  final hora = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.fromDateTime(fechaReserva),
+                  );
+                  if (hora != null) {
+                    setDialogState(() {
+                      fechaReserva = DateTime(
+                        fechaReserva.year,
+                        fechaReserva.month,
+                        fechaReserva.day,
+                        hora.hour,
+                        hora.minute,
+                      );
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                ref
+                    .read(mesasProvider.notifier)
+                    .actualizarMesa(mesa.id, fechaReserva: fechaReserva);
+                ref.read(mesasProvider.notifier).marcarReservada(mesa.id);
+                Navigator.pop(ctx);
+              },
+              child: const Text('Reservar'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _cobrarMesa(Mesa mesa) async {
@@ -714,23 +878,8 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
 
     if (pedido == null) return;
 
-    final negocio = ref.read(negocioProvider);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => _CobroMesaSheet(
-        total: pedido.total,
-        mesaNumero: mesa.numero,
-        onCobrar: (metodosPago) async {
-          Navigator.pop(context);
-          await _procesarCobroMesa(mesa, pedido, metodosPago, negocio);
-        },
-      ),
-    );
+    ref.read(mesaVentaSeleccionadaProvider.notifier).state = mesa.id;
+    ref.read(indiceNavegacionProvider.notifier).state = 0;
   }
 
   Future<void> _procesarCobroMesa(
@@ -747,17 +896,25 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
         .read(cajaProvider.notifier)
         .registrarVenta(pedido.total, metodoPrincipal, pedidoId: pedido.id);
 
+    if (pedido.clienteId != null) {
+      await ref
+          .read(clientesProvider.notifier)
+          .registrarVenta(pedido.clienteId!, pedido.total);
+    }
+
     final metodoTexto = metodosPago.entries
         .map((e) => '${e.key}: ${e.value.toStringAsFixed(2)}€')
         .join(' + ');
 
     await PrintService.printTicket(
       items: pedido.items,
-      total: pedido.total,
+      subtotal: pedido.subtotal,
       ivaPorcentaje: negocio.ivaPorcentaje,
       metodoPago: metodoTexto,
       negocio: negocio,
       mesaNumero: mesa.numero.toString(),
+      cajeroNombre: pedido.cajeroNombre,
+      clienteNombre: pedido.clienteNombre,
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
