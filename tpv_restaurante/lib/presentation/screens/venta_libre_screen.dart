@@ -6,6 +6,7 @@ import '../../data/models/models.dart';
 import '../../data/services/image_storage_service.dart';
 import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
+import '../widgets/ui_styles.dart';
 import 'cobro_sheet.dart';
 
 class VentaLibreScreen extends ConsumerStatefulWidget {
@@ -249,15 +250,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               ),
               const SizedBox(width: 12),
               const Expanded(
-                child: Text(
-                  'Punto de Venta',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: UiSectionHeader('Punto de Venta', color: Colors.white),
               ),
               if (isWide) ...[
                 Container(

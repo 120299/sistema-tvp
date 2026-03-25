@@ -88,10 +88,23 @@ class AppTheme {
       brightness: Brightness.light,
       colorScheme: AppColors.lightColorScheme,
       scaffoldBackgroundColor: AppColors.lightBackground,
-      textTheme: GoogleFonts.poppinsTextTheme().apply(
-        bodyColor: AppColors.textPrimary,
-        displayColor: AppColors.textPrimary,
-      ),
+      textTheme: GoogleFonts.poppinsTextTheme()
+          .apply(
+            bodyColor: AppColors.textPrimary,
+            displayColor: AppColors.textPrimary,
+          )
+          .copyWith(
+            headlineSmall: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+            titleMedium: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+            bodyMedium: GoogleFonts.poppins(fontSize: 14),
+            bodySmall: GoogleFonts.poppins(fontSize: 12),
+          ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -249,10 +262,23 @@ class AppTheme {
       brightness: Brightness.dark,
       colorScheme: AppColors.darkColorScheme,
       scaffoldBackgroundColor: AppColors.darkBackground,
-      textTheme: GoogleFonts.poppinsTextTheme().apply(
-        bodyColor: AppColors.darkTextPrimary,
-        displayColor: AppColors.darkTextPrimary,
-      ),
+      textTheme: GoogleFonts.poppinsTextTheme()
+          .apply(
+            bodyColor: AppColors.darkTextPrimary,
+            displayColor: AppColors.darkTextPrimary,
+          )
+          .copyWith(
+            headlineSmall: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+            titleMedium: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+            bodyMedium: GoogleFonts.poppins(fontSize: 14),
+            bodySmall: GoogleFonts.poppins(fontSize: 12),
+          ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.darkSurface,
         foregroundColor: AppColors.darkTextPrimary,

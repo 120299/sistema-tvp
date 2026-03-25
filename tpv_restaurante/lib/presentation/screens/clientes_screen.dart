@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
+import '../../presentation/widgets/ui_styles.dart';
 import '../providers/providers.dart';
 
 class ClientesScreen extends ConsumerStatefulWidget {
@@ -94,17 +95,14 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Clientes',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  UiSectionHeader('Clientes', color: Colors.white),
                   Text(
                     '${clientes.length} clientes registrados',
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    style:
+                        Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.white70,
+                        ) ??
+                        const TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ],
               ),
