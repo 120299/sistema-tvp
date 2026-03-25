@@ -56,7 +56,6 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final negocio = ref.watch(negocioProvider);
     final pedidosNotifier = ref.watch(pedidosProvider.notifier);
     final cajeros = ref.watch(cajerosProvider);
     final cajeroActual = ref.watch(cajeroActualProvider);
@@ -83,7 +82,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
       productos,
     );
     final ventasPorMetodo = _getVentasPorMetodo(pedidosFiltrados);
-    final datosGrafico = _getDatosGrafico(pedidosFiltrados);
+    final ventasPorUsuario = _getVentasPorUsuario(pedidosFiltrados);
 
     return Scaffold(
       body: SafeArea(
@@ -104,7 +103,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                             ticketPromedio,
                             productosMasVendidos,
                             ventasPorMetodo,
-                            datosGrafico,
+                            ventasPorUsuario,
                             pedidosFiltrados,
                           )
                         : _buildLayoutNarrow(
@@ -113,7 +112,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                             ticketPromedio,
                             productosMasVendidos,
                             ventasPorMetodo,
-                            datosGrafico,
+                            ventasPorUsuario,
                             pedidosFiltrados,
                           ),
                   ),
@@ -132,12 +131,13 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     double ticketPromedio,
     List<MapEntry<String, int>> productosMasVendidos,
     Map<String, double> ventasPorMetodo,
-    List<MapEntry<DateTime, double>> datosGrafico,
+    Map<String, double> ventasPorUsuario,
     List<Pedido> pedidosFiltrados,
   ) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildResumenCards(totalVentas, numPedidos, ticketPromedio),
+        _buildResumenCards(totalVentas, ventasPorMetodo, numPedidos, ticketPromedio),
         const SizedBox(height: 20),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +146,14 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
               flex: 2,
               child: Column(
                 children: [
-                  _buildGraficoTendencia(datosGrafico),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: _buildGraficoMetodosPago(ventasPorMetodo)),
+                      const SizedBox(width: 20),
+                      Expanded(child: _buildVentasPorUsuario(ventasPorUsuario)),
+                    ],
+                  ),
                   const SizedBox(height: 20),
                   _buildAccionesExport(pedidosFiltrados, totalVentas),
                 ],
@@ -154,13 +161,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
             ),
             const SizedBox(width: 20),
             Expanded(
-              child: Column(
-                children: [
-                  _buildGraficoMetodosPago(ventasPorMetodo),
-                  const SizedBox(height: 20),
-                  _buildProductosMasVendidos(productosMasVendidos),
-                ],
-              ),
+              child: _buildProductosMasVendidos(productosMasVendidos),
             ),
           ],
         ),
@@ -174,22 +175,19 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     double ticketPromedio,
     List<MapEntry<String, int>> productosMasVendidos,
     Map<String, double> ventasPorMetodo,
-    List<MapEntry<DateTime, double>> datosGrafico,
+    Map<String, double> ventasPorUsuario,
     List<Pedido> pedidosFiltrados,
   ) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildResumenCards(totalVentas, numPedidos, ticketPromedio),
+        _buildResumenCards(totalVentas, ventasPorMetodo, numPedidos, ticketPromedio),
         const SizedBox(height: 20),
-        _buildGraficoTendencia(datosGrafico),
+        _buildGraficoMetodosPago(ventasPorMetodo),
         const SizedBox(height: 20),
-        Row(
-          children: [
-            Expanded(child: _buildGraficoMetodosPago(ventasPorMetodo)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildProductosMasVendidos(productosMasVendidos)),
-          ],
-        ),
+        _buildVentasPorUsuario(ventasPorUsuario),
+        const SizedBox(height: 20),
+        _buildProductosMasVendidos(productosMasVendidos),
         const SizedBox(height: 20),
         _buildAccionesExport(pedidosFiltrados, totalVentas),
       ],
@@ -373,36 +371,43 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
 
   Widget _buildResumenCards(
     double totalVentas,
+    Map<String, double> ventasPorMetodo,
     int numPedidos,
     double ticketPromedio,
   ) {
-    return Row(
+    return Wrap(
+      spacing: 16,
+      runSpacing: 16,
       children: [
-        Expanded(
-          child: _buildStatCard(
-            'Total Ventas',
-            '€${totalVentas.toStringAsFixed(2)}',
-            Icons.euro,
-            AppColors.success,
-          ),
+        _buildStatCard(
+          'Total Ventas',
+          '€${totalVentas.toStringAsFixed(2)}',
+          Icons.euro,
+          AppColors.success,
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildStatCard(
-            'Pedidos',
-            '$numPedidos',
-            Icons.receipt_long,
-            AppColors.primary,
-          ),
+        _buildStatCard(
+          'Efectivo',
+          '€${(ventasPorMetodo['Efectivo'] ?? 0).toStringAsFixed(2)}',
+          Icons.money,
+          Colors.green,
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildStatCard(
-            'Ticket Promedio',
-            '€${ticketPromedio.toStringAsFixed(2)}',
-            Icons.trending_up,
-            AppColors.secondary,
-          ),
+        _buildStatCard(
+          'Tarjeta',
+          '€${(ventasPorMetodo['Tarjeta'] ?? 0).toStringAsFixed(2)}',
+          Icons.credit_card,
+          Colors.blue,
+        ),
+        _buildStatCard(
+          'Pedidos',
+          '$numPedidos',
+          Icons.receipt_long,
+          AppColors.primary,
+        ),
+        _buildStatCard(
+          'Promedio',
+          '€${ticketPromedio.toStringAsFixed(2)}',
+          Icons.trending_up,
+          AppColors.secondary,
         ),
       ],
     );
@@ -415,6 +420,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     Color color,
   ) {
     return Container(
+      width: 180,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -462,189 +468,6 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     );
   }
 
-  Widget _buildGraficoTendencia(List<MapEntry<DateTime, double>> datos) {
-    if (datos.isEmpty) {
-      return Container(
-        height: 300,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-            ),
-          ],
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.show_chart, size: 48, color: Colors.grey.shade300),
-              const SizedBox(height: 12),
-              Text(
-                'Sin datos para el período seleccionado',
-                style: TextStyle(color: Colors.grey.shade500),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final spots = <FlSpot>[];
-    for (int i = 0; i < datos.length; i++) {
-      spots.add(FlSpot(i.toDouble(), datos[i].value));
-    }
-
-    final maxY =
-        datos.map((e) => e.value).reduce((a, b) => a > b ? a : b) * 1.2;
-
-    return Container(
-      height: 300,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Text(
-                'Tendencia de Ventas',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(width: 12, height: 3, color: AppColors.primary),
-                    const SizedBox(width: 4),
-                    Text(
-                      '€',
-                      style: TextStyle(fontSize: 10, color: AppColors.primary),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Expanded(
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: maxY > 0 ? maxY / 4 : 1,
-                  getDrawingHorizontalLine: (value) {
-                    return FlLine(color: Colors.grey.shade200, strokeWidth: 1);
-                  },
-                ),
-                titlesData: FlTitlesData(
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 30,
-                      interval: datos.length > 7
-                          ? (datos.length / 7).ceilToDouble()
-                          : 1,
-                      getTitlesWidget: (value, meta) {
-                        final index = value.toInt();
-                        if (index >= 0 && index < datos.length) {
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              DateFormat('dd').format(datos[index].key),
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 50,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          '€${value.toInt()}',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey.shade600,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                ),
-                borderData: FlBorderData(show: false),
-                minX: 0,
-                maxX: (datos.length - 1).toDouble(),
-                minY: 0,
-                maxY: maxY,
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: spots,
-                    isCurved: true,
-                    color: AppColors.primary,
-                    barWidth: 3,
-                    isStrokeCapRound: true,
-                    dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                    ),
-                  ),
-                ],
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipItems: (touchedSpots) {
-                      return touchedSpots.map((spot) {
-                        return LineTooltipItem(
-                          '€${spot.y.toStringAsFixed(2)}',
-                          const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        );
-                      }).toList();
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildGraficoMetodosPago(Map<String, double> ventasPorMetodo) {
     if (ventasPorMetodo.isEmpty ||
@@ -799,6 +622,87 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     );
   }
 
+  Widget _buildVentasPorUsuario(Map<String, double> usuarios) {
+    if (usuarios.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            'Sin datos de usuarios',
+            style: TextStyle(color: Colors.grey.shade500),
+          ),
+        ),
+      );
+    }
+
+    final sortedUsers = usuarios.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final maxValue =
+        sortedUsers.isNotEmpty ? sortedUsers.first.value : 1.0;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Ventas por Usuario',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          ...sortedUsers.map((e) {
+            final porcentaje = e.value / (maxValue > 0 ? maxValue : 1);
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(e.key,
+                          style: const TextStyle(fontWeight: FontWeight.w600)),
+                      Text('€${e.value.toStringAsFixed(2)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  LinearProgressIndicator(
+                    value: porcentaje,
+                    backgroundColor: Colors.grey.shade200,
+                    valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                    minHeight: 6,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
   Widget _buildProductosMasVendidos(List<MapEntry<String, int>> productos) {
     if (productos.isEmpty) {
       return Container(
@@ -845,7 +749,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          ...productos.take(5).map((producto) {
+          ...productos.take(10).map((producto) {
             final porcentaje = producto.value / maxCantidad;
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
@@ -962,20 +866,15 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     return ventas;
   }
 
-  List<MapEntry<DateTime, double>> _getDatosGrafico(List<Pedido> pedidos) {
-    final ventasPorDia = <DateTime, double>{};
+  Map<String, double> _getVentasPorUsuario(List<Pedido> pedidos) {
+    final ventas = <String, double>{};
     for (final pedido in pedidos) {
-      final dia = DateTime(
-        pedido.horaApertura.year,
-        pedido.horaApertura.month,
-        pedido.horaApertura.day,
-      );
-      ventasPorDia[dia] = (ventasPorDia[dia] ?? 0) + pedido.total;
+      final user = pedido.cajeroNombre ?? 'Sistema';
+      ventas[user] = (ventas[user] ?? 0) + pedido.total;
     }
-    final lista = ventasPorDia.entries.toList()
-      ..sort((a, b) => a.key.compareTo(b.key));
-    return lista;
+    return ventas;
   }
+
 
   void _exportarCSV(List<Pedido> pedidos, double total) async {
     try {

@@ -67,6 +67,24 @@ class PrintService {
               children: [
                 _buildHeader(negocio),
                 pw.SizedBox(height: 5),
+                if (clienteNombre != null && clienteNif != null) ...[
+                  pw.Container(
+                    width: double.infinity,
+                    padding: const pw.EdgeInsets.all(4),
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border.all(color: PdfColors.grey400),
+                    ),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text('DATOS CLIENTE', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold)),
+                        pw.Text(clienteNombre, style: const pw.TextStyle(fontSize: 8)),
+                        pw.Text('NIF/CIF: $clienteNif', style: const pw.TextStyle(fontSize: 8)),
+                      ],
+                    ),
+                  ),
+                  pw.SizedBox(height: 5),
+                ],
                 _buildFechaHora(),
                 if (mesaNumero != null)
                   pw.Text(
@@ -107,10 +125,7 @@ class PrintService {
                 ),
                 pw.SizedBox(height: 6),
                 pw.Divider(thickness: 0.5),
-                _buildFooter(
-                  clienteNombre: clienteNombre,
-                  clienteNif: clienteNif,
-                ),
+                _buildFooter(),
               ],
             );
           },
@@ -264,94 +279,41 @@ class PrintService {
 
   static pw.Widget _buildItems(List<PedidoItem> items) {
     return pw.Column(
-      children: items
-          .map(
-            (item) => pw.Padding(
-              padding: const pw.EdgeInsets.symmetric(vertical: 2),
-              child: pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Expanded(
-                    child: pw.Text(
-                      '${item.cantidad}x ${item.productoNombre} @ €${item.precioUnitario.toStringAsFixed(2)}',
-                      style: const pw.TextStyle(fontSize: 10),
-                    ),
-                  ),
-                  pw.Text(
-                    '€${item.subtotal.toStringAsFixed(2)}',
-                    style: const pw.TextStyle(fontSize: 10),
-                  ),
-                ],
-              ),
-            ),
-          )
-          .toList(),
-    );
-  }
-
-  static pw.Widget _buildTotals(
-    double total,
-    double ivaPorcentaje,
-    double porcentajePropina,
-  ) {
-    final baseImponible = total / (1 + ivaPorcentaje / 100);
-    final importeIva = total - baseImponible;
-    final totalFinal = total * (1 + porcentajePropina / 100);
-
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.end,
       children: [
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.end,
-          children: [
-            pw.Text('Base: ', style: const pw.TextStyle(fontSize: 9)),
-            pw.Text(
-              '${baseImponible.toStringAsFixed(2)} EUR',
-              style: const pw.TextStyle(fontSize: 9),
-            ),
-          ],
-        ),
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.end,
-          children: [
-            pw.Text(
-              'IVA ${ivaPorcentaje.toStringAsFixed(0)}% (incl.): ',
-              style: const pw.TextStyle(fontSize: 9),
-            ),
-            pw.Text(
-              '${importeIva.toStringAsFixed(2)} EUR',
-              style: const pw.TextStyle(fontSize: 9),
-            ),
-          ],
-        ),
-        if (porcentajePropina > 0)
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.end,
+        pw.Container(
+          padding: const pw.EdgeInsets.symmetric(vertical: 2),
+          decoration: pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.5))),
+          child: pw.Row(
             children: [
-              pw.Text('Propina: ', style: const pw.TextStyle(fontSize: 9)),
-              pw.Text(
-                '${(total * porcentajePropina / 100).toStringAsFixed(2)} EUR',
-                style: const pw.TextStyle(fontSize: 9),
-              ),
+              pw.Container(width: 25, child: pw.Text('Cant.', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(child: pw.Text('Concepto', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold))),
+              pw.Container(width: 35, child: pw.Text('Precio', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold), textAlign: pw.TextAlign.right)),
+              pw.Container(width: 40, child: pw.Text('Importe', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold), textAlign: pw.TextAlign.right)),
             ],
           ),
-        pw.SizedBox(height: 4),
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.end,
-          children: [
-            pw.Text(
-              'TOTAL: ',
-              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
-            ),
-            pw.Text(
-              '${totalFinal.toStringAsFixed(2)} EUR',
-              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
-            ),
-          ],
         ),
+        ...items.map(
+          (item) => pw.Padding(
+            padding: const pw.EdgeInsets.symmetric(vertical: 2),
+            child: pw.Row(
+              children: [
+                pw.Container(width: 25, child: pw.Text('${item.cantidad}', style: const pw.TextStyle(fontSize: 9))),
+                pw.Expanded(
+                  child: pw.Text(
+                    item.productoNombre,
+                    style: const pw.TextStyle(fontSize: 9),
+                  ),
+                ),
+                pw.Container(width: 35, child: pw.Text('€${item.precioUnitario.toStringAsFixed(2)}', style: const pw.TextStyle(fontSize: 9), textAlign: pw.TextAlign.right)),
+                pw.Container(width: 40, child: pw.Text('€${item.subtotal.toStringAsFixed(2)}', style: const pw.TextStyle(fontSize: 9), textAlign: pw.TextAlign.right)),
+              ],
+            ),
+          ),
+        ).toList(),
       ],
     );
   }
+
 
   static pw.Widget _buildTotalsImproved({
     required double baseImponible,
@@ -426,48 +388,11 @@ class PrintService {
     );
   }
 
-  static pw.Widget _buildFooter({String? clienteNombre, String? clienteNif}) {
+  static pw.Widget _buildFooter() {
     return pw.Column(
       children: [
-        if (clienteNombre != null && clienteNif != null) ...[
-          pw.Container(
-            padding: const pw.EdgeInsets.all(4),
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: PdfColors.grey400),
-            ),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text(
-                  'DATOS CLIENTE',
-                  style: pw.TextStyle(
-                    fontSize: 8,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-                pw.Text(clienteNombre, style: const pw.TextStyle(fontSize: 8)),
-                pw.Text(
-                  'NIF/CIF: $clienteNif',
-                  style: const pw.TextStyle(fontSize: 8),
-                ),
-              ],
-            ),
-          ),
-          pw.SizedBox(height: 4),
-          pw.Text(
-            'FACTURA SIMPLIFICADA',
-            style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
-          ),
-        ] else ...[
-          pw.Text(
-            'RECIBO',
-            style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
-          ),
-          pw.Text(
-            'Factura simplificada',
-            style: const pw.TextStyle(fontSize: 7),
-          ),
-        ],
+        pw.Text('FACTURA SIMPLIFICADA', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold)),
+        pw.Text('Sin efectos fiscales', style: const pw.TextStyle(fontSize: 7)),
         pw.SizedBox(height: 4),
         pw.Text(
           '!Gracias por su visita!',

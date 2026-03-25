@@ -69,11 +69,16 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
 
   void _cargarFondoSugerido() {
     final historial = ref.read(cajasHistorialProvider);
-    if (historial.isNotEmpty) {
-      _montoController.text = historial.first.saldoCaja.toStringAsFixed(2);
-    } else {
-      _montoController.text = '0.00';
-    }
+    setState(() {
+      if (historial.isNotEmpty) {
+        final ultimoSaldo = historial.first.saldoCaja;
+        _importeKeypadCaja = ultimoSaldo.toStringAsFixed(2).replaceAll('.', ',');
+        _montoController.text = ultimoSaldo.toStringAsFixed(2);
+      } else {
+        _importeKeypadCaja = '0';
+        _montoController.text = '0.00';
+      }
+    });
   }
 
   @override
@@ -304,9 +309,8 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
     final pedidos = ref.watch(pedidosProvider);
     final ventasHoy = pedidos.where((p) {
       return p.estado == EstadoPedido.cerrado &&
-          p.horaApertura.year == DateTime.now().year &&
-          p.horaApertura.month == DateTime.now().month &&
-          p.horaApertura.day == DateTime.now().day;
+          p.horaCierre != null &&
+          p.horaCierre!.isAfter(caja.fechaApertura);
     }).toList();
 
     final efectivo = ventasHoy

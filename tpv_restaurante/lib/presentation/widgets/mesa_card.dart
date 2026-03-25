@@ -100,7 +100,7 @@ class MesaCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Mesa ${mesa.numero}',
+                    'Barra ${mesa.numero}',
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,

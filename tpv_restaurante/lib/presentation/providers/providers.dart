@@ -31,23 +31,7 @@ final cajerosProvider = StateNotifierProvider<CajerosNotifier, List<Cajero>>((
 class CajerosNotifier extends StateNotifier<List<Cajero>> {
   final DatabaseService _db;
 
-  CajerosNotifier(this._db) : super(_loadCajeros(_db));
-
-  static List<Cajero> _loadCajeros(DatabaseService db) {
-    final box = db.cajerosBox;
-    if (box.isEmpty) {
-      final defaultCajero = Cajero(
-        id: 'cajero_1',
-        nombre: 'Administrador',
-        fechaCreacion: DateTime.now(),
-        activo: true,
-        rol: RolCajero.administrador,
-      );
-      box.add(defaultCajero);
-      return [defaultCajero];
-    }
-    return box.values.toList();
-  }
+  CajerosNotifier(this._db) : super(_db.cajerosBox.values.toList());
 
   Future<void> agregar(Cajero cajero) async {
     await _db.cajerosBox.add(cajero);
@@ -90,7 +74,7 @@ final clientesProvider = StateNotifierProvider<ClientesNotifier, List<Cliente>>(
 class ClientesNotifier extends StateNotifier<List<Cliente>> {
   final DatabaseService _db;
 
-  ClientesNotifier(this._db) : super([]);
+  ClientesNotifier(this._db) : super(_db.clientesBox.values.toList());
 
   Future<void> agregar(Cliente cliente) async {
     await _db.clientesBox.add(cliente);

@@ -743,6 +743,16 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
     await ref
         .read(pedidosProvider.notifier)
         .actualizarCantidad(mesaActual.pedidoActualId!, item.id, cantidad);
+
+    final pedidoIndex = ref.read(pedidosProvider).indexWhere((p) => p.id == mesaActual.pedidoActualId);
+    if (pedidoIndex >= 0) {
+      final pedidoActualizado = ref.read(pedidosProvider)[pedidoIndex];
+      if (pedidoActualizado.items.isEmpty) {
+        await ref.read(pedidosProvider.notifier).eliminar(mesaActual.pedidoActualId!);
+        await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
+      }
+    }
+
     setState(() {});
   }
 
@@ -790,6 +800,15 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               await ref
                   .read(pedidosProvider.notifier)
                   .actualizar(pedido.copyWith(items: itemsActualizados));
+            }
+          }
+
+          final pedidoIndexFin = ref.read(pedidosProvider).indexWhere((p) => p.id == mesaActual.pedidoActualId);
+          if (pedidoIndexFin >= 0) {
+            final pedidoActualizado = ref.read(pedidosProvider)[pedidoIndexFin];
+            if (pedidoActualizado.items.isEmpty) {
+              await ref.read(pedidosProvider.notifier).eliminar(mesaActual.pedidoActualId!);
+              await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
             }
           }
 

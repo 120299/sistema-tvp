@@ -144,6 +144,56 @@ class DatabaseService {
     if (negocioBox.isEmpty) {
       await negocioBox.add(DatosNegocio.ejemplo);
     }
+
+    if (cajerosBox.isEmpty) {
+      final defaultUsers = [
+        Cajero(
+          id: 'admin_1',
+          nombre: 'Administrador',
+          pin: '1234',
+          fechaCreacion: DateTime.now(),
+          rol: RolCajero.administrador,
+        ),
+        Cajero(
+          id: 'emp_1',
+          nombre: 'Empleado Ejemplo',
+          pin: '0000',
+          fechaCreacion: DateTime.now(),
+          rol: RolCajero.cajero,
+        ),
+      ];
+      for (final user in defaultUsers) {
+        await cajerosBox.add(user);
+      }
+    }
+
+    if (clientesBox.isEmpty) {
+      final defaultClient = Cliente(
+        id: 'cli_generic',
+        nombre: 'Consumidor Final',
+        direccion: 'Calle Principal 123',
+        ciudad: 'Madrid',
+        codigoPostal: '28001',
+        poblacion: 'Madrid',
+        fechaCreacion: DateTime.now(),
+      );
+      await clientesBox.add(defaultClient);
+    }
+  }
+
+  Future<void> resetSystem() async {
+    await productosBox.clear();
+    await categoriasBox.clear();
+    await mesasBox.clear();
+    await pedidosBox.clear();
+    await negocioBox.clear();
+    await configBox.clear();
+    await cajaBox.clear();
+    await movimientosBox.clear();
+    await cajerosBox.clear();
+    await clientesBox.clear();
+
+    await _seedData();
   }
 
   List<Mesa> _getMesasIniciales() {

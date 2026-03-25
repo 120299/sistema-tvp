@@ -388,8 +388,10 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                   _buildActionButton(
                     icon: Icons.delete_outline,
                     color: AppColors.error,
-                    onPressed: _mostrarDialogoLiberarMesa,
-                    tooltip: 'Liberar mesa / Vaciar carrito',
+                    onPressed: () {
+                      _mostrarDialogoLiberarMesa();
+                    },
+                    tooltip: 'Liberar mesa',
                   ),
                 ],
               ],
@@ -408,13 +410,11 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           children: [
             Icon(Icons.warning, color: AppColors.warning),
             SizedBox(width: 12),
-            Text('Vaciar Carrito'),
+            Text('Liberar Mesa'),
           ],
         ),
-        content: Text(
-          _mesaAsignada != null
-              ? '¿Deseas liberar esta barra? Se eliminará el pedido actual de la base de datos.'
-              : '¿Deseas vaciar todos los productos del carrito?',
+        content: const Text(
+          '¿Deseas liberar esta mesa? Se eliminará el pedido actual.',
         ),
         actions: [
           TextButton(
@@ -423,41 +423,25 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(ctx);
               if (_mesaAsignada != null) {
+                await ref.read(mesasProvider.notifier).liberar(_mesaAsignada!);
                 final mesa = ref
                     .read(mesasProvider)
                     .firstWhere((m) => m.id == _mesaAsignada);
-
                 if (mesa.pedidoActualId != null) {
                   await ref
                       .read(pedidosProvider.notifier)
-                      .eliminar(mesa.pedidoActualId!);
+                      .cancelar(mesa.pedidoActualId!);
                 }
-                await ref.read(mesasProvider.notifier).liberar(_mesaAsignada!);
-
-                setState(() {
-                  _mesaAsignada = null;
-                  _carrito.clear();
-                });
-              } else {
-                setState(() {
-                  _carrito.clear();
-                });
               }
-
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Carrito vaciado correctamente'),
-                    backgroundColor: AppColors.success,
-                    duration: Duration(seconds: 1),
-                  ),
-                );
-              }
+              setState(() {
+                _mesaAsignada = null;
+                _carrito.clear();
+              });
+              if (ctx.mounted) Navigator.pop(ctx);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Vaciar'),
+            child: const Text('Liberar'),
           ),
         ],
       ),
@@ -868,23 +852,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     ),
                   ),
                 const SizedBox(width: 8),
-                if (_carrito.isNotEmpty)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.delete_sweep,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      onPressed: _mostrarDialogoLiberarMesa,
-                      tooltip: 'Vaciar carrito',
-                    ),
-                  ),
-                const SizedBox(width: 8),
                 if (caja != null && caja.estado == EstadoCaja.abierta)
                   Container(
                     decoration: BoxDecoration(
@@ -1030,7 +997,18 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             false;
       },
       onDismissed: (_) {
-        _eliminarProductoPorId(item.id);
+        if (_mesaAsignada != null) {
+          final mesaActual = ref
+              .read(mesasProvider)
+              .where((m) => m.id == _mesaAsignada)
+              .firstOrNull;
+          if (mesaActual?.pedidoActualId != null) {
+            ref
+                .read(pedidosProvider.notifier)
+                .eliminarItem(mesaActual!.pedidoActualId!, item.id);
+          }
+        }
+        onRemove();
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -1396,11 +1374,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
 
   Future<void> _cargarProductosMesa(String mesaId) async {
     try {
-      // SIEMPRE limpiar el carrito local antes de cargar uno nuevo
-      setState(() {
-        _carrito.clear();
-      });
-
       // FORZAR refresh desde la base de datos para evitar datos obsoletos
       ref.read(pedidosProvider.notifier).actualizarLista();
       ref.read(mesasProvider.notifier).actualizarLista();
@@ -1409,6 +1382,9 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       final mesa = todasMesas.where((m) => m.id == mesaId).firstOrNull;
 
       if (mesa == null || mesa.pedidoActualId == null) {
+        if (mounted) {
+          setState(() => _carrito.clear());
+        }
         return;
       }
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:file_picker/file_picker.dart';
+import '../../data/services/backup_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
-import '../../data/services/backup_service.dart';
+import '../../data/services/database_service.dart';
 import '../providers/providers.dart';
 
 class ConfiguracionScreen extends ConsumerStatefulWidget {
@@ -79,7 +79,6 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeModeProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -245,121 +244,32 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                 ),
               ]),
               const SizedBox(height: 24),
-              // Almacenamiento eliminado
-              const SizedBox(height: 24),
-              _buildSeccion('Copia de Seguridad', [
+              _buildSeccion('Opciones de Sistema', [
                 ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.backup, color: AppColors.primary),
-                  title: const Text('Crear copia de seguridad'),
-                  subtitle: const Text('Exporta todos los datos del sistema'),
-                  trailing: ElevatedButton.icon(
-                    onPressed: _crearBackup,
-                    icon: const Icon(Icons.download),
-                    label: const Text('Exportar'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
+                  leading: const Icon(Icons.share, color: AppColors.primary),
+                  title: const Text('Exportar Datos'),
+                  subtitle: const Text('Crea y comparte un archivo con todos los datos.'),
+                  onTap: _exportarDatos,
                 ),
                 const Divider(),
                 ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(
-                    Icons.restore,
-                    color: AppColors.secondary,
-                  ),
-                  title: const Text('Restaurar copia de seguridad'),
-                  subtitle: const Text(
-                    'Importa datos desde un archivo de backup',
-                  ),
-                  trailing: ElevatedButton.icon(
-                    onPressed: _mostrarDialogoRestaurar,
-                    icon: const Icon(Icons.upload),
-                    label: const Text('Importar'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.secondary,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
+                  leading: const Icon(Icons.file_upload, color: AppColors.secondary),
+                  title: const Text('Importar Datos'),
+                  subtitle: const Text('Restaura los datos desde un archivo .json.'),
+                  onTap: _importarDatos,
                 ),
-              ]),
-              const SizedBox(height: 24),
-              _buildSeccion('Apariencia', [
+                const Divider(),
                 ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    themeMode == ThemeMode.dark
-                        ? Icons.dark_mode
-                        : Icons.light_mode,
-                    color: AppColors.primary,
+                  leading: const Icon(Icons.delete_forever, color: AppColors.error),
+                  title: const Text(
+                    'Limpiar Sistema',
+                    style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
                   ),
-                  title: const Text('Tema de la aplicación'),
-                  subtitle: Text(_getThemeText(themeMode)),
-                  trailing: SegmentedButton<ThemeMode>(
-                    segments: const [
-                      ButtonSegment(
-                        value: ThemeMode.light,
-                        icon: Icon(Icons.light_mode),
-                      ),
-                      ButtonSegment(
-                        value: ThemeMode.system,
-                        icon: Icon(Icons.settings_suggest),
-                      ),
-                      ButtonSegment(
-                        value: ThemeMode.dark,
-                        icon: Icon(Icons.dark_mode),
-                      ),
-                    ],
-                    selected: {themeMode},
-                    onSelectionChanged: (selection) {
-                      ref.read(themeModeProvider.notifier).state =
-                          selection.first;
-                    },
-                  ),
-                ),
-              ]),
-              const SizedBox(height: 24),
-              _buildSeccion('Información Legal', [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue.shade200),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: Colors.blue.shade700,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Cumplimiento Legal',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue.shade700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Este sistema cumple con el Real Decreto 1496/2003 sobre facturación. '
-                        'Los tickets emitidos son facturas simplificadas válidas para el consumidor. '
-                        'Para requisitos fiscales adicionales, consulte con su asesor contable.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.blue.shade700,
-                        ),
-                      ),
-                    ],
+                  subtitle: const Text('Borra todos los datos y restablece los valores iniciales.'),
+                  onTap: _limpiarSistema,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(color: AppColors.error.withValues(alpha: 0.5)),
                   ),
                 ),
               ]),
@@ -403,165 +313,70 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
     );
   }
 
-  Widget _buildUbicacionTile(
-    String title,
-    String subtitle,
-    IconData icon,
-    UbicacionAlmacenamiento value,
-  ) {
-    final currentValue = ref.watch(ubicacionAlmacenamientoProvider);
-    final isSelected = currentValue == value;
 
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.1)
-              : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, color: isSelected ? AppColors.primary : Colors.grey),
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? AppColors.primary : null,
-        ),
-      ),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
-      trailing: isSelected
-          ? const Icon(Icons.check_circle, color: AppColors.primary)
-          : const Icon(Icons.circle_outlined, color: Colors.grey),
-      onTap: () {
-        ref.read(ubicacionAlmacenamientoProvider.notifier).state = value;
-      },
-    );
+
+  Future<void> _exportarDatos() async {
+    try {
+      final db = ref.read(databaseServiceProvider);
+      final backupService = BackupService(db, ref);
+      await backupService.exportarBackup(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al exportar: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    }
   }
 
-  void _cambiarUbicacion() {
-    showDialog(
+  Future<void> _importarDatos() async {
+    final confirmar = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.folder_open, color: AppColors.primary),
-            SizedBox(width: 12),
-            Text('Cambiar ubicación'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Selecciona la nueva ubicación para los datos:',
-              style: TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.phone_android),
-              title: const Text('Documentos/TPV_Datos'),
-              subtitle: const Text('Ubicación predeterminada'),
-              trailing: Radio<UbicacionAlmacenamiento>(
-                value: UbicacionAlmacenamiento.local,
-                groupValue: ref.read(ubicacionAlmacenamientoProvider),
-                onChanged: (v) {
-                  ref.read(ubicacionAlmacenamientoProvider.notifier).state = v!;
-                  Navigator.pop(ctx);
-                },
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.usb),
-              title: const Text('USB/TPV_Datos'),
-              subtitle: const Text('Dispositivo USB o SD'),
-              trailing: Radio<UbicacionAlmacenamiento>(
-                value: UbicacionAlmacenamiento.usb,
-                groupValue: ref.read(ubicacionAlmacenamientoProvider),
-                onChanged: (v) {
-                  ref.read(ubicacionAlmacenamientoProvider.notifier).state = v!;
-                  Navigator.pop(ctx);
-                },
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.folder_special),
-              title: const Text('Personalizado'),
-              subtitle: const Text('Seleccionar carpeta'),
-              trailing: Radio<UbicacionAlmacenamiento>(
-                value: UbicacionAlmacenamiento.personalizado,
-                groupValue: ref.read(ubicacionAlmacenamientoProvider),
-                onChanged: (v) async {
-                  ref.read(ubicacionAlmacenamientoProvider.notifier).state = v!;
-                  Navigator.pop(ctx);
-                  _mostrarDialogoRutaPersonalizada();
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.warning.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.info_outline, color: AppColors.warning, size: 20),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'El cambio de ubicación se aplicará al reiniciar la app',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        title: const Text('¿Importar datos?'),
+        content: const Text(
+          'Esta acción reemplazará todos los datos actuales con los del archivo seleccionado. '
+          'Se recomienda hacer una exportación previa.',
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cerrar'),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.secondary),
+            child: const Text('Seleccionar Archivo'),
           ),
         ],
       ),
     );
+
+    if (confirmar == true) {
+      final db = ref.read(databaseServiceProvider);
+      final backupService = BackupService(db, ref);
+      final exito = await backupService.importarYRestaurar();
+      
+      if (mounted) {
+        if (exito) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Datos importados correctamente'), backgroundColor: AppColors.success),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error al importar los datos'), backgroundColor: AppColors.error),
+          );
+        }
+      }
+    }
   }
 
-  void _mostrarDialogoRutaPersonalizada() {
-    final controller = TextEditingController(
-      text: ref.read(rutaPersonalizadaProvider) ?? '',
-    );
-
+  void _limpiarSistema() {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.folder_special, color: AppColors.primary),
-            SizedBox(width: 12),
-            Text('Ruta personalizada'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Introduce la ruta de la carpeta:'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'Ruta',
-                hintText: 'Ej: C:\\DatosTPV o /home/user/tpv',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.folder),
-              ),
-            ),
-          ],
+        title: const Text('¿Limpiar todo el sistema?'),
+        content: const Text(
+          'Esta acción eliminará todos los pedidos, productos, clientes y configuraciones. '
+          'El sistema se reiniciará con los datos de ejemplo predeterminados.\n\n'
+          'Esta acción no se puede deshacer.',
         ),
         actions: [
           TextButton(
@@ -569,28 +384,36 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            onPressed: () {
-              ref.read(rutaPersonalizadaProvider.notifier).state = controller
-                  .text
-                  .trim();
+            onPressed: () async {
               Navigator.pop(ctx);
+              final db = ref.read(databaseServiceProvider);
+              await db.resetSystem();
+              
+              // Recargar todos los proveedores
+              ref.read(productosProvider.notifier).actualizarLista();
+              ref.read(categoriasProvider.notifier).actualizarLista();
+              ref.read(mesasProvider.notifier).actualizarLista();
+              ref.read(pedidosProvider.notifier).actualizarLista();
+              ref.read(cajerosProvider.notifier).actualizarLista();
+              ref.read(clientesProvider.notifier).actualizarLista();
+              ref.invalidate(negocioProvider);
+              
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Sistema restablecido correctamente'),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
+                Navigator.pop(context); // Salir de configuración
+              }
             },
-            child: const Text('Guardar'),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Limpiar y Reiniciar'),
           ),
         ],
       ),
     );
-  }
-
-  String _getThemeText(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.light:
-        return 'Claro';
-      case ThemeMode.dark:
-        return 'Oscuro';
-      case ThemeMode.system:
-        return 'Sistema';
-    }
   }
 
   void _guardar() {
@@ -636,122 +459,5 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
     }
   }
 
-  void _crearBackup() async {
-    try {
-      final db = ref.read(databaseServiceProvider);
-      final backupService = BackupService(db, ref);
 
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
-      );
-
-      final ruta = await backupService.crearBackup();
-
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Backup creado: ${ruta.split('/').last}'),
-            backgroundColor: AppColors.success,
-            duration: const Duration(seconds: 5),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al crear backup: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
-  }
-
-  void _mostrarDialogoRestaurar() async {
-    try {
-      final resultado = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['json'],
-      );
-
-      if (resultado == null || resultado.files.single.path == null) {
-        return;
-      }
-
-      final rutaArchivo = resultado.files.single.path!;
-
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.warning, color: AppColors.warning),
-              SizedBox(width: 12),
-              Text('Confirmar Restauración'),
-            ],
-          ),
-          content: const Text(
-            '¿Está seguro de restaurar el backup?\n\n'
-            'Esta acción puede sobrescribir datos actuales.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(ctx);
-                await _restaurarBackup(rutaArchivo);
-              },
-              child: const Text('Restaurar'),
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al seleccionar archivo: $e'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
-  }
-
-  Future<void> _restaurarBackup(String rutaArchivo) async {
-    try {
-      final db = ref.read(databaseServiceProvider);
-      final backupService = BackupService(db, ref);
-
-      final exito = await backupService.restaurarBackup(rutaArchivo);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              exito
-                  ? 'Backup restaurado correctamente'
-                  : 'Error al restaurar backup',
-            ),
-            backgroundColor: exito ? AppColors.success : AppColors.error,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
-  }
 }

@@ -11,6 +11,8 @@ class TicketWidget extends StatelessWidget {
   final String metodoPago;
   final DatosNegocio negocio;
   final String? mesaNumero;
+  final String? clienteNombre;
+  final String? clienteNif;
 
   const TicketWidget({
     super.key,
@@ -21,6 +23,8 @@ class TicketWidget extends StatelessWidget {
     required this.metodoPago,
     required this.negocio,
     this.mesaNumero,
+    this.clienteNombre,
+    this.clienteNif,
   });
 
   String generateTicketHtml() {
@@ -128,6 +132,12 @@ class TicketWidget extends StatelessWidget {
             bold: true,
           ),
           const Divider(thickness: 1),
+          if (clienteNombre != null && clienteNif != null) ...[
+            const Text('DATOS CLIENTE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10)),
+            Text(clienteNombre!, style: const TextStyle(fontSize: 10)),
+            Text('NIF/CIF: $clienteNif!', style: const TextStyle(fontSize: 10)),
+            const Divider(thickness: 1),
+          ],
           if (mesaNumero != null) ...[
             Text(
               'Mesa: $mesaNumero',
@@ -194,18 +204,26 @@ class TicketWidget extends StatelessWidget {
             SizedBox(
               width: 30,
               child: Text(
-                'Qty',
+                'Cant.',
                 style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
               ),
             ),
             Expanded(
               child: Text(
-                'Descripcion',
+                'Concepto',
                 style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
               ),
             ),
             SizedBox(
-              width: 50,
+              width: 45,
+              child: Text(
+                'Precio',
+                style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.right,
+              ),
+            ),
+            SizedBox(
+              width: 45,
               child: Text(
                 'Importe',
                 style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
@@ -235,7 +253,15 @@ class TicketWidget extends StatelessWidget {
                   ),
                 ),
                 SizedBox(
-                  width: 50,
+                  width: 45,
+                  child: Text(
+                    '${item.precioUnitario.toStringAsFixed(2)} €',
+                    style: const TextStyle(fontSize: 9),
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+                SizedBox(
+                  width: 45,
                   child: Text(
                     '${item.subtotal.toStringAsFixed(2)} €',
                     style: const TextStyle(fontSize: 9),
@@ -311,6 +337,8 @@ class TicketPrintHelper {
     required String metodoPago,
     required DatosNegocio negocio,
     String? mesaNumero,
+    String? clienteNombre,
+    String? clienteNif,
     VoidCallback? onImprimir,
     VoidCallback? onCerrar,
   }) {
@@ -327,6 +355,8 @@ class TicketPrintHelper {
           metodoPago: metodoPago,
           negocio: negocio,
           mesaNumero: mesaNumero,
+          clienteNombre: clienteNombre,
+          clienteNif: clienteNif,
         );
 
         return AlertDialog(
@@ -370,6 +400,8 @@ class TicketPrintHelper {
                   negocio,
                   mesaNumero,
                   porcentajePropina,
+                  clienteNombre,
+                  clienteNif,
                 );
                 onImprimir?.call();
               },
@@ -390,6 +422,8 @@ class TicketPrintHelper {
     DatosNegocio negocio,
     String? mesaNumero,
     double porcentajePropina,
+    String? clienteNombre,
+    String? clienteNif,
   ) async {
     await PrintService.printTicket(
       items: items,
@@ -399,6 +433,8 @@ class TicketPrintHelper {
       negocio: negocio,
       mesaNumero: mesaNumero,
       porcentajePropina: porcentajePropina,
+      clienteNombre: clienteNombre,
+      clienteNif: clienteNif,
     );
   }
 

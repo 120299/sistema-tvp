@@ -48,11 +48,11 @@ class _CobroSheetState extends State<CobroSheet> {
           _importe = '0';
         }
       } else if (digito == ',') {
-        if (_importe.isNotEmpty && !_importe.contains(',')) {
+        if (!_importe.contains(',')) {
           _importe += ',';
         }
       } else {
-        if (_importe == '0' || _importe == '0,00') {
+        if (_importe == '0') {
           _importe = digito;
         } else {
           final partes = _importe.split(',');
@@ -60,6 +60,12 @@ class _CobroSheetState extends State<CobroSheet> {
             return;
           }
           _importe += digito;
+        }
+
+        // Limitar a valor razonable (ej. 999999.99)
+        final valor = double.tryParse(_importe.replaceAll(',', '.')) ?? 0;
+        if (valor > 1000000) {
+          _importe = '1000000,00';
         }
       }
     });
@@ -389,33 +395,92 @@ class _CobroSheetState extends State<CobroSheet> {
     );
   }
 
-  Widget _buildImporteEntregado() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Text(
-            'IMPORTE ENTREGADO',
-            style: TextStyle(
-              fontSize: 9,
-              color: Colors.grey.shade600,
-              letterSpacing: 1,
-            ),
+  void _mostrarDialogoEditarImporte() {
+    if (_metodoSeleccionado == 'Tarjeta') return;
+    
+    final controller = TextEditingController(text: _importe.replaceAll(',', '.'));
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Editar Importe'),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Importe (€)',
+            border: OutlineInputBorder(),
           ),
-          const SizedBox(height: 4),
-          Text(
-            '${_formatearImporte(_importe)} €',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: _pagoCompleto ? AppColors.success : Colors.black87,
-            ),
+          onSubmitted: (val) {
+            final nuevoVal = double.tryParse(val.replaceAll(',', '.'));
+            if (nuevoVal != null) {
+              setState(() {
+                _importe = nuevoVal.toStringAsFixed(2).replaceAll('.', ',');
+              });
+            }
+            Navigator.pop(ctx);
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final nuevoVal = double.tryParse(controller.text.replaceAll(',', '.'));
+              if (nuevoVal != null) {
+                setState(() {
+                  _importe = nuevoVal.toStringAsFixed(2).replaceAll('.', ',');
+                });
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('Guardar'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImporteEntregado() {
+    return GestureDetector(
+      onTap: _mostrarDialogoEditarImporte,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'IMPORTE ENTREGADO',
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: Colors.grey.shade600,
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(Icons.edit, size: 12, color: Colors.grey.shade600),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${_formatearImporte(_importe)} €',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: _pagoCompleto ? AppColors.success : Colors.black87,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

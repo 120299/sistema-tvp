@@ -293,7 +293,7 @@ class AppShell extends ConsumerWidget {
           ),
           _buildMenuVerticalItem(
             icon: Icons.table_restaurant,
-            label: 'Mesas',
+            label: 'Barras',
             isSelected: indiceActual == 2,
             onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 2,
             mostrarTexto: mostrarTexto,

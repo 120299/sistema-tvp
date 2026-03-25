@@ -61,7 +61,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
         heroTag: 'agregar_mesa',
         onPressed: () => _mostrarDialogoAgregarMesas(),
         icon: const Icon(Icons.add),
-        label: const Text('Agregar Mesas'),
+        label: const Text('Agregar Barras'),
       ),
     );
   }
@@ -88,7 +88,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
               children: [
                 Icon(Icons.table_restaurant, color: AppColors.primary),
                 SizedBox(width: 12),
-                Text('Agregar Mesas'),
+                Text('Agregar Barras'),
               ],
             ),
             content: Column(

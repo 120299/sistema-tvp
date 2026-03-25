@@ -22,7 +22,7 @@ class Mesa {
     this.fechaReserva,
   });
 
-  String get nombreMostrar => nombre ?? 'Mesa $numero';
+  String get nombreMostrar => nombre ?? 'Barra $numero';
 
   Duration? get tiempoTranscurrido {
     if (horaApertura == null) return null;

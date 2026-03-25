@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
+import '../../data/services/print_service.dart';
 import '../../presentation/widgets/ui_styles.dart';
 import '../providers/providers.dart';
 
@@ -313,6 +314,9 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
     final codigoPostalController = TextEditingController(
       text: cliente?.codigoPostal ?? '',
     );
+    final ciudadController = TextEditingController(
+      text: cliente?.ciudad ?? '',
+    );
     final poblacionController = TextEditingController(
       text: cliente?.poblacion ?? '',
     );
@@ -376,7 +380,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                             child: TextField(
                               controller: telefonoController,
                               decoration: const InputDecoration(
-                                labelText: 'Teléfono',
+                                labelText: 'Teléfono (Opcional)',
                                 prefixIcon: Icon(Icons.phone),
                                 border: OutlineInputBorder(),
                               ),
@@ -388,7 +392,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                             child: TextField(
                               controller: emailController,
                               decoration: const InputDecoration(
-                                labelText: 'Email',
+                                labelText: 'Email (Opcional)',
                                 prefixIcon: Icon(Icons.email),
                                 border: OutlineInputBorder(),
                               ),
@@ -404,7 +408,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                             child: TextField(
                               controller: nifController,
                               decoration: const InputDecoration(
-                                labelText: 'NIF/CIF/NIE',
+                                labelText: 'NIF/CID/NIE (Opcional)',
                                 prefixIcon: Icon(Icons.badge),
                                 border: OutlineInputBorder(),
                                 helperText: 'Para facturación',
@@ -418,7 +422,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                       TextField(
                         controller: direccionController,
                         decoration: const InputDecoration(
-                          labelText: 'Dirección',
+                          labelText: 'Dirección (Opcional)',
                           prefixIcon: Icon(Icons.location_on),
                           border: OutlineInputBorder(),
                         ),
@@ -427,12 +431,11 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          SizedBox(
-                            width: 120,
+                          Expanded(
                             child: TextField(
                               controller: codigoPostalController,
                               decoration: const InputDecoration(
-                                labelText: 'C.P.',
+                                labelText: 'C.P. (Opcional)',
                                 border: OutlineInputBorder(),
                               ),
                               keyboardType: TextInputType.number,
@@ -441,9 +444,9 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: TextField(
-                              controller: poblacionController,
+                              controller: ciudadController,
                               decoration: const InputDecoration(
-                                labelText: 'Población',
+                                labelText: 'Ciudad (Opcional)',
                                 border: OutlineInputBorder(),
                               ),
                               textCapitalization: TextCapitalization.words,
@@ -451,11 +454,20 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: poblacionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Población (Opcional)',
+                          border: OutlineInputBorder(),
+                        ),
+                        textCapitalization: TextCapitalization.words,
+                      ),
                       const SizedBox(height: 16),
                       TextField(
                         controller: observacionesController,
                         decoration: const InputDecoration(
-                          labelText: 'Observaciones',
+                          labelText: 'Observaciones (Opcional)',
                           prefixIcon: Icon(Icons.note),
                           border: OutlineInputBorder(),
                         ),
@@ -548,6 +560,9 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                           codigoPostal:
                               codigoPostalController.text.trim().isNotEmpty
                               ? codigoPostalController.text.trim()
+                              : null,
+                          ciudad: ciudadController.text.trim().isNotEmpty
+                              ? ciudadController.text.trim()
                               : null,
                           poblacion: poblacionController.text.trim().isNotEmpty
                               ? poblacionController.text.trim()
@@ -732,7 +747,10 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
-        onTap: () => _mostrarDetallePedido(pedido),
+        onTap: () {
+          final cliente = ref.watch(clientesProvider).firstWhere((c) => c.id == pedido.clienteId, orElse: () => Cliente(id: '', nombre: '', fechaCreacion: DateTime.now()));
+          _mostrarDetallePedido(pedido, cliente);
+        },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -869,7 +887,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
     );
   }
 
-  void _mostrarDetallePedido(Pedido pedido) {
+  void _mostrarDetallePedido(Pedido pedido, Cliente cliente) {
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
@@ -960,6 +978,28 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                       onPressed: () => Navigator.pop(ctx),
                       icon: const Icon(Icons.close),
                       label: const Text('Cerrar'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final negocio = ref.read(negocioProvider);
+                        await PrintService.printTicket(
+                          items: pedido.items,
+                          subtotal: pedido.total,
+                          ivaPorcentaje: negocio.ivaPorcentaje,
+                          metodoPago: pedido.metodoPago ?? 'Efectivo',
+                          negocio: negocio,
+                          mesaNumero: pedido.mesaId,
+                          cajeroNombre: pedido.cajeroNombre,
+                          porcentajePropina: pedido.porcentajePropina,
+                          clienteNombre: cliente.nombre,
+                          clienteNif: cliente.nif,
+                        );
+                      },
+                      icon: const Icon(Icons.print),
+                      label: const Text('Imprimir'),
                     ),
                   ),
                 ],
