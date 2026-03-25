@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../providers/providers.dart';
+import '../widgets/ui_styles.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   final VoidCallback onLoginSuccess;
