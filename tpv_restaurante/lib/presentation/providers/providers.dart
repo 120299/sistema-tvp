@@ -300,6 +300,35 @@ final filtroDisponibilidadProvider = StateProvider<FiltroDisponibilidad>(
 final filtroTipoProvider = StateProvider<FiltroTipo>((ref) => FiltroTipo.todos);
 final busquedaCompartidaProvider = StateProvider<String>((ref) => '');
 
+// Tipos de orden para productos
+enum TipoOrdenProducto { nombre, precio, disponible }
+
+enum DireccionOrden { ascendente, descendente }
+
+class OrdenProducto {
+  final TipoOrdenProducto campo;
+  final DireccionOrden direccion;
+
+  const OrdenProducto({
+    this.campo = TipoOrdenProducto.nombre,
+    this.direccion = DireccionOrden.ascendente,
+  });
+
+  OrdenProducto copyWith({
+    TipoOrdenProducto? campo,
+    DireccionOrden? direccion,
+  }) {
+    return OrdenProducto(
+      campo: campo ?? this.campo,
+      direccion: direccion ?? this.direccion,
+    );
+  }
+}
+
+final ordenProductoProvider = StateProvider<OrdenProducto>(
+  (ref) => const OrdenProducto(),
+);
+
 final productosFiltradosProvider = Provider<List<Producto>>((ref) {
   final categoriaId = ref.watch(categoriaSeleccionadaProvider);
   final productos = ref.watch(productosProvider);

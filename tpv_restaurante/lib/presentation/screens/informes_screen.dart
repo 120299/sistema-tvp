@@ -147,8 +147,6 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
               flex: 2,
               child: Column(
                 children: [
-                  _buildGraficoTendencia(datosGrafico),
-                  const SizedBox(height: 20),
                   _buildListadoPedidos(pedidosFiltrados),
                   const SizedBox(height: 20),
                   _buildAccionesExport(pedidosFiltrados, totalVentas),
@@ -183,8 +181,6 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     return Column(
       children: [
         _buildResumenCards(totalVentas, numPedidos, ticketPromedio),
-        const SizedBox(height: 20),
-        _buildGraficoTendencia(datosGrafico),
         const SizedBox(height: 20),
         Row(
           children: [

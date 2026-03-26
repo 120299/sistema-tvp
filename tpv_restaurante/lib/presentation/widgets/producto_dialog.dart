@@ -561,11 +561,16 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
+              flex: 2,
               child: DropdownButtonFormField<String>(
-                initialValue: _categoriaId,
+                value: _categoriaId,
                 decoration: const InputDecoration(
                   labelText: 'Categoría',
                   prefixIcon: Icon(Icons.category),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 16,
+                  ),
                 ),
                 items: categorias.map((cat) {
                   return DropdownMenuItem(
@@ -574,7 +579,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
                       children: [
                         Text(cat.icono, style: const TextStyle(fontSize: 18)),
                         const SizedBox(width: 12),
-                        Text(cat.nombre),
+                        Expanded(child: Text(cat.nombre)),
                       ],
                     ),
                   );
@@ -586,32 +591,39 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
                 },
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
+              flex: 1,
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.zero,
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       _disponible ? Icons.check_circle : Icons.cancel,
                       color: _disponible ? AppColors.success : Colors.grey,
+                      size: 20,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           const Text(
                             'Estado',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                            style: TextStyle(fontSize: 11, color: Colors.grey),
                           ),
                           Text(
                             _disponible ? 'Disponible' : 'Agotado',
                             style: TextStyle(
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: _disponible
                                   ? AppColors.success
@@ -624,7 +636,8 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
                     Switch(
                       value: _disponible,
                       onChanged: (value) => setState(() => _disponible = value),
-                      activeThumbColor: AppColors.success,
+                      activeColor: AppColors.success,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                   ],
                 ),

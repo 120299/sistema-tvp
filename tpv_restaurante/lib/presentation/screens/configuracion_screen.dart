@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../../data/services/backup_service.dart';
 import '../../data/services/database_service.dart';
+import '../../data/seed/seed_data.dart';
 import '../providers/providers.dart';
 
 class ConfiguracionScreen extends ConsumerStatefulWidget {
@@ -308,6 +309,27 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                     ),
                   ),
                 ),
+                const Divider(),
+                // Inicializar sistema con datos de ejemplo
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(
+                    Icons.restaurant_menu,
+                    color: AppColors.primary,
+                  ),
+                  title: const Text('Inicializar con datos de restaurante'),
+                  subtitle: const Text(
+                    'Carga productos de kebab, pizzas, etc.',
+                  ),
+                  trailing: ElevatedButton.icon(
+                    onPressed: _inicializarSistema,
+                    icon: const Icon(Icons.download, size: 18),
+                    label: const Text('Cargar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                    ),
+                  ),
+                ),
               ]),
               const SizedBox(height: 24),
               _buildSeccion('Información Legal', [
@@ -390,6 +412,71 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
         ),
       ],
     );
+  }
+
+  void _inicializarSistema() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.restaurant_menu, color: AppColors.primary),
+            SizedBox(width: 12),
+            Text('Inicializar Sistema'),
+          ],
+        ),
+        content: const Text(
+          'Esto creará productos de un restaurante de Kebab con:\n\n'
+          '• 10 categorías\n'
+          '• +70 productos con variantes\n'
+          '• Usuario administrador (PIN: 1234)\n\n'
+          'Se eliminarán todos los datos actuales.\n'
+          '¿Desea continuar?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Inicializar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      final db = DatabaseService();
+      final seed = SeedData(db);
+      await seed.inicializarSistema();
+
+      // Refresh providers
+      ref.read(productosProvider.notifier).actualizarLista();
+      ref.read(categoriasProvider.notifier).actualizarLista();
+      ref.read(cajerosProvider.notifier).actualizarLista();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sistema inicializado correctamente'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al inicializar: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   void _guardar() {

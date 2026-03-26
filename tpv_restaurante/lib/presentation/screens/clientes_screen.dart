@@ -612,132 +612,259 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
+        initialChildSize: 0.8,
         minChildSize: 0.5,
         maxChildSize: 0.95,
         expand: false,
-        builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.zero,
-          ),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.zero,
+        builder: (context, scrollController) => StatefulBuilder(
+          builder: (context, setModalState) {
+            // Estado local para el período seleccionado en el bottom sheet
+            String periodoSeleccionado = 'todos';
+            DateTime? fechaInicio;
+            DateTime? fechaFin;
+
+            void cambiarPeriodo(String periodo) {
+              setModalState(() {
+                periodoSeleccionado = periodo;
+                final now = DateTime.now();
+                switch (periodo) {
+                  case 'hoy':
+                    fechaInicio = DateTime(now.year, now.month, now.day);
+                    fechaFin = DateTime(
+                      now.year,
+                      now.month,
+                      now.day,
+                      23,
+                      59,
+                      59,
+                    );
+                    break;
+                  case 'semana':
+                    fechaInicio = now.subtract(const Duration(days: 7));
+                    fechaFin = now;
+                    break;
+                  case 'mes':
+                    fechaInicio = now.subtract(const Duration(days: 30));
+                    fechaFin = now;
+                    break;
+                  case 'trimestre':
+                    fechaInicio = now.subtract(const Duration(days: 90));
+                    fechaFin = now;
+                    break;
+                  case 'ano':
+                    fechaInicio = now.subtract(const Duration(days: 365));
+                    fechaFin = now;
+                    break;
+                  case 'todos':
+                    fechaInicio = null;
+                    fechaFin = null;
+                    break;
+                }
+              });
+            }
+
+            // Aplicar filtros de período
+            var pedidosFiltrados = pedidosCliente;
+            if (fechaInicio != null) {
+              pedidosFiltrados = pedidosFiltrados
+                  .where((p) => p.horaApertura.isAfter(fechaInicio!))
+                  .toList();
+            }
+            if (fechaFin != null) {
+              final finDelDia = DateTime(
+                fechaFin!.year,
+                fechaFin!.month,
+                fechaFin!.day,
+                23,
+                59,
+                59,
+              );
+              pedidosFiltrados = pedidosFiltrados
+                  .where((p) => p.horaApertura.isBefore(finDelDia))
+                  .toList();
+            }
+
+            Widget buildPeriodoChip(String label, String value) {
+              final isSelected = periodoSeleccionado == value;
+              return ChoiceChip(
+                label: Text(label),
+                selected: isSelected,
+                onSelected: (_) => cambiarPeriodo(value),
+                selectedColor: AppColors.primary.withOpacity(0.2),
+                labelStyle: TextStyle(
+                  color: isSelected ? AppColors.primary : Colors.grey.shade700,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.zero,
-                      ),
+              );
+            }
+
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.zero,
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.zero,
                     ),
-                    const SizedBox(height: 16),
-                    Row(
+                    child: Column(
                       children: [
                         Container(
-                          width: 48,
-                          height: 48,
+                          width: 50,
+                          height: 4,
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: Colors.grey.shade300,
                             borderRadius: BorderRadius.zero,
                           ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            cliente.nombre.isNotEmpty
-                                ? cliente.nombre[0].toUpperCase()
-                                : '?',
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                cliente.nombre,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                '${pedidosCliente.length} pedidos | '
-                                'Total: ${cliente.totalGastado.toStringAsFixed(2)} €',
-                                style: TextStyle(color: Colors.grey.shade600),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            _mostrarDialogoCliente(context, cliente: cliente);
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              if (pedidosCliente.isEmpty)
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.receipt_long,
-                          size: 64,
-                          color: Colors.grey.shade300,
                         ),
                         const SizedBox(height: 16),
-                        Text(
-                          'No hay pedidos para este cliente',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey.shade500,
-                          ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.zero,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                cliente.nombre.isNotEmpty
+                                    ? cliente.nombre[0].toUpperCase()
+                                    : '?',
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    cliente.nombre,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${pedidosFiltrados.length} pedidos | '
+                                    'Total: ${cliente.totalGastado.toStringAsFixed(2)} €',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                _mostrarDialogoCliente(
+                                  context,
+                                  cliente: cliente,
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                )
-              else
-                Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    padding: const EdgeInsets.all(16),
-                    itemCount: pedidosCliente.length,
-                    itemBuilder: (context, index) {
-                      final pedido = pedidosCliente[index];
-                      return _buildPedidoCard(pedido);
-                    },
+                  // Filtros por período
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          buildPeriodoChip('Hoy', 'hoy'),
+                          const SizedBox(width: 8),
+                          buildPeriodoChip('Semana', 'semana'),
+                          const SizedBox(width: 8),
+                          buildPeriodoChip('Mes', 'mes'),
+                          const SizedBox(width: 8),
+                          buildPeriodoChip('Trimestre', 'trimestre'),
+                          const SizedBox(width: 8),
+                          buildPeriodoChip('Año', 'ano'),
+                          const SizedBox(width: 8),
+                          buildPeriodoChip('Todos', 'todos'),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-            ],
-          ),
+                  if (pedidosFiltrados.isEmpty)
+                    Expanded(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.receipt_long,
+                              size: 64,
+                              color: Colors.grey.shade300,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No hay pedidos para este cliente',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: ListView.builder(
+                        controller: scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: pedidosFiltrados.length,
+                        itemBuilder: (context, index) {
+                          final pedido = pedidosFiltrados[index];
+                          return _buildPedidoCard(pedido);
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
   }
 
   Widget _buildPedidoCard(Pedido pedido) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: const Border(
+          left: BorderSide(color: AppColors.primary, width: 4),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: InkWell(
         onTap: () => _mostrarDetallePedido(pedido),
         borderRadius: BorderRadius.zero,
@@ -748,124 +875,163 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
             children: [
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.zero,
-                    ),
-                    child: Icon(
-                      Icons.receipt,
-                      color: AppColors.primary,
-                      size: 20,
-                    ),
+                  // Fecha y hora
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        DateFormat(
+                          'dd MMM yyyy',
+                        ).format(pedido.horaApertura).toUpperCase(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        DateFormat('HH:mm').format(pedido.horaApertura),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade500,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
+                  // Detalles
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          DateFormat('dd/MM/yyyy').format(pedido.horaApertura),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'Hora: ${DateFormat('HH:mm').format(pedido.horaApertura)}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
+                          '${pedido.items.length} productos',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
                           ),
+                        ),
+                        const SizedBox(height: 4),
+                        // Badges de método de pago y cajero
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: pedido.metodoPago == 'Efectivo'
+                                    ? Colors.green.shade50
+                                    : Colors.blue.shade50,
+                                borderRadius: BorderRadius.zero,
+                              ),
+                              child: Text(
+                                pedido.metodoPago ?? 'N/A',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: pedido.metodoPago == 'Efectivo'
+                                      ? Colors.green.shade700
+                                      : Colors.blue.shade700,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            if (pedido.cajeroNombre != null) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.zero,
+                                ),
+                                child: Text(
+                                  pedido.cajeroNombre!,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
+                  // Total
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '€${pedido.total.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: AppColors.success,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: pedido.metodoPago == 'Efectivo'
-                                  ? Colors.green.shade50
-                                  : Colors.blue.shade50,
-                              borderRadius: BorderRadius.zero,
-                            ),
-                            child: Text(
-                              pedido.metodoPago ?? 'N/A',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: pedido.metodoPago == 'Efectivo'
-                                    ? Colors.green.shade700
-                                    : Colors.blue.shade700,
-                              ),
-                            ),
-                          ),
-                        ],
+                      const Text(
+                        'TOTAL',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                          letterSpacing: 0.5,
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.print_outlined, size: 20),
-                        onPressed: () {
-                          final negocio = ref.read(negocioProvider);
-                          TicketHelper.imprimirPedido(negocio, pedido);
-                        },
+                      Text(
+                        '€${pedido.total.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ],
                   ),
+                  const SizedBox(width: 12),
+                  // Botón imprimir
+                  IconButton(
+                    icon: const Icon(Icons.print_outlined, size: 20),
+                    onPressed: () {
+                      final negocio = ref.read(negocioProvider);
+                      TicketHelper.imprimirPedido(negocio, pedido);
+                    },
+                  ),
                 ],
               ),
-              const Divider(height: 24),
-              Text(
-                '${pedido.items.length} productos',
-                style: TextStyle(color: Colors.grey.shade600),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: pedido.items.take(5).map((item) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.zero,
-                    ),
+              // Vista previa de productos
+              if (pedido.items.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: pedido.items.take(4).map((item) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.zero,
+                      ),
+                      child: Text(
+                        '${item.cantidad}x ${item.productoNombre}',
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                if (pedido.items.length > 4)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      '${item.cantidad}x ${item.productoNombre}',
-                      style: const TextStyle(fontSize: 11),
-                    ),
-                  );
-                }).toList(),
-              ),
-              if (pedido.items.length > 5)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    '+${pedido.items.length - 5} más',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade500,
-                      fontStyle: FontStyle.italic,
+                      '+${pedido.items.length - 4} más',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ),
-                ),
+              ],
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,

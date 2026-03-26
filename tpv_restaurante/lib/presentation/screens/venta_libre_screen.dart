@@ -655,6 +655,15 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         .where((c) => c.id == producto.categoriaId)
         .firstOrNull;
 
+    // Calculate adaptive layout based on product name length
+    final nombreLength = producto.nombre.length;
+    final bool isShortName = nombreLength < 20;
+    final bool isLongName = nombreLength > 40;
+
+    final int imageFlex = isShortName ? 4 : (isLongName ? 2 : 3);
+    final int textFlex = isShortName ? 2 : (isLongName ? 3 : 2);
+    final int maxLines = isShortName ? 1 : (isLongName ? 3 : 2);
+
     return Card(
       clipBehavior: Clip.antiAlias,
       elevation: 1,
@@ -665,7 +674,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              flex: 3,
+              flex: imageFlex,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -716,7 +725,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               ),
             ),
             Expanded(
-              flex: 2,
+              flex: textFlex,
               child: Padding(
                 padding: const EdgeInsets.all(10),
                 child: Column(
@@ -731,20 +740,11 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                           fontWeight: FontWeight.w600,
                           color: producto.disponible ? null : Colors.grey,
                         ),
-                        maxLines: 2,
+                        maxLines: maxLines,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Text(
-                      '${producto.precio.toStringAsFixed(2)} €',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: producto.disponible
-                            ? AppColors.secondary
-                            : Colors.grey,
-                      ),
-                    ),
+                    _buildPrecioProducto(producto),
                   ],
                 ),
               ),
@@ -777,6 +777,54 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       }
     }
     return _buildPlaceholder(categoria);
+  }
+
+  Widget _buildPrecioProducto(Producto producto) {
+    final color = producto.disponible ? AppColors.secondary : Colors.grey;
+
+    // Si es variable y precio base es 0, mostrar rango de precios de variantes
+    if (producto.esVariable &&
+        producto.precio == 0 &&
+        (producto.variantes?.isNotEmpty ?? false)) {
+      final precios = producto.variantes!.map((v) => v.precio).toList();
+      final precioMin = precios.reduce((a, b) => a < b ? a : b);
+      final precioMax = precios.reduce((a, b) => a > b ? a : b);
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (precioMin == precioMax)
+            Text(
+              '${precioMin.toStringAsFixed(2)} €',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            )
+          else
+            Text(
+              '${precioMin.toStringAsFixed(2)} - ${precioMax.toStringAsFixed(2)} €',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          Text(
+            '${producto.variantes!.length} variantes',
+            style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+          ),
+        ],
+      );
+    }
+
+    // Precio normal
+    return Text(
+      '${producto.precio.toStringAsFixed(2)} €',
+      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color),
+    );
   }
 
   Widget _buildPlaceholder(CategoriaProducto? categoria) {

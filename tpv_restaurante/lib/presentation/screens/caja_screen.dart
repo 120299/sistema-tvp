@@ -18,6 +18,9 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
   final _montoController = TextEditingController();
   String _importeKeypadCaja = '0';
   bool _mostrarHistorial = false;
+  DateTime? _fechaInicioFiltro;
+  DateTime? _fechaFinFiltro;
+  String _periodoSeleccionadoFiltro = 'todos';
 
   void _actualizarImporteCaja(String digito) {
     setState(() {
@@ -191,7 +194,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                                         ),
                                       ),
                                       Text(
-                                        '${ultimoSaldo.toStringAsFixed(2)} €',
+                                        '€${ultimoSaldo.toStringAsFixed(2)}',
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -236,7 +239,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                             borderRadius: BorderRadius.zero,
                           ),
                           child: Text(
-                            '${_importeKeypadCaja == "0" ? "0,00" : _importeKeypadCaja} €',
+                            '€${_importeKeypadCaja == "0" ? "0,00" : _importeKeypadCaja}',
                             style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -540,7 +543,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            '${valor.toStringAsFixed(2)} €',
+            '€${valor.toStringAsFixed(2)}',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -777,6 +780,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
 
   Widget _buildHistorial(bool esAdmin, Cajero? cajeroActual) {
     final historial = ref.watch(cajasHistorialProvider);
+    final historialFiltrado = _filtrarHistorial(historial);
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -800,8 +804,28 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
             ],
           ),
           const SizedBox(height: 16),
+          // Filtros de período
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildPeriodoChipHistorial('Hoy', 'hoy'),
+                const SizedBox(width: 8),
+                _buildPeriodoChipHistorial('Semana', 'semana'),
+                const SizedBox(width: 8),
+                _buildPeriodoChipHistorial('Mes', 'mes'),
+                const SizedBox(width: 8),
+                _buildPeriodoChipHistorial('Trimestre', 'trimestre'),
+                const SizedBox(width: 8),
+                _buildPeriodoChipHistorial('Año', 'ano'),
+                const SizedBox(width: 8),
+                _buildPeriodoChipHistorial('Todos', 'todos'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           Expanded(
-            child: historial.isEmpty
+            child: historialFiltrado.isEmpty
                 ? Center(
                     child: Text(
                       'Sin historial',
@@ -809,10 +833,10 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                     ),
                   )
                 : ListView.separated(
-                    itemCount: historial.length,
+                    itemCount: historialFiltrado.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
-                      final cajaHist = historial[index];
+                      final cajaHist = historialFiltrado[index];
                       final fecha =
                           cajaHist.fechaCierre ?? cajaHist.fechaApertura;
 
@@ -933,6 +957,20 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                   ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPeriodoChipHistorial(String label, String value) {
+    final isSelected = _periodoSeleccionadoFiltro == value;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => _cambiarPeriodoFiltro(value),
+      selectedColor: AppColors.primary.withOpacity(0.2),
+      labelStyle: TextStyle(
+        color: isSelected ? AppColors.primary : Colors.grey.shade700,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
       ),
     );
   }
@@ -1116,7 +1154,64 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
 
     if (confirmado == true) {
       await ref.read(cajaProvider.notifier).cerrarCaja();
+      // Limpiar datos de la sesión anterior
+      if (mounted) {
+        setState(() {
+          _importeKeypadCaja = '0';
+          _montoController.text = '0.00';
+        });
+      }
     }
+  }
+
+  void _cambiarPeriodoFiltro(String periodo) {
+    setState(() {
+      _periodoSeleccionadoFiltro = periodo;
+      final now = DateTime.now();
+      switch (periodo) {
+        case 'hoy':
+          _fechaInicioFiltro = DateTime(now.year, now.month, now.day);
+          _fechaFinFiltro = DateTime(now.year, now.month, now.day, 23, 59, 59);
+          break;
+        case 'semana':
+          _fechaInicioFiltro = now.subtract(const Duration(days: 7));
+          _fechaFinFiltro = now;
+          break;
+        case 'mes':
+          _fechaInicioFiltro = now.subtract(const Duration(days: 30));
+          _fechaFinFiltro = now;
+          break;
+        case 'trimestre':
+          _fechaInicioFiltro = now.subtract(const Duration(days: 90));
+          _fechaFinFiltro = now;
+          break;
+        case 'ano':
+          _fechaInicioFiltro = now.subtract(const Duration(days: 365));
+          _fechaFinFiltro = now;
+          break;
+        case 'todos':
+        default:
+          _fechaInicioFiltro = null;
+          _fechaFinFiltro = null;
+          break;
+      }
+    });
+  }
+
+  List<Caja> _filtrarHistorial(List<Caja> historial) {
+    if (_fechaInicioFiltro == null && _fechaFinFiltro == null) {
+      return historial;
+    }
+    return historial.where((caja) {
+      final fecha = caja.fechaCierre ?? caja.fechaApertura;
+      if (_fechaInicioFiltro != null && fecha.isBefore(_fechaInicioFiltro!)) {
+        return false;
+      }
+      if (_fechaFinFiltro != null && fecha.isAfter(_fechaFinFiltro!)) {
+        return false;
+      }
+      return true;
+    }).toList();
   }
 
   String _formatTime(DateTime? date) {

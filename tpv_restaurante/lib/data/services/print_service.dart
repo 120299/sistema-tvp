@@ -46,21 +46,43 @@ class PrintService {
     String? clienteNombre,
     String? clienteNif,
   }) async {
-    final pdf = await _buildTicketPdf(
-      items: items,
-      subtotal: subtotal,
-      ivaPorcentaje: ivaPorcentaje,
-      metodoPago: metodoPago,
-      negocio: negocio,
-      mesaNumero: mesaNumero,
-      cajeroNombre: cajeroNombre,
-      porcentajePropina: porcentajePropina,
-      clienteNombre: clienteNombre,
-      clienteNif: clienteNif,
-    );
+    try {
+      final pdf = await _buildTicketPdf(
+        items: items,
+        subtotal: subtotal,
+        ivaPorcentaje: ivaPorcentaje,
+        metodoPago: metodoPago,
+        negocio: negocio,
+        mesaNumero: mesaNumero,
+        cajeroNombre: cajeroNombre,
+        porcentajePropina: porcentajePropina,
+        clienteNombre: clienteNombre,
+        clienteNif: clienteNif,
+      );
 
-    if (!context.mounted) return;
-    await _showPdfPreview(context, pdf, 'Vista Previa del Ticket');
+      // Intentar impresión directa con impresora por defecto
+      try {
+        final printers = await Printing.listPrinters();
+        final defaultPrinter = printers.where((p) => p.isDefault).firstOrNull;
+
+        if (defaultPrinter != null) {
+          await Printing.directPrintPdf(
+            printer: defaultPrinter,
+            onLayout: (PdfPageFormat format) async => pdf.save(),
+          );
+          return;
+        }
+      } catch (e) {
+        debugPrint('Impresión directa falló: $e');
+      }
+
+      // Fallback: usar layoutPdf
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+      );
+    } catch (e) {
+      debugPrint('Error al imprimir ticket automáticamente: $e');
+    }
   }
 
   static Future<void> printTicket({
@@ -121,6 +143,24 @@ class PrintService {
         clienteNombre: clienteNombre,
         clienteNif: clienteNif,
       );
+
+      // Intentar impresión directa con impresora por defecto
+      try {
+        final printers = await Printing.listPrinters();
+        final defaultPrinter = printers.where((p) => p.isDefault).firstOrNull;
+
+        if (defaultPrinter != null) {
+          await Printing.directPrintPdf(
+            printer: defaultPrinter,
+            onLayout: (PdfPageFormat format) async => pdf.save(),
+          );
+          return;
+        }
+      } catch (e) {
+        debugPrint('Impresión directa falló: $e');
+      }
+
+      // Fallback: usar layoutPdf
       await Printing.layoutPdf(
         onLayout: (PdfPageFormat format) async => pdf.save(),
       );
@@ -303,6 +343,24 @@ class PrintService {
     required dynamic caja,
   }) async {
     final pdf = await buildCierreCajaPdf(negocio, caja);
+
+    // Intentar impresión directa con impresora por defecto
+    try {
+      final printers = await Printing.listPrinters();
+      final defaultPrinter = printers.where((p) => p.isDefault).firstOrNull;
+
+      if (defaultPrinter != null) {
+        await Printing.directPrintPdf(
+          printer: defaultPrinter,
+          onLayout: (PdfPageFormat format) async => pdf.save(),
+        );
+        return;
+      }
+    } catch (e) {
+      debugPrint('Impresión directa falló: $e');
+    }
+
+    // Fallback: usar layoutPdf
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdf.save(),
     );
@@ -826,11 +884,16 @@ class PrintService {
                     textAlign: pw.TextAlign.right,
                   ),
                 ),
+                // ...
                 pw.SizedBox(
                   width: 45,
                   child: pw.Text(
-                    item.subtotal.toStringAsFixed(2),
-                    style: const pw.TextStyle(fontSize: 9),
+                    // Calculamos el total de la línea (Cantidad * Precio)
+                    '${(item.cantidad * item.precioUnitario).toStringAsFixed(2)} €',
+                    style: pw.TextStyle(
+                      fontSize: 9,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
                     textAlign: pw.TextAlign.right,
                   ),
                 ),
@@ -858,7 +921,7 @@ class PrintService {
           children: [
             pw.Text('Base imponible: ', style: const pw.TextStyle(fontSize: 9)),
             pw.Text(
-              '${baseImponible.toStringAsFixed(2)} EUR',
+              '${baseImponible.toStringAsFixed(2)} €',
               style: const pw.TextStyle(fontSize: 9),
             ),
           ],
@@ -871,7 +934,7 @@ class PrintService {
               style: const pw.TextStyle(fontSize: 9),
             ),
             pw.Text(
-              '${importeIva.toStringAsFixed(2)} EUR',
+              '${importeIva.toStringAsFixed(2)} €',
               style: const pw.TextStyle(fontSize: 9),
             ),
           ],
@@ -882,7 +945,7 @@ class PrintService {
             children: [
               pw.Text('Propina: ', style: const pw.TextStyle(fontSize: 9)),
               pw.Text(
-                '${montoPropina.toStringAsFixed(2)} EUR',
+                '${montoPropina.toStringAsFixed(2)} €',
                 style: const pw.TextStyle(fontSize: 9),
               ),
             ],

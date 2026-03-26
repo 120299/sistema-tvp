@@ -10,34 +10,6 @@ import '../widgets/categoria_dialog.dart';
 
 final busquedaProductoProvider = StateProvider<String>((ref) => '');
 
-enum TipoOrdenProducto { nombre, precio, disponible }
-
-enum DireccionOrden { ascendente, descendente }
-
-class OrdenProducto {
-  final TipoOrdenProducto campo;
-  final DireccionOrden direccion;
-
-  const OrdenProducto({
-    this.campo = TipoOrdenProducto.nombre,
-    this.direccion = DireccionOrden.ascendente,
-  });
-
-  OrdenProducto copyWith({
-    TipoOrdenProducto? campo,
-    DireccionOrden? direccion,
-  }) {
-    return OrdenProducto(
-      campo: campo ?? this.campo,
-      direccion: direccion ?? this.direccion,
-    );
-  }
-}
-
-final ordenProductoProvider = StateProvider<OrdenProducto>(
-  (ref) => const OrdenProducto(),
-);
-
 class ProductosScreen extends ConsumerStatefulWidget {
   const ProductosScreen({super.key});
 
@@ -187,6 +159,12 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
   ) {
     final filtroDisp = ref.watch(filtroDisponibilidadProvider);
     final filtroTipo = ref.watch(filtroTipoProvider);
+    final ordenProducto = ref.watch(ordenProductoProvider);
+
+    final hayFiltrosActivos =
+        filtroDisp != FiltroDisponibilidad.todos ||
+        filtroTipo != FiltroTipo.todos ||
+        busqueda.isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -196,14 +174,54 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
       ),
       child: Column(
         children: [
-          // Barra de búsqueda
+          // Filtros en fila - Los 3 filtros solicitados
+          Row(
+            children: [
+              // Filtro 1: Disponibilidad
+              Expanded(
+                child: _buildFiltroBoton(
+                  icon: Icons.inventory_2,
+                  titulo: 'Disponibilidad',
+                  valor: _getDisponibilidadLabel(filtroDisp),
+                  isActive: filtroDisp != FiltroDisponibilidad.todos,
+                  onTap: () => _mostrarFiltroDisponibilidad(),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Filtro 2: Tipo
+              Expanded(
+                child: _buildFiltroBoton(
+                  icon: Icons.tune,
+                  titulo: 'Tipo',
+                  valor: _getTipoLabel(filtroTipo),
+                  isActive: filtroTipo != FiltroTipo.todos,
+                  onTap: () => _mostrarFiltroTipo(),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Filtro 3: Orden (Nombre/Precio + Asc/Desc)
+              Expanded(
+                child: _buildFiltroBoton(
+                  icon: Icons.sort,
+                  titulo: 'Ordenar',
+                  valor: _getOrdenLabel(ordenProducto),
+                  isActive:
+                      ordenProducto.campo != TipoOrdenProducto.nombre ||
+                      ordenProducto.direccion != DireccionOrden.ascendente,
+                  onTap: () => _mostrarFiltroOrden(),
+                ),
+              ),
+            ],
+          ),
+          // Fila inferior con búsqueda y limpiar
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
                 child: TextField(
                   controller: _busquedaController,
                   decoration: InputDecoration(
-                    hintText: 'Buscar productos...',
+                    hintText: 'Buscar producto...',
                     prefixIcon: const Icon(Icons.search, size: 20),
                     suffixIcon: busqueda.isNotEmpty
                         ? IconButton(
@@ -223,8 +241,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                         : null,
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
+                      horizontal: 14,
+                      vertical: 10,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -239,64 +257,474 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                   },
                 ),
               ),
-              const SizedBox(width: 12),
-              IconButton(
-                icon: const Icon(Icons.sort),
-                onPressed: _mostrarOpcionesOrden,
-                tooltip: 'Ordenar',
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.grey.shade100,
-                  padding: const EdgeInsets.all(12),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Filtros rápidos
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                // Filtro disponibilidad
-                _buildFilterChip(
-                  icon: Icons.inventory,
-                  label: 'Disponibilidad',
-                  value: _getDisponibilidadLabel(filtroDisp),
-                  onTap: () => _mostrarFiltroDisponibilidad(),
-                  isActive: filtroDisp != FiltroDisponibilidad.todos,
-                ),
+              if (hayFiltrosActivos) ...[
                 const SizedBox(width: 8),
-                // Filtro tipo
-                _buildFilterChip(
-                  icon: Icons.tune,
-                  label: 'Tipo',
-                  value: _getTipoLabel(filtroTipo),
-                  onTap: () => _mostrarFiltroTipo(),
-                  isActive: filtroTipo != FiltroTipo.todos,
-                ),
-                const SizedBox(width: 8),
-                // Limpiar filtros
-                if (filtroDisp != FiltroDisponibilidad.todos ||
-                    filtroTipo != FiltroTipo.todos ||
-                    busqueda.isNotEmpty)
-                  ActionChip(
-                    avatar: const Icon(Icons.clear_all, size: 18),
-                    label: const Text('Limpiar'),
-                    onPressed: () {
-                      ref.read(filtroDisponibilidadProvider.notifier).state =
-                          FiltroDisponibilidad.todos;
-                      ref.read(filtroTipoProvider.notifier).state =
-                          FiltroTipo.todos;
-                      ref.read(busquedaCompartidaProvider.notifier).state = '';
-                      ref.read(busquedaProductoProvider.notifier).state = '';
-                      _busquedaController.clear();
-                    },
+                InkWell(
+                  onTap: () {
+                    ref.read(filtroDisponibilidadProvider.notifier).state =
+                        FiltroDisponibilidad.todos;
+                    ref.read(filtroTipoProvider.notifier).state =
+                        FiltroTipo.todos;
+                    ref.read(ordenProductoProvider.notifier).state =
+                        const OrdenProducto();
+                    ref.read(busquedaCompartidaProvider.notifier).state = '';
+                    ref.read(busquedaProductoProvider.notifier).state = '';
+                    _busquedaController.clear();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.clear_all,
+                          size: 16,
+                          color: Colors.red.shade700,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Limpiar',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.red.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                ),
               ],
-            ),
+            ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFiltroBoton({
+    required IconData icon,
+    required String titulo,
+    required String valor,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        decoration: BoxDecoration(
+          color: isActive
+              ? AppColors.primary.withOpacity(0.08)
+              : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isActive ? AppColors.primary : Colors.grey.shade300,
+            width: isActive ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isActive ? AppColors.primary : Colors.grey.shade600,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    titulo,
+                    style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                  ),
+                  Text(
+                    valor,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: isActive
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                      color: isActive
+                          ? AppColors.primary
+                          : Colors.grey.shade800,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_drop_down,
+              size: 18,
+              color: isActive ? AppColors.primary : Colors.grey.shade500,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getDisponibilidadLabel(FiltroDisponibilidad filtro) {
+    switch (filtro) {
+      case FiltroDisponibilidad.todos:
+        return 'Todos';
+      case FiltroDisponibilidad.disponibles:
+        return 'Disponibles';
+      case FiltroDisponibilidad.noDisponibles:
+        return 'Agotados';
+    }
+  }
+
+  String _getTipoLabel(FiltroTipo filtro) {
+    switch (filtro) {
+      case FiltroTipo.todos:
+        return 'Todos';
+      case FiltroTipo.normales:
+        return 'Normales';
+      case FiltroTipo.variables:
+        return 'Variables';
+    }
+  }
+
+  String _getOrdenLabel(OrdenProducto orden) {
+    final campo = orden.campo == TipoOrdenProducto.nombre ? 'Nombre' : 'Precio';
+    final dir = orden.direccion == DireccionOrden.ascendente ? 'A-Z' : 'Z-A';
+    return '$campo $dir';
+  }
+
+  void _mostrarFiltroDisponibilidad() {
+    final actual = ref.read(filtroDisponibilidadProvider);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Filtrar por disponibilidad'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildRadioOption<FiltroDisponibilidad>(
+              title: 'Todos los productos',
+              subtitle: 'Sin filtro',
+              value: FiltroDisponibilidad.todos,
+              groupValue: actual,
+              onChanged: (value) {
+                ref.read(filtroDisponibilidadProvider.notifier).state = value!;
+                Navigator.pop(ctx);
+              },
+            ),
+            _buildRadioOption<FiltroDisponibilidad>(
+              title: 'Solo disponibles',
+              subtitle: 'Productos en stock',
+              value: FiltroDisponibilidad.disponibles,
+              groupValue: actual,
+              onChanged: (value) {
+                ref.read(filtroDisponibilidadProvider.notifier).state = value!;
+                Navigator.pop(ctx);
+              },
+            ),
+            _buildRadioOption<FiltroDisponibilidad>(
+              title: 'Solo agotados',
+              subtitle: 'Productos sin stock',
+              value: FiltroDisponibilidad.noDisponibles,
+              groupValue: actual,
+              onChanged: (value) {
+                ref.read(filtroDisponibilidadProvider.notifier).state = value!;
+                Navigator.pop(ctx);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _mostrarFiltroTipo() {
+    final actual = ref.read(filtroTipoProvider);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Filtrar por tipo'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildRadioOption<FiltroTipo>(
+              title: 'Todos los tipos',
+              subtitle: 'Normales y variables',
+              value: FiltroTipo.todos,
+              groupValue: actual,
+              onChanged: (value) {
+                ref.read(filtroTipoProvider.notifier).state = value!;
+                Navigator.pop(ctx);
+              },
+            ),
+            _buildRadioOption<FiltroTipo>(
+              title: 'Productos normales',
+              subtitle: 'Sin variantes',
+              value: FiltroTipo.normales,
+              groupValue: actual,
+              onChanged: (value) {
+                ref.read(filtroTipoProvider.notifier).state = value!;
+                Navigator.pop(ctx);
+              },
+            ),
+            _buildRadioOption<FiltroTipo>(
+              title: 'Productos variables',
+              subtitle: 'Con variantes',
+              value: FiltroTipo.variables,
+              groupValue: actual,
+              onChanged: (value) {
+                ref.read(filtroTipoProvider.notifier).state = value!;
+                Navigator.pop(ctx);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _mostrarFiltroOrden() {
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final actual = ref.read(ordenProductoProvider);
+
+          void actualizarOrden(OrdenProducto nuevo) {
+            ref.read(ordenProductoProvider.notifier).state = nuevo;
+            setDialogState(() {});
+          }
+
+          return AlertDialog(
+            title: const Text('Ordenar por'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Campo:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildOrdenCampoBoton(
+                        label: 'Nombre',
+                        icon: Icons.sort_by_alpha,
+                        isSelected: actual.campo == TipoOrdenProducto.nombre,
+                        onTap: () {
+                          actualizarOrden(
+                            OrdenProducto(
+                              campo: TipoOrdenProducto.nombre,
+                              direccion: actual.direccion,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildOrdenCampoBoton(
+                        label: 'Precio',
+                        icon: Icons.euro,
+                        isSelected: actual.campo == TipoOrdenProducto.precio,
+                        onTap: () {
+                          actualizarOrden(
+                            OrdenProducto(
+                              campo: TipoOrdenProducto.precio,
+                              direccion: actual.direccion,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Dirección:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildOrdenDireccionBoton(
+                        label: 'Ascendente',
+                        sublabel: actual.campo == TipoOrdenProducto.nombre
+                            ? 'A → Z'
+                            : 'Menor → Mayor',
+                        icon: Icons.arrow_upward,
+                        isSelected:
+                            actual.direccion == DireccionOrden.ascendente,
+                        onTap: () {
+                          actualizarOrden(
+                            actual.copyWith(
+                              direccion: DireccionOrden.ascendente,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildOrdenDireccionBoton(
+                        label: 'Descendente',
+                        sublabel: actual.campo == TipoOrdenProducto.nombre
+                            ? 'Z → A'
+                            : 'Mayor → Menor',
+                        icon: Icons.arrow_downward,
+                        isSelected:
+                            actual.direccion == DireccionOrden.descendente,
+                        onTap: () {
+                          actualizarOrden(
+                            actual.copyWith(
+                              direccion: DireccionOrden.descendente,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cerrar'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildOrdenCampoBoton({
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withOpacity(0.1)
+              : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? AppColors.primary : Colors.grey,
+              size: 24,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? AppColors.primary : Colors.grey.shade700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrdenDireccionBoton({
+    required String label,
+    required String sublabel,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.secondary.withOpacity(0.1)
+              : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppColors.secondary : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? AppColors.secondary : Colors.grey,
+              size: 18,
+            ),
+            const SizedBox(width: 6),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    color: isSelected
+                        ? AppColors.secondary
+                        : Colors.grey.shade700,
+                  ),
+                ),
+                Text(
+                  sublabel,
+                  style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRadioOption<T>({
+    required String title,
+    required String subtitle,
+    required T value,
+    required T groupValue,
+    required ValueChanged<T?> onChanged,
+  }) {
+    return RadioListTile<T>(
+      title: Text(title, style: const TextStyle(fontSize: 14)),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+      ),
+      value: value,
+      groupValue: groupValue,
+      onChanged: onChanged,
     );
   }
 
@@ -349,80 +777,6 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     );
   }
 
-  String _getDisponibilidadLabel(FiltroDisponibilidad filtro) {
-    switch (filtro) {
-      case FiltroDisponibilidad.todos:
-        return 'Todos';
-      case FiltroDisponibilidad.disponibles:
-        return 'Disponibles';
-      case FiltroDisponibilidad.noDisponibles:
-        return 'Agotados';
-    }
-  }
-
-  String _getTipoLabel(FiltroTipo filtro) {
-    switch (filtro) {
-      case FiltroTipo.todos:
-        return 'Todos';
-      case FiltroTipo.normales:
-        return 'Normales';
-      case FiltroTipo.variables:
-        return 'Variables';
-    }
-  }
-
-  void _mostrarFiltroDisponibilidad() {
-    final actual = ref.read(filtroDisponibilidadProvider);
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Filtrar por disponibilidad'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: FiltroDisponibilidad.values.map((f) {
-            return RadioListTile<FiltroDisponibilidad>(
-              title: Text(_getDisponibilidadLabel(f)),
-              value: f,
-              groupValue: actual,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(filtroDisponibilidadProvider.notifier).state = value;
-                }
-                Navigator.pop(ctx);
-              },
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  void _mostrarFiltroTipo() {
-    final actual = ref.read(filtroTipoProvider);
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Filtrar por tipo'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: FiltroTipo.values.map((f) {
-            return RadioListTile<FiltroTipo>(
-              title: Text(_getTipoLabel(f)),
-              value: f,
-              groupValue: actual,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(filtroTipoProvider.notifier).state = value;
-                }
-                Navigator.pop(ctx);
-              },
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
   Widget _buildCategoriasToolbar(
     String? categoriaSeleccionada,
     List<CategoriaProducto> categorias,
@@ -431,7 +785,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
       ..sort((a, b) => a.orden.compareTo(b.orden));
 
     return Container(
-      height: 56,
+      height: 48,
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(bottom: BorderSide(color: AppColors.lightDivider)),
@@ -439,7 +793,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
       child: Row(
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 16, right: 8),
+            padding: const EdgeInsets.only(left: 8, right: 4),
             child: _buildCategoriaChip(
               'Todos',
               null,
@@ -448,52 +802,30 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
             ),
           ),
           Expanded(
-            child: ReorderableListView.builder(
+            child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              buildDefaultDragHandles: false,
-              proxyDecorator: (child, index, animation) {
-                return Material(
-                  elevation: 4,
-                  borderRadius: BorderRadius.zero,
-                  child: child,
-                );
-              },
               itemCount: sortedCategorias.length,
-              onReorder: (oldIndex, newIndex) {
-                ref
-                    .read(categoriasProvider.notifier)
-                    .reorder(oldIndex, newIndex);
-              },
               itemBuilder: (context, index) {
                 final cat = sortedCategorias[index];
                 return Padding(
                   key: ValueKey(cat.id),
-                  padding: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
-                  child: ReorderableDragStartListener(
-                    index: index,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildCategoriaChip(
-                          cat.nombre,
-                          cat.id,
-                          categoriaSeleccionada == cat.id,
-                          null,
-                          cat.icono,
-                          cat.color,
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.drag_handle,
-                          size: 16,
-                          color: Colors.grey.shade400,
-                        ),
-                      ],
-                    ),
+                  padding: const EdgeInsets.only(right: 4, top: 6, bottom: 6),
+                  child: _buildCategoriaChip(
+                    cat.nombre,
+                    cat.id,
+                    categoriaSeleccionada == cat.id,
+                    null,
+                    cat.icono,
+                    cat.color,
                   ),
                 );
               },
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings, size: 20),
+            tooltip: 'Gestionar categorías',
+            onPressed: () => _gestionarCategorias(context),
           ),
         ],
       ),
@@ -632,6 +964,29 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
   }
 
   Widget _buildProductCard(Producto producto, CategoriaProducto categoria) {
+    // Determinar flex adaptativo según longitud del título
+    final int tituloLength = producto.nombre.length;
+    final int imageFlex;
+    final int textFlex;
+    final int maxLines;
+
+    if (tituloLength < 20) {
+      // Título corto: más imagen
+      imageFlex = 4;
+      textFlex = 2;
+      maxLines = 1;
+    } else if (tituloLength > 40) {
+      // Título largo: menos imagen, más espacio para texto
+      imageFlex = 2;
+      textFlex = 3;
+      maxLines = 3;
+    } else {
+      // Título mediano: equilibrio
+      imageFlex = 3;
+      textFlex = 2;
+      maxLines = 2;
+    }
+
     return Card(
       clipBehavior: Clip.antiAlias,
       elevation: 1,
@@ -642,7 +997,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              flex: 3,
+              flex: imageFlex,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -704,7 +1059,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
               ),
             ),
             Expanded(
-              flex: 2,
+              flex: textFlex,
               child: Padding(
                 padding: const EdgeInsets.all(10),
                 child: Column(
@@ -719,23 +1074,14 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                           fontWeight: FontWeight.w600,
                           color: producto.disponible ? null : Colors.grey,
                         ),
-                        maxLines: 2,
+                        maxLines: maxLines,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          '${producto.precio.toStringAsFixed(2)} €',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: producto.disponible
-                                ? AppColors.secondary
-                                : Colors.grey,
-                          ),
-                        ),
+                        _buildPrecioProducto(producto),
                         InkWell(
                           onTap: () => _toggleDisponibilidad(producto),
                           child: Icon(
@@ -886,6 +1232,71 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     return productosOrdenados;
   }
 
+  Widget _buildPrecioProducto(Producto producto, {bool compact = false}) {
+    final color = producto.disponible ? AppColors.secondary : Colors.grey;
+
+    // Si es variable y precio base es 0, mostrar rango de precios de variantes
+    if (producto.esVariable &&
+        producto.precio == 0 &&
+        (producto.variantes?.isNotEmpty ?? false)) {
+      final precios = producto.variantes!.map((v) => v.precio).toList();
+      final precioMin = precios.reduce((a, b) => a < b ? a : b);
+      final precioMax = precios.reduce((a, b) => a > b ? a : b);
+
+      if (compact) {
+        return Text(
+          precioMin == precioMax
+              ? '${precioMin.toStringAsFixed(2)} €'
+              : 'Desde ${precioMin.toStringAsFixed(2)} €',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        );
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (precioMin == precioMax)
+            Text(
+              '${precioMin.toStringAsFixed(2)} €',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            )
+          else
+            Text(
+              '${precioMin.toStringAsFixed(2)} - ${precioMax.toStringAsFixed(2)} €',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          Text(
+            '${producto.variantes!.length} variantes',
+            style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+          ),
+        ],
+      );
+    }
+
+    // Precio normal
+    return Text(
+      '${producto.precio.toStringAsFixed(2)} €',
+      style: TextStyle(
+        fontSize: compact ? 13 : 14,
+        fontWeight: FontWeight.bold,
+        color: color,
+      ),
+    );
+  }
+
   void _mostrarOpcionesOrden() {
     final ordenActual = ref.read(ordenProductoProvider);
 
@@ -991,6 +1402,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
 
   Widget _buildCategoriasSheet(ScrollController scrollController) {
     final categorias = ref.watch(categoriasProvider);
+    final sortedCategorias = List<CategoriaProducto>.from(categorias)
+      ..sort((a, b) => a.orden.compareTo(b.orden));
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1017,7 +1430,12 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 8),
+          Text(
+            'Arrastra para reordenar las categorías',
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 12),
           Expanded(
             child: categorias.isEmpty
                 ? const Center(
@@ -1026,27 +1444,45 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                       style: TextStyle(color: Colors.grey),
                     ),
                   )
-                : ListView.builder(
-                    controller: scrollController,
-                    itemCount: categorias.length,
+                : ReorderableListView.builder(
+                    buildDefaultDragHandles: false,
+                    onReorder: (oldIndex, newIndex) {
+                      ref
+                          .read(categoriasProvider.notifier)
+                          .reorder(oldIndex, newIndex);
+                    },
+                    itemCount: sortedCategorias.length,
                     itemBuilder: (context, index) {
-                      final cat = categorias[index];
+                      final cat = sortedCategorias[index];
                       return Card(
+                        key: ValueKey(cat.id),
                         margin: const EdgeInsets.only(bottom: 8),
                         child: ListTile(
-                          leading: Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: cat.color.withOpacity(0.2),
-                              borderRadius: BorderRadius.zero,
-                            ),
-                            child: Center(
-                              child: Text(
-                                cat.icono,
-                                style: const TextStyle(fontSize: 24),
+                          leading: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ReorderableDragStartListener(
+                                index: index,
+                                child: Icon(
+                                  Icons.drag_handle,
+                                  color: Colors.grey.shade400,
+                                ),
                               ),
-                            ),
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: cat.color.withOpacity(0.2),
+                                  borderRadius: BorderRadius.zero,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    cat.icono,
+                                    style: const TextStyle(fontSize: 24),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           title: Text(
                             cat.nombre,
