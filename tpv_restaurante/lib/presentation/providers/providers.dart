@@ -328,11 +328,14 @@ class CategoriasNotifier extends StateNotifier<List<CategoriaProducto>> {
     final item = categorias.removeAt(oldIndex);
     categorias.insert(newIndex, item);
 
-    // Actualizar el orden de cada categoría
+    final updatedCategorias = <CategoriaProducto>[];
     for (int i = 0; i < categorias.length; i++) {
-      final updated = categorias[i].copyWith(orden: i);
+      updatedCategorias.add(categorias[i].copyWith(orden: i));
+    }
 
-      // Buscar la clave de esta categoría
+    state = updatedCategorias;
+
+    for (final updated in updatedCategorias) {
       final box = _db.categoriasBox;
       dynamic keyEncontrado;
 
@@ -348,7 +351,6 @@ class CategoriasNotifier extends StateNotifier<List<CategoriaProducto>> {
         await box.put(keyEncontrado, updated);
       }
     }
-    _refresh();
   }
 
   void actualizarLista() {

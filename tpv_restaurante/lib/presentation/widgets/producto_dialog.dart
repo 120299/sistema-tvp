@@ -417,8 +417,8 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
   Future<void> _seleccionarImagen() async {
     final XFile? imagen = await _imagePicker.pickImage(
       source: ImageSource.gallery,
-      maxWidth: 800,
-      maxHeight: 800,
+      maxWidth: 1920,
+      maxHeight: 1080,
       imageQuality: 80,
     );
 

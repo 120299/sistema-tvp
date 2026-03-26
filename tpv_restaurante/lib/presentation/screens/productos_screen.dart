@@ -947,7 +947,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
             crossAxisCount: crossAxisCount,
             mainAxisSpacing: 8,
             crossAxisSpacing: 8,
-            childAspectRatio: 0.7,
+            childAspectRatio: 5 / 4,
           ),
           itemCount: productos.length,
           itemBuilder: (context, index) {
@@ -975,7 +975,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              flex: 3,
+              flex: 1,
               child: Stack(
                 fit: StackFit.expand,
                 children: [

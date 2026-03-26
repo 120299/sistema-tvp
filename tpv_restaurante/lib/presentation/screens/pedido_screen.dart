@@ -182,7 +182,7 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
             crossAxisCount: crossAxisCount,
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
-            childAspectRatio: 0.75,
+            childAspectRatio: 5 / 4,
           ),
           itemCount: productos.length,
           itemBuilder: (context, index) {

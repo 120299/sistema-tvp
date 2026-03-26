@@ -284,7 +284,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
         crossAxisCount: 4,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 0.85,
+        childAspectRatio: 5 / 4,
       ),
       itemCount: productos.length,
       itemBuilder: (context, index) {
@@ -762,9 +762,21 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
         .firstWhere((m) => m.id == widget.mesa.id);
     if (mesaActual.pedidoActualId == null) return;
 
+    final pedidoId = mesaActual.pedidoActualId!;
     await ref
         .read(pedidosProvider.notifier)
-        .actualizarCantidad(mesaActual.pedidoActualId!, item.id, cantidad);
+        .actualizarCantidad(pedidoId, item.id, cantidad);
+
+    final nuevosItems = ref
+        .read(pedidosProvider)
+        .firstWhere((p) => p.id == pedidoId, orElse: () => throw Exception())
+        .items;
+
+    if (nuevosItems.isEmpty) {
+      await ref.read(pedidosProvider.notifier).eliminar(pedidoId);
+      await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
+    }
+
     setState(() {});
   }
 
@@ -781,14 +793,21 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               .firstWhere((m) => m.id == widget.mesa.id);
           if (mesaActual.pedidoActualId == null) return;
 
+          final pedidoId = mesaActual.pedidoActualId!;
+
           if (cantidad <= 0) {
             await ref
                 .read(pedidosProvider.notifier)
-                .actualizarCantidad(mesaActual.pedidoActualId!, item.id, 0);
+                .actualizarCantidad(pedidoId, item.id, 0);
+            final pedidoActual = _getPedidoActual();
+            if (pedidoActual.isEmpty) {
+              await ref.read(pedidosProvider.notifier).eliminar(pedidoId);
+              await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
+            }
           } else {
             final pedidoIndex = ref
                 .read(pedidosProvider)
-                .indexWhere((p) => p.id == mesaActual.pedidoActualId);
+                .indexWhere((p) => p.id == pedidoId);
             if (pedidoIndex >= 0) {
               final pedido = ref.read(pedidosProvider)[pedidoIndex];
               final itemsActualizados = pedido.items.map((i) {
@@ -819,9 +838,17 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               .read(mesasProvider)
               .firstWhere((m) => m.id == widget.mesa.id);
           if (mesaActual.pedidoActualId == null) return;
+          final pedidoId = mesaActual.pedidoActualId!;
           await ref
               .read(pedidosProvider.notifier)
-              .actualizarCantidad(mesaActual.pedidoActualId!, item.id, 0);
+              .actualizarCantidad(pedidoId, item.id, 0);
+
+          final pedidoActual = _getPedidoActual();
+          if (pedidoActual.isEmpty) {
+            await ref.read(pedidosProvider.notifier).eliminar(pedidoId);
+            await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
+          }
+
           if (mounted) {
             Navigator.pop(ctx);
             setState(() {});
