@@ -14,6 +14,8 @@ class DatosNegocio {
   final String? numeroSerie;
   final String? numeroLicencia;
   final String? actividad;
+  final int contadorTicketsDiario;
+  final DateTime? ultimaFechaContador;
 
   const DatosNegocio({
     required this.nombre,
@@ -31,6 +33,8 @@ class DatosNegocio {
     this.numeroSerie,
     this.numeroLicencia,
     this.actividad,
+    this.contadorTicketsDiario = 0,
+    this.ultimaFechaContador,
   });
 
   DatosNegocio copyWith({
@@ -49,6 +53,8 @@ class DatosNegocio {
     String? numeroSerie,
     String? numeroLicencia,
     String? actividad,
+    int? contadorTicketsDiario,
+    DateTime? ultimaFechaContador,
   }) {
     return DatosNegocio(
       nombre: nombre ?? this.nombre,
@@ -66,6 +72,9 @@ class DatosNegocio {
       numeroSerie: numeroSerie ?? this.numeroSerie,
       numeroLicencia: numeroLicencia ?? this.numeroLicencia,
       actividad: actividad ?? this.actividad,
+      contadorTicketsDiario:
+          contadorTicketsDiario ?? this.contadorTicketsDiario,
+      ultimaFechaContador: ultimaFechaContador ?? this.ultimaFechaContador,
     );
   }
 
@@ -86,6 +95,8 @@ class DatosNegocio {
       'numeroSerie': numeroSerie,
       'numeroLicencia': numeroLicencia,
       'actividad': actividad,
+      'contadorTicketsDiario': contadorTicketsDiario,
+      'ultimaFechaContador': ultimaFechaContador?.toIso8601String(),
     };
   }
 
@@ -106,6 +117,10 @@ class DatosNegocio {
       numeroSerie: json['numeroSerie'] as String?,
       numeroLicencia: json['numeroLicencia'] as String?,
       actividad: json['actividad'] as String?,
+      contadorTicketsDiario: json['contadorTicketsDiario'] as int? ?? 0,
+      ultimaFechaContador: json['ultimaFechaContador'] != null
+          ? DateTime.parse(json['ultimaFechaContador'] as String)
+          : null,
     );
   }
 

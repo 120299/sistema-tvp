@@ -184,6 +184,37 @@ class NegocioNotifier extends StateNotifier<DatosNegocio> {
     await _db.negocioBox.putAt(0, datos);
     state = datos;
   }
+
+  Future<int> obtenerSiguienteNumeroTicket() async {
+    final hoy = DateTime.now();
+    final fechaUltima = state.ultimaFechaContador;
+
+    int nuevoContador;
+    if (fechaUltima == null ||
+        fechaUltima.day != hoy.day ||
+        fechaUltima.month != hoy.month ||
+        fechaUltima.year != hoy.year) {
+      nuevoContador = 1;
+    } else {
+      nuevoContador = state.contadorTicketsDiario + 1;
+    }
+
+    final actualizado = state.copyWith(
+      contadorTicketsDiario: nuevoContador,
+      ultimaFechaContador: hoy,
+    );
+
+    await actualizar(actualizado);
+    return nuevoContador;
+  }
+
+  Future<void> reiniciarContadorDiario() async {
+    final actualizado = state.copyWith(
+      contadorTicketsDiario: 0,
+      ultimaFechaContador: null,
+    );
+    await actualizar(actualizado);
+  }
 }
 
 final productosProvider =

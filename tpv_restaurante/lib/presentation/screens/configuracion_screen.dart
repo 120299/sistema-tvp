@@ -5,8 +5,8 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../../data/services/backup_service.dart';
 import '../../data/services/database_service.dart';
-import '../../data/seed/seed_data.dart';
 import '../providers/providers.dart';
+import '../widgets/producto_import_dialog.dart';
 
 class ConfiguracionScreen extends ConsumerStatefulWidget {
   const ConfiguracionScreen({super.key});
@@ -309,25 +309,64 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                     ),
                   ),
                 ),
-                const Divider(),
-                // Inicializar sistema con datos de ejemplo
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(
-                    Icons.restaurant_menu,
-                    color: AppColors.primary,
+              ]),
+              const SizedBox(height: 24),
+              _buildSeccion('Gestión de Productos', [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    border: Border.all(color: Colors.orange.shade200),
+                    borderRadius: BorderRadius.zero,
                   ),
-                  title: const Text('Inicializar con datos de restaurante'),
-                  subtitle: const Text(
-                    'Carga productos de kebab, pizzas, etc.',
-                  ),
-                  trailing: ElevatedButton.icon(
-                    onPressed: _inicializarSistema,
-                    icon: const Icon(Icons.download, size: 18),
-                    label: const Text('Cargar'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(
+                            Icons.inventory_2,
+                            size: 20,
+                            color: Colors.orange,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Importar / Exportar',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Importa productos desde un archivo JSON o exporta los productos '
+                        'actuales para editarlos y volver a importarlos.',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) =>
+                                      const ProductoImportDialog(),
+                                );
+                              },
+                              icon: const Icon(Icons.upload_file),
+                              label: const Text('Importar / Exportar'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ]),
@@ -414,71 +453,6 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
     );
   }
 
-  void _inicializarSistema() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.restaurant_menu, color: AppColors.primary),
-            SizedBox(width: 12),
-            Text('Inicializar Sistema'),
-          ],
-        ),
-        content: const Text(
-          'Esto creará productos de un restaurante de Kebab con:\n\n'
-          '• 10 categorías\n'
-          '• +70 productos con variantes\n'
-          '• Usuario administrador (PIN: 1234)\n\n'
-          'Se eliminarán todos los datos actuales.\n'
-          '¿Desea continuar?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Inicializar'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-
-    try {
-      final db = DatabaseService();
-      final seed = SeedData(db);
-      await seed.inicializarSistema();
-
-      // Refresh providers
-      ref.read(productosProvider.notifier).actualizarLista();
-      ref.read(categoriasProvider.notifier).actualizarLista();
-      ref.read(cajerosProvider.notifier).actualizarLista();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Sistema inicializado correctamente'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al inicializar: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
-  }
-
   void _guardar() {
     if (_formKey.currentState!.validate()) {
       try {
@@ -559,10 +533,43 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
   void _resetSystem() async {
     final confirm = await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: const Text('Resetear sistema'),
-        content: const Text(
-          'Esto borrará todos los datos y volverá al estado inicial. ¿Continuar?',
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+            SizedBox(width: 12),
+            Text('Resetear Sistema'),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '¿Estás seguro de que quieres borrar TODOS los datos?',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Se eliminarán:',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+            ),
+            SizedBox(height: 8),
+            Text('• Mesas'),
+            Text('• Productos'),
+            Text('• Categorías'),
+            Text('• Clientes'),
+            Text('• Pedidos'),
+            Text('• Movimientos de caja'),
+            Text('• Cajeros'),
+            Text('• Configuración'),
+            SizedBox(height: 16),
+            Text(
+              'Los datos fiscales (nombre, CIF, dirección) se mantendrán.',
+              style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -571,7 +578,7 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Continuar'),
+            child: const Text('Sí, borrar todo'),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
           ),
         ],
@@ -580,24 +587,45 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
 
     if (confirm != true) return;
 
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text('Reseteando sistema...'),
+          ],
+        ),
+      ),
+    );
+
     try {
       final db = DatabaseService();
       await db.resetAll();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Sistema reseteado. Por favor reinicia la aplicación para aplicar el reinicio completo.',
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Sistema reseteado correctamente. Los datos fiscales se han mantenido.',
+            ),
+            backgroundColor: AppColors.success,
           ),
-          backgroundColor: AppColors.success,
-        ),
-      );
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al resetear: $e'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al resetear: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 

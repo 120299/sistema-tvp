@@ -1600,6 +1600,10 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 .map((e) => '${e.key}: ${e.value.toStringAsFixed(2)}€')
                 .join(' + ');
 
+            final numeroTicket = await ref
+                .read(negocioProvider.notifier)
+                .obtenerSiguienteNumeroTicket();
+
             await PrintService.imprimirTicketAutomatico(
               items: List.from(_carrito),
               subtotal: subtotal,
@@ -1610,6 +1614,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               cajeroNombre: caja?.cajeroNombre,
               clienteNombre: cliente?.nombre,
               clienteNif: cliente?.nif,
+              numeroTicket: numeroTicket,
             );
 
             if (mounted) {

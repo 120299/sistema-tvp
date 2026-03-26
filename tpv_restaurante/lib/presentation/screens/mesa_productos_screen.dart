@@ -898,6 +898,10 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               .cerrar(mesaActual.pedidoActualId!, metodoPago);
           await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
 
+          final numeroTicket = await ref
+              .read(negocioProvider.notifier)
+              .obtenerSiguienteNumeroTicket();
+
           await PrintService.imprimirTicketAutomatico(
             items: pedidoActual,
             subtotal: pedidoActual.fold<double>(
@@ -908,6 +912,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
             metodoPago: metodoPago,
             negocio: negocio,
             mesaNumero: widget.mesa.numero.toString(),
+            numeroTicket: numeroTicket,
           );
 
           if (mounted) {

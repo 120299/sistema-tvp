@@ -1,0 +1,297 @@
+{
+  "version": "1.0",
+  "descripcion": "Plantilla de productos para sistema TPV - Restaurante",
+  "instrucciones": "Este archivo se puede editar y luego importar desde el sistema. Los IDs de categoría deben coincidir con las categorías creadas.",
+  
+  "categorias": [
+    {
+      "nombre": "Cafés",
+      "icono": "☕",
+      "color": "#795548"
+    },
+    {
+      "nombre": "Bebidas",
+      "icono": "🥤",
+      "color": "#2196F3"
+    },
+    {
+      "nombre": "Comidas",
+      "icono": "🍽️",
+      "color": "#FF5722"
+    },
+    {
+      "nombre": "Postres",
+      "icono": "🍰",
+      "color": "#E91E63"
+    },
+    {
+      "nombre": "Vinos",
+      "icono": "🍷",
+      "color": "#880E4F"
+    },
+    {
+      "nombre": "Cervezas",
+      "icono": "🍺",
+      "color": "#FFC107"
+    },
+    {
+      "nombre": "Cócteles",
+      "icono": "🍹",
+      "color": "#9C27B0"
+    },
+    {
+      "nombre": "Snacks",
+      "icono": "🥜",
+      "color": "#4CAF50"
+    }
+  ],
+
+  "productos": [
+    {
+      "nombre": "Espresso",
+      "precio": 1.50,
+      "categoriaId": "cafes",
+      "descripcion": "Café espresso solo",
+      "disponible": true
+    },
+    {
+      "nombre": "Americano",
+      "precio": 1.80,
+      "categoriaId": "cafes",
+      "descripcion": "Café largo con agua",
+      "disponible": true
+    },
+    {
+      "nombre": "Cappuccino",
+      "precio": 2.50,
+      "categoriaId": "cafes",
+      "descripcion": "Café con leche espumosa",
+      "disponible": true
+    },
+    {
+      "nombre": "Latte Macchiato",
+      "precio": 2.80,
+      "categoriaId": "cafes",
+      "descripcion": "Café con leche templada",
+      "disponible": true
+    },
+    {
+      "nombre": "Cortado",
+      "precio": 1.70,
+      "categoriaId": "cafes",
+      "disponible": true
+    },
+    {
+      "nombre": "Flat White",
+      "precio": 2.80,
+      "categoriaId": "cafes",
+      "disponible": true
+    },
+
+    {
+      "nombre": "Agua Mineral",
+      "precio": 1.50,
+      "categoriaId": "bebidas",
+      "disponible": true
+    },
+    {
+      "nombre": "Cola",
+      "precio": 2.00,
+      "categoriaId": "bebidas",
+      "disponible": true
+    },
+    {
+      "nombre": "Naranja Natural",
+      "precio": 3.50,
+      "categoriaId": "bebidas",
+      "disponible": true
+    },
+    {
+      "nombre": "Limonada Casera",
+      "precio": 3.00,
+      "categoriaId": "bebidas",
+      "disponible": true
+    },
+    {
+      "nombre": "Tónica Premium",
+      "precio": 2.50,
+      "categoriaId": "bebidas",
+      "disponible": true
+    },
+
+    {
+      "nombre": "Paella Valenciana",
+      "precio": 14.50,
+      "categoriaId": "comidas",
+      "descripcion": "Arroz con marisco, pollo y verdura",
+      "disponible": true
+    },
+    {
+      "nombre": "Bistec a la Plancha",
+      "precio": 16.00,
+      "categoriaId": "comidas",
+      "descripcion": "200g de solomillo de ternera",
+      "disponible": true
+    },
+    {
+      "nombre": "Ensalada César",
+      "precio": 9.50,
+      "categoriaId": "comidas",
+      "descripcion": "Lechuga romana, pollo, parmesano",
+      "disponible": true
+    },
+    {
+      "nombre": "Pasta Carbonara",
+      "precio": 11.00,
+      "categoriaId": "comidas",
+      "descripcion": "Espaguetis con bacon y huevo",
+      "disponible": true
+    },
+    {
+      "nombre": "Merluza al Horno",
+      "precio": 15.00,
+      "categoriaId": "comidas",
+      "descripcion": "Con patatas y pimientos",
+      "disponible": true
+    },
+    {
+      "nombre": "Tortilla Española",
+      "precio": 8.00,
+      "categoriaId": "comidas",
+      "descripcion": "Patatas, cebolla y huevos",
+      "disponible": true
+    },
+
+    {
+      "nombre": "Tarta de Queso",
+      "precio": 5.50,
+      "categoriaId": "postres",
+      "disponible": true
+    },
+    {
+      "nombre": "Flan Casero",
+      "precio": 4.00,
+      "categoriaId": "postres",
+      "disponible": true
+    },
+    {
+      "nombre": "Helado Artesano",
+      "precio": 4.50,
+      "categoriaId": "postres",
+      "disponible": true
+    },
+    {
+      "nombre": "Churros con Chocolate",
+      "precio": 5.00,
+      "categoriaId": "postres",
+      "disponible": true
+    },
+    {
+      "nombre": "Tarta de Chocolate",
+      "precio": 6.00,
+      "categoriaId": "postres",
+      "disponible": true
+    },
+
+    {
+      "nombre": "Copa Vino Tinto",
+      "precio": 3.50,
+      "categoriaId": "vinos",
+      "disponible": true
+    },
+    {
+      "nombre": "Copa Vino Blanco",
+      "precio": 3.50,
+      "categoriaId": "vinos",
+      "disponible": true
+    },
+    {
+      "nombre": "Copa Rosado",
+      "precio": 3.50,
+      "categoriaId": "vinos",
+      "disponible": true
+    },
+    {
+      "nombre": "Botella Rioja",
+      "precio": 18.00,
+      "categoriaId": "vinos",
+      "disponible": true
+    },
+
+    {
+      "nombre": "Caña",
+      "precio": 2.50,
+      "categoriaId": "cervezas",
+      "disponible": true
+    },
+    {
+      "nombre": "Jarra 1L",
+      "precio": 5.00,
+      "categoriaId": "cervezas",
+      "disponible": true
+    },
+    {
+      "nombre": "Copa Cerveza Artesana",
+      "precio": 4.00,
+      "categoriaId": "cervezas",
+      "disponible": true
+    },
+
+    {
+      "nombre": "Mojito",
+      "precio": 7.50,
+      "categoriaId": "cockteles",
+      "disponible": true
+    },
+    {
+      "nombre": "Gin Tonic",
+      "precio": 7.00,
+      "categoriaId": "cockteles",
+      "disponible": true
+    },
+    {
+      "nombre": "Piña Colada",
+      "precio": 8.00,
+      "categoriaId": "cockteles",
+      "disponible": true
+    },
+    {
+      "nombre": "Cuba Libre",
+      "precio": 6.50,
+      "categoriaId": "cockteles",
+      "disponible": true
+    },
+
+    {
+      "nombre": "Croquetas Caseras",
+      "precio": 6.00,
+      "categoriaId": "snacks",
+      "disponible": true
+    },
+    {
+      "nombre": "Patatas Bravas",
+      "precio": 5.00,
+      "categoriaId": "snacks",
+      "disponible": true
+    },
+    {
+      "nombre": "Jamón Ibérico",
+      "precio": 12.00,
+      "categoriaId": "snacks",
+      "disponible": true
+    },
+    {
+      "nombre": "Queso Curado",
+      "precio": 8.00,
+      "categoriaId": "snacks",
+      "disponible": true
+    }
+  ],
+
+  "notas": {
+    "formato_fecha": "DD/MM/YYYY",
+    "divisa": "EUR",
+    "iva_por_defecto": 10,
+    "nota_importante": "Los productos se importarán con nuevos IDs únicos. Para editar este archivo, mantén la estructura JSON."
+  }
+}

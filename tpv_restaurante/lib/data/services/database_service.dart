@@ -209,8 +209,27 @@ class DatabaseService {
     await cajerosBox.clear();
     await clientesBox.clear();
     await configBox.clear();
-    // Seed initial data again
+
+    // Obtener datos del negocio antes de borrar para preservar configuración fiscal
+    final negocioActual = negocioBox.getAt(0);
+    final DatosNegocio negocioDefault =
+        negocioActual?.copyWith(
+          contadorTicketsDiario: 0,
+          ultimaFechaContador: null,
+        ) ??
+        DatosNegocio(
+          nombre: 'Mi Restaurante',
+          direccion: '',
+          ciudad: '',
+          telefono: '',
+        );
+
+    // Volver a sembrar datos iniciales
     await _seedData();
+
+    // Actualizar negocio con configuración fiscal preserved
+    await negocioBox.putAt(0, negocioDefault);
+
     // Notify listeners about a global reset
     notifyChange('reset');
   }

@@ -293,6 +293,8 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
           cajeroId: cajeroActual.id,
           cajeroNombre: cajeroActual.nombre,
         );
+
+    await ref.read(negocioProvider.notifier).reiniciarContadorDiario();
   }
 
   Widget _buildKeypadCompacto() {

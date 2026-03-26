@@ -45,6 +45,7 @@ class PrintService {
     double porcentajePropina = 0,
     String? clienteNombre,
     String? clienteNif,
+    int? numeroTicket,
   }) async {
     try {
       final pdf = await _buildTicketPdf(
@@ -58,6 +59,7 @@ class PrintService {
         porcentajePropina: porcentajePropina,
         clienteNombre: clienteNombre,
         clienteNif: clienteNif,
+        numeroTicket: numeroTicket,
       );
 
       // Intentar impresión directa con impresora por defecto
@@ -96,6 +98,7 @@ class PrintService {
     double porcentajePropina = 0,
     String? clienteNombre,
     String? clienteNif,
+    int? numeroTicket,
   }) async {
     try {
       final pdf = await _buildTicketPdf(
@@ -109,6 +112,7 @@ class PrintService {
         porcentajePropina: porcentajePropina,
         clienteNombre: clienteNombre,
         clienteNif: clienteNif,
+        numeroTicket: numeroTicket,
       );
       await Printing.layoutPdf(
         onLayout: (PdfPageFormat format) async => pdf.save(),
@@ -129,6 +133,7 @@ class PrintService {
     double porcentajePropina = 0,
     String? clienteNombre,
     String? clienteNif,
+    int? numeroTicket,
   }) async {
     try {
       final pdf = await _buildTicketPdf(
@@ -142,6 +147,7 @@ class PrintService {
         porcentajePropina: porcentajePropina,
         clienteNombre: clienteNombre,
         clienteNif: clienteNif,
+        numeroTicket: numeroTicket,
       );
 
       // Intentar impresión directa con impresora por defecto
@@ -180,6 +186,7 @@ class PrintService {
     double porcentajePropina = 0,
     String? clienteNombre,
     String? clienteNif,
+    int? numeroTicket,
   }) async {
     final pdf = pw.Document();
     final baseImponible = subtotal / (1 + ivaPorcentaje / 100);
@@ -202,7 +209,7 @@ class PrintService {
             children: [
               _buildHeader(negocio),
               pw.SizedBox(height: 5),
-              _buildFechaHora(),
+              _buildFechaHora(numeroTicket),
               if (mesaNumero != null)
                 pw.Text(
                   'MESA: $mesaNumero',
@@ -228,7 +235,9 @@ class PrintService {
                 montoPropina: montoPropina,
                 totalFinal: totalFinal,
               ),
-              pw.SizedBox(height: 6),
+              pw.SizedBox(height: 4),
+              _buildMetodoPago(metodoPago),
+              pw.SizedBox(height: 4),
               pw.Divider(thickness: 0.5),
               _buildFooter(
                 clienteNombre: clienteNombre,
@@ -807,10 +816,20 @@ class PrintService {
     );
   }
 
-  static pw.Widget _buildFechaHora() {
+  static String _formatFechaShort(DateTime d) {
+    return '${d.year}${d.month.toString().padLeft(2, '0')}${d.day.toString().padLeft(2, '0')}';
+  }
+
+  static pw.Widget _buildFechaHora([int? numeroTicket]) {
     final now = DateTime.now();
-    final numero =
-        'T-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.millisecondsSinceEpoch.toString().substring(7)}';
+    String numero;
+    if (numeroTicket != null) {
+      numero =
+          'T-${_formatFechaShort(now)}-${numeroTicket.toString().padLeft(4, '0')}';
+    } else {
+      numero =
+          'T-${_formatFechaShort(now)}-${now.millisecondsSinceEpoch.toString().substring(7)}';
+    }
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
@@ -820,6 +839,22 @@ class PrintService {
           style: const pw.TextStyle(fontSize: 9),
         ),
       ],
+    );
+  }
+
+  static pw.Widget _buildMetodoPago(String metodoPago) {
+    return pw.Center(
+      child: pw.Container(
+        padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: pw.BoxDecoration(
+          border: pw.Border.all(width: 1),
+          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+        ),
+        child: pw.Text(
+          'PAGO: ${metodoPago.toUpperCase()}',
+          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+        ),
+      ),
     );
   }
 
