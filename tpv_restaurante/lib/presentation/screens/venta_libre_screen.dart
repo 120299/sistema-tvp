@@ -199,9 +199,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.5,
@@ -1166,7 +1164,14 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     String pedidoId = mesaActual.pedidoActualId ?? '';
 
     if (pedidoId.isEmpty) {
-      pedidoId = await ref.read(pedidosProvider.notifier).crear(_mesaAsignada!);
+      final cajeroActual = ref.read(cajeroActualProvider);
+      pedidoId = await ref
+          .read(pedidosProvider.notifier)
+          .crear(
+            _mesaAsignada!,
+            cajeroId: cajeroActual?.id,
+            cajeroNombre: cajeroActual?.nombre,
+          );
       await ref.read(mesasProvider.notifier).ocupar(_mesaAsignada!, pedidoId);
     }
 
@@ -1373,9 +1378,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       builder: (ctx) => CobroSheet(
         total: total,
         onCobrar: (metodosPago, {Cliente? cliente}) async {

@@ -133,10 +133,16 @@ class PrintService {
               if (mesaNumero != null)
                 pw.Text(
                   'MESA: $mesaNumero',
-                  style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                  style: pw.TextStyle(
+                    fontSize: 11,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
                 ),
               if (cajeroNombre != null)
-                pw.Text('Cajero: $cajeroNombre', style: const pw.TextStyle(fontSize: 8)),
+                pw.Text(
+                  'Cajero: $cajeroNombre',
+                  style: const pw.TextStyle(fontSize: 8),
+                ),
               pw.SizedBox(height: 4),
               pw.Divider(thickness: 0.5),
               _buildItems(items),
@@ -155,12 +161,18 @@ class PrintService {
                 decoration: pw.BoxDecoration(border: pw.Border.all()),
                 child: pw.Text(
                   'PAGO: ${metodoPago.toUpperCase()}',
-                  style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                  style: pw.TextStyle(
+                    fontSize: 11,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
                 ),
               ),
               pw.SizedBox(height: 6),
               pw.Divider(thickness: 0.5),
-              _buildFooter(clienteNombre: clienteNombre, clienteNif: clienteNif),
+              _buildFooter(
+                clienteNombre: clienteNombre,
+                clienteNif: clienteNif,
+              ),
             ],
           );
         },
@@ -174,50 +186,73 @@ class PrintService {
     pw.Document pdf,
     String title,
   ) async {
+    final screenH = MediaQuery.of(context).size.height;
+    final screenW = MediaQuery.of(context).size.width;
+    final isCompact = screenH < 600 || screenW < 400;
+
     await showDialog(
       context: context,
       builder: (ctx) => Dialog(
-        insetPadding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: Colors.blueGrey.shade800,
-              child: Row(
-                children: [
-                  const Icon(Icons.print, color: Colors.white, size: 20),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+        insetPadding: EdgeInsets.all(isCompact ? 8 : 16),
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: isCompact ? screenW - 32 : 400,
+            maxHeight: isCompact ? screenH * 0.7 : 600,
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isCompact ? 12 : 16,
+                  vertical: isCompact ? 8 : 12,
+                ),
+                color: Colors.blueGrey.shade800,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.print,
+                      color: Colors.white,
+                      size: isCompact ? 16 : 20,
+                    ),
+                    SizedBox(width: isCompact ? 8 : 12),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: isCompact ? 14 : 16,
+                        ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    tooltip: 'Cerrar',
-                  ),
-                ],
+                    IconButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      icon: Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: isCompact ? 18 : 20,
+                      ),
+                      tooltip: 'Cerrar',
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints(),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              child: PdfPreview(
-                build: (format) => pdf.save(),
-                allowPrinting: true,
-                allowSharing: false,
-                canChangePageFormat: false,
-                canChangeOrientation: false,
-                canDebug: false,
-                pdfFileName: 'ticket.pdf',
-                actions: [],
+              Expanded(
+                child: PdfPreview(
+                  build: (format) => pdf.save(),
+                  allowPrinting: true,
+                  allowSharing: false,
+                  canChangePageFormat: false,
+                  canChangeOrientation: false,
+                  canDebug: false,
+                  pdfFileName: 'ticket.pdf',
+                  actions: [],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -230,7 +265,10 @@ class PrintService {
     await _showPdfPreview(context, pdf, 'Vista Previa - Cierre de Caja');
   }
 
-  static Future<pw.Document> buildCierreCajaPdf(DatosNegocio negocio, dynamic caja) async {
+  static Future<pw.Document> buildCierreCajaPdf(
+    DatosNegocio negocio,
+    dynamic caja,
+  ) async {
     final pdf = pw.Document();
     final fechaApertura = caja.fechaApertura as DateTime;
     final fechaCierre = caja.fechaCierre as DateTime?;
@@ -247,28 +285,83 @@ class PrintService {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             mainAxisSize: pw.MainAxisSize.min,
             children: [
-              pw.Center(child: pw.Text('CIERRE DE CAJA', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14))),
-              pw.Center(child: pw.Text(negocio.nombre, style: const pw.TextStyle(fontSize: 10))),
+              pw.Center(
+                child: pw.Text(
+                  'CIERRE DE CAJA',
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              pw.Center(
+                child: pw.Text(
+                  negocio.nombre,
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
+              ),
               pw.SizedBox(height: 10),
               pw.Divider(thickness: 1),
-              pw.Text('APERTURA: ${_fmtDate(fechaApertura)}', style: const pw.TextStyle(fontSize: 9)),
+              pw.Text(
+                'APERTURA: ${_fmtDate(fechaApertura)}',
+                style: const pw.TextStyle(fontSize: 9),
+              ),
               if (fechaCierre != null)
-                pw.Text('CIERRE: ${_fmtDate(fechaCierre)}', style: const pw.TextStyle(fontSize: 9)),
-              pw.Text('CAJERO: ${caja.cajeroNombre ?? "Sistema"}', style: const pw.TextStyle(fontSize: 9)),
+                pw.Text(
+                  'CIERRE: ${_fmtDate(fechaCierre)}',
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
+              pw.Text(
+                'CAJERO: ${caja.cajeroNombre ?? "Sistema"}',
+                style: const pw.TextStyle(fontSize: 9),
+              ),
               pw.SizedBox(height: 10),
-              pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
-                pw.Text('FONDO INICIAL:', style: const pw.TextStyle(fontSize: 9)),
-                pw.Text('€${caja.fondoInicial.toStringAsFixed(2)}', style: const pw.TextStyle(fontSize: 9)),
-              ]),
-              pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
-                pw.Text('TOTAL VENTAS:', style: const pw.TextStyle(fontSize: 9)),
-                pw.Text('€${caja.totalVentas.toStringAsFixed(2)}', style: const pw.TextStyle(fontSize: 9)),
-              ]),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(
+                    'FONDO INICIAL:',
+                    style: const pw.TextStyle(fontSize: 9),
+                  ),
+                  pw.Text(
+                    '€${caja.fondoInicial.toStringAsFixed(2)}',
+                    style: const pw.TextStyle(fontSize: 9),
+                  ),
+                ],
+              ),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(
+                    'TOTAL VENTAS:',
+                    style: const pw.TextStyle(fontSize: 9),
+                  ),
+                  pw.Text(
+                    '€${caja.totalVentas.toStringAsFixed(2)}',
+                    style: const pw.TextStyle(fontSize: 9),
+                  ),
+                ],
+              ),
               pw.Divider(thickness: 1),
-              pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
-                pw.Text('SALDO FINAL:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-                pw.Text('€${caja.saldoCaja.toStringAsFixed(2)}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-              ]),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(
+                    'SALDO FINAL:',
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 10,
+                    ),
+                  ),
+                  pw.Text(
+                    '€${caja.saldoCaja.toStringAsFixed(2)}',
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
               pw.SizedBox(height: 20),
             ],
           );
@@ -280,8 +373,6 @@ class PrintService {
 
   static String _fmtDate(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-
-
 
   static Future<void> printCocinaTicket({
     required List<PedidoItem> items,

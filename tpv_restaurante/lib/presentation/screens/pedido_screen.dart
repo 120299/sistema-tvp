@@ -30,9 +30,17 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
   }
 
   void _crearPedido() {
-    ref.read(pedidosProvider.notifier).crear(widget.mesa.id).then((id) {
-      setState(() => _pedidoId = id);
-    });
+    final cajeroActual = ref.read(cajeroActualProvider);
+    ref
+        .read(pedidosProvider.notifier)
+        .crear(
+          widget.mesa.id,
+          cajeroId: cajeroActual?.id,
+          cajeroNombre: cajeroActual?.nombre,
+        )
+        .then((id) {
+          setState(() => _pedidoId = id);
+        });
     ref.read(mesasProvider.notifier).ocupar(widget.mesa.id, _pedidoId);
     setState(() => _pedidoCreado = true);
   }
@@ -416,9 +424,7 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.5,
@@ -558,9 +564,7 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => Container(
           padding: const EdgeInsets.all(24),

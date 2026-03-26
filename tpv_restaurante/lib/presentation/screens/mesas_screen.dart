@@ -547,9 +547,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
   void _mostrarOpcionesMesa(BuildContext context, Mesa mesa) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -695,7 +693,14 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
   }
 
   void _abrirMesa(Mesa mesa) async {
-    final pedidoId = await ref.read(pedidosProvider.notifier).crear(mesa.id);
+    final cajeroActual = ref.read(cajeroActualProvider);
+    final pedidoId = await ref
+        .read(pedidosProvider.notifier)
+        .crear(
+          mesa.id,
+          cajeroId: cajeroActual?.id,
+          cajeroNombre: cajeroActual?.nombre,
+        );
     await ref.read(mesasProvider.notifier).ocupar(mesa.id, pedidoId);
   }
 

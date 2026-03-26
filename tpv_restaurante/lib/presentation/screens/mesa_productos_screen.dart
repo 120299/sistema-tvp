@@ -103,10 +103,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            AppColors.secondary,
-            AppColors.secondary.withOpacity(0.8),
-          ],
+          colors: [AppColors.secondary, AppColors.secondary.withOpacity(0.8)],
         ),
       ),
       child: SafeArea(
@@ -719,7 +716,14 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
     String pedidoId = mesaActual.pedidoActualId ?? '';
 
     if (pedidoId.isEmpty) {
-      pedidoId = await ref.read(pedidosProvider.notifier).crear(widget.mesa.id);
+      final cajeroActual = ref.read(cajeroActualProvider);
+      pedidoId = await ref
+          .read(pedidosProvider.notifier)
+          .crear(
+            widget.mesa.id,
+            cajeroId: cajeroActual?.id,
+            cajeroNombre: cajeroActual?.nombre,
+          );
       await ref.read(mesasProvider.notifier).ocupar(widget.mesa.id, pedidoId);
     }
 
@@ -750,9 +754,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       builder: (ctx) => _EditarItemSheet(
         item: item,
         onGuardar: (cantidad, precio, notas) async {
@@ -844,9 +846,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
 
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       builder: (context) => _CobroSheet(
         total: total,
         onCobrar: (metodoPago) async {

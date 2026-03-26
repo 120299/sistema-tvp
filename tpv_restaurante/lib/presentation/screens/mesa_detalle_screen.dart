@@ -776,7 +776,14 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
   }
 
   void _nuevoPedido(Mesa mesa) async {
-    final pedidoId = await ref.read(pedidosProvider.notifier).crear(mesa.id);
+    final cajeroActual = ref.read(cajeroActualProvider);
+    final pedidoId = await ref
+        .read(pedidosProvider.notifier)
+        .crear(
+          mesa.id,
+          cajeroId: cajeroActual?.id,
+          cajeroNombre: cajeroActual?.nombre,
+        );
     await ref.read(mesasProvider.notifier).ocupar(mesa.id, pedidoId);
 
     if (mounted) {
@@ -869,9 +876,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       builder: (context) => _CobroDialog(
         total: pedido.total,
         onPago: (metodoPago) => _procesarPago(mesa, pedido, metodoPago),
