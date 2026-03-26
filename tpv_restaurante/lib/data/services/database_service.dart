@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
-import '../../core/theme/app_theme.dart';
 import '../models/models.dart';
 import '../adapters/hive_adapters.dart';
 import '../repositories/repositories.dart';

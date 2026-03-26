@@ -5,13 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../../presentation/providers/providers.dart';
-import 'database_service.dart';
 
 class BackupService {
-  final DatabaseService _db;
   final WidgetRef _ref;
 
-  BackupService(this._db, this._ref);
+  BackupService(this._ref);
 
   Future<String> crearBackup() async {
     final datos = <String, dynamic>{

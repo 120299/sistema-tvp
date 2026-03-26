@@ -382,26 +382,6 @@ class TicketPrintHelper {
     );
   }
 
-  static void _printTicket(
-    List<PedidoItem> items,
-    double subtotal,
-    double ivaPorcentaje,
-    String metodoPago,
-    DatosNegocio negocio,
-    String? mesaNumero,
-    double porcentajePropina,
-  ) async {
-    await PrintService.printTicket(
-      items: items,
-      subtotal: subtotal,
-      ivaPorcentaje: ivaPorcentaje,
-      metodoPago: metodoPago,
-      negocio: negocio,
-      mesaNumero: mesaNumero,
-      porcentajePropina: porcentajePropina,
-    );
-  }
-
   static String generateNumeroTicket(DateTime fecha, String pedidoId) {
     final year = fecha.year.toString().substring(2);
     final month = fecha.month.toString().padLeft(2, '0');
@@ -443,8 +423,6 @@ class _TicketPrintDialog extends StatefulWidget {
 }
 
 class _TicketPrintDialogState extends State<_TicketPrintDialog> {
-  bool _vistaPreviaActiva = false;
-
   void _abrirPrevisualizacionPdf() async {
     await PrintService.previewTicket(
       context: context,

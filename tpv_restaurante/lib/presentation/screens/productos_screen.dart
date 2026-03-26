@@ -147,25 +147,6 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     );
   }
 
-  Widget _buildStatItem(String value, String label) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white70, fontSize: 11),
-        ),
-      ],
-    );
-  }
-
   Widget _buildToolbar(
     String busqueda,
     String? categoriaSeleccionada,
@@ -447,7 +428,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.black45,
-                          borderRadius: BorderRadius.zero,
+                        borderRadius: BorderRadius.zero,
                       ),
                       child: const Center(
                         child: Text(
@@ -610,9 +591,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.5,

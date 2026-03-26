@@ -57,7 +57,6 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final negocio = ref.watch(negocioProvider);
     final pedidosNotifier = ref.watch(pedidosProvider.notifier);
     final cajeros = ref.watch(cajerosProvider);
     final cajeroActual = ref.watch(cajeroActualProvider);
@@ -476,10 +475,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.zero,
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-            ),
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
           ],
         ),
         child: Center(
@@ -513,10 +509,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.zero,
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
         ],
       ),
       child: Column(
@@ -661,10 +654,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.zero,
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-            ),
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
           ],
         ),
         child: Column(
@@ -675,12 +665,13 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const Spacer(),
-            Icon(Icons.pie_chart_outline, size: 48, color: Colors.grey.shade300),
-            const SizedBox(height: 12),
-            Text(
-              'Sin datos',
-              style: TextStyle(color: Colors.grey.shade500),
+            Icon(
+              Icons.pie_chart_outline,
+              size: 48,
+              color: Colors.grey.shade300,
             ),
+            const SizedBox(height: 12),
+            Text('Sin datos', style: TextStyle(color: Colors.grey.shade500)),
             const Spacer(),
           ],
         ),
@@ -711,10 +702,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.zero,
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
         ],
       ),
       child: Column(
@@ -744,49 +732,50 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                   children: ventasPorMetodo.entries
                       .where((e) => e.value > 0)
                       .map((e) {
-                    final porcentaje = (e.value / total * 100);
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 10,
-                            height: 10,
-                            color: colores[e.key] ?? Colors.grey,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              e.key,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                        final porcentaje = (e.value / total * 100);
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Row(
                             children: [
-                              Text(
-                                '€${e.value.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                              Container(
+                                width: 10,
+                                height: 10,
+                                color: colores[e.key] ?? Colors.grey,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  e.key,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                              Text(
-                                '${porcentaje.toStringAsFixed(1)}%',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey.shade600,
-                                ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '€${e.value.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${porcentaje.toStringAsFixed(1)}%',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+                        );
+                      })
+                      .toList(),
                 ),
               ),
             ],
@@ -805,10 +794,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.zero,
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-            ),
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
           ],
         ),
         child: Center(
@@ -828,10 +814,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.zero,
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
         ],
       ),
       child: Column(
@@ -893,10 +876,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.zero,
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
         ],
       ),
       child: Column(
@@ -929,12 +909,17 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                     ),
                     Text(
                       DateFormat('dd/MM').format(p.horaApertura),
-                      style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ],
                 ),
                 title: Text(
-                  p.items.map((i) => '${i.cantidad}x ${i.productoNombre}').join(', '),
+                  p.items
+                      .map((i) => '${i.cantidad}x ${i.productoNombre}')
+                      .join(', '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 12),
@@ -942,7 +927,9 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                 subtitle: Row(
                   children: [
                     Icon(
-                      p.metodoPago == 'Tarjeta' ? Icons.credit_card : Icons.payments,
+                      p.metodoPago == 'Tarjeta'
+                          ? Icons.credit_card
+                          : Icons.payments,
                       size: 12,
                       color: Colors.grey,
                     ),

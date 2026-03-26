@@ -13,7 +13,6 @@ import 'configuracion_screen.dart';
 import 'caja_screen.dart';
 import 'clientes_screen.dart';
 import 'usuarios_screen.dart';
-import 'backup_screen.dart';
 
 class AppShell extends ConsumerWidget {
   const AppShell({super.key});

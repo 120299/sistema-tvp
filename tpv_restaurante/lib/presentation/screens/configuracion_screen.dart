@@ -391,185 +391,6 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
     );
   }
 
-  Widget _buildUbicacionTile(
-    String title,
-    String subtitle,
-    IconData icon,
-    UbicacionAlmacenamiento value,
-  ) {
-    final currentValue = ref.watch(ubicacionAlmacenamientoProvider);
-    final isSelected = currentValue == value;
-
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withOpacity(0.1)
-              : Colors.grey.shade100,
-          borderRadius: BorderRadius.zero,
-        ),
-        child: Icon(icon, color: isSelected ? AppColors.primary : Colors.grey),
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? AppColors.primary : null,
-        ),
-      ),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
-      trailing: isSelected
-          ? const Icon(Icons.check_circle, color: AppColors.primary)
-          : const Icon(Icons.circle_outlined, color: Colors.grey),
-      onTap: () {
-        ref.read(ubicacionAlmacenamientoProvider.notifier).state = value;
-      },
-    );
-  }
-
-  void _cambiarUbicacion() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.folder_open, color: AppColors.primary),
-            SizedBox(width: 12),
-            Text('Cambiar ubicación'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Selecciona la nueva ubicación para los datos:',
-              style: TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.phone_android),
-              title: const Text('Documentos/TPV_Datos'),
-              subtitle: const Text('Ubicación predeterminada'),
-              trailing: Radio<UbicacionAlmacenamiento>(
-                value: UbicacionAlmacenamiento.local,
-                groupValue: ref.read(ubicacionAlmacenamientoProvider),
-                onChanged: (v) {
-                  ref.read(ubicacionAlmacenamientoProvider.notifier).state = v!;
-                  Navigator.pop(ctx);
-                },
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.usb),
-              title: const Text('USB/TPV_Datos'),
-              subtitle: const Text('Dispositivo USB o SD'),
-              trailing: Radio<UbicacionAlmacenamiento>(
-                value: UbicacionAlmacenamiento.usb,
-                groupValue: ref.read(ubicacionAlmacenamientoProvider),
-                onChanged: (v) {
-                  ref.read(ubicacionAlmacenamientoProvider.notifier).state = v!;
-                  Navigator.pop(ctx);
-                },
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.folder_special),
-              title: const Text('Personalizado'),
-              subtitle: const Text('Seleccionar carpeta'),
-              trailing: Radio<UbicacionAlmacenamiento>(
-                value: UbicacionAlmacenamiento.personalizado,
-                groupValue: ref.read(ubicacionAlmacenamientoProvider),
-                onChanged: (v) async {
-                  ref.read(ubicacionAlmacenamientoProvider.notifier).state = v!;
-                  Navigator.pop(ctx);
-                  _mostrarDialogoRutaPersonalizada();
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.1),
-                borderRadius: BorderRadius.zero,
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.info_outline, color: AppColors.warning, size: 20),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'El cambio de ubicación se aplicará al reiniciar la app',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cerrar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _mostrarDialogoRutaPersonalizada() {
-    final controller = TextEditingController(
-      text: ref.read(rutaPersonalizadaProvider) ?? '',
-    );
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.folder_special, color: AppColors.primary),
-            SizedBox(width: 12),
-            Text('Ruta personalizada'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Introduce la ruta de la carpeta:'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'Ruta',
-                hintText: 'Ej: C:\\DatosTPV o /home/user/tpv',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.folder),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              ref.read(rutaPersonalizadaProvider.notifier).state = controller
-                  .text
-                  .trim();
-              Navigator.pop(ctx);
-            },
-            child: const Text('Guardar'),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _guardar() {
     if (_formKey.currentState!.validate()) {
       final negocio = DatosNegocio(
@@ -615,8 +436,7 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
 
   void _crearBackup() async {
     try {
-      final db = ref.read(databaseServiceProvider);
-      final backupService = BackupService(db, ref);
+      final backupService = BackupService(ref);
 
       showDialog(
         context: context,
@@ -703,8 +523,7 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
 
   Future<void> _restaurarBackup(String rutaArchivo) async {
     try {
-      final db = ref.read(databaseServiceProvider);
-      final backupService = BackupService(db, ref);
+      final backupService = BackupService(ref);
 
       final exito = await backupService.restaurarBackup(rutaArchivo);
 

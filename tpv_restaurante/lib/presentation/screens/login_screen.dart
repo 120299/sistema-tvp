@@ -26,7 +26,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   bool _bloqueado = false;
   bool _recordarme = true;
   bool _cargando = true;
-  bool _dropdownAbierto = false;
   final TextEditingController _busquedaController = TextEditingController();
 
   late AnimationController _shakeController;

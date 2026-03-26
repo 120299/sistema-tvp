@@ -60,8 +60,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     final todasMesas = ref.watch(mesasProvider);
     final todosProductos = ref.watch(productosProvider);
 
-    final cajaAbierta = caja != null && caja.estado == EstadoCaja.abierta;
-
     final mesasDisponibles = todasMesas
         .where((m) => m.estado == EstadoMesa.libre)
         .toList();
@@ -216,7 +214,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     Caja? caja,
     bool isWide = true,
   }) {
-    final total = _carrito.fold<double>(0, (sum, item) => sum + item.subtotal);
     final totalItems = _carrito.fold<int>(
       0,
       (sum, item) => sum + item.cantidad,

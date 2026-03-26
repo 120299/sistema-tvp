@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
-import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
 
 class MesasScreen extends ConsumerStatefulWidget {
@@ -882,51 +881,6 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
 
     ref.read(mesaVentaSeleccionadaProvider.notifier).state = mesa.id;
     ref.read(indiceNavegacionProvider.notifier).state = 0;
-  }
-
-  Future<void> _procesarCobroMesa(
-    Mesa mesa,
-    Pedido pedido,
-    Map<String, double> metodosPago,
-    DatosNegocio negocio,
-  ) async {
-    final metodoPrincipal = metodosPago.keys.first;
-
-    await ref.read(pedidosProvider.notifier).cerrar(pedido.id, metodoPrincipal);
-    await ref.read(mesasProvider.notifier).liberar(mesa.id);
-    await ref
-        .read(cajaProvider.notifier)
-        .registrarVenta(pedido.total, metodoPrincipal, pedidoId: pedido.id);
-
-    if (pedido.clienteId != null) {
-      await ref
-          .read(clientesProvider.notifier)
-          .registrarVenta(pedido.clienteId!, pedido.total);
-    }
-
-    final metodoTexto = metodosPago.entries
-        .map((e) => '${e.key}: ${e.value.toStringAsFixed(2)}€')
-        .join(' + ');
-
-    await PrintService.previewTicket(
-      context: context,
-      items: pedido.items,
-      subtotal: pedido.subtotal,
-      ivaPorcentaje: negocio.ivaPorcentaje,
-      metodoPago: metodoTexto,
-      negocio: negocio,
-      mesaNumero: mesa.numero.toString(),
-      cajeroNombre: pedido.cajeroNombre,
-      clienteNombre: pedido.clienteNombre,
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Venta completada'),
-        backgroundColor: AppColors.success,
-        duration: Duration(seconds: 1),
-      ),
-    );
   }
 
   void _cancelarMesa(Mesa mesa) {

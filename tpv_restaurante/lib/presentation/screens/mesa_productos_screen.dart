@@ -773,10 +773,6 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                 .indexWhere((p) => p.id == mesaActual.pedidoActualId);
             if (pedidoIndex >= 0) {
               final pedido = ref.read(pedidosProvider)[pedidoIndex];
-              final pedidoItem = pedido.items.firstWhere(
-                (i) => i.id == item.id,
-                orElse: () => item,
-              );
               final itemsActualizados = pedido.items.map((i) {
                 if (i.id == item.id)
                   return PedidoItem(
@@ -823,7 +819,6 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
         .firstWhere((m) => m.id == widget.mesa.id);
     if (mesaActual.pedidoActualId == null) return;
 
-    final negocio = ref.read(negocioProvider);
     final pedidoActual = _getPedidoActual();
 
     await ref
@@ -879,28 +874,6 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
         },
       ),
     );
-  }
-
-  void _imprimirCocina() async {
-    final mesaActual = ref
-        .read(mesasProvider)
-        .firstWhere((m) => m.id == widget.mesa.id);
-    if (mesaActual.pedidoActualId == null) {
-      _mostrarMensaje('No hay pedido');
-      return;
-    }
-
-    final pedidoActual = _getPedidoActual();
-    if (pedidoActual.isEmpty) {
-      _mostrarMensaje('No hay productos');
-      return;
-    }
-
-    await PrintService.printCocinaTicket(
-      items: pedidoActual,
-      mesaNumero: widget.mesa.numero.toString(),
-    );
-    _mostrarMensaje('Ticket de cocina impreso');
   }
 }
 
