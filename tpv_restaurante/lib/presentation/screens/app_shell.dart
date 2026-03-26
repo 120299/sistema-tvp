@@ -13,6 +13,7 @@ import 'configuracion_screen.dart';
 import 'caja_screen.dart';
 import 'clientes_screen.dart';
 import 'usuarios_screen.dart';
+import 'package:window_manager/window_manager.dart';
 
 class AppShell extends ConsumerWidget {
   final VoidCallback? onLogout;
@@ -334,6 +335,35 @@ class AppShell extends ConsumerWidget {
             label: 'Config',
             isSelected: indiceActual == 7,
             onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 7,
+            mostrarTexto: mostrarTexto,
+          ),
+          const Spacer(),
+          _buildMenuVerticalItem(
+            icon: Icons.exit_to_app,
+            label: 'Salir',
+            isSelected: false,
+            onTap: () async {
+              final confirmar = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Salir'),
+                  content: const Text('¿Salir de la aplicación?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancelar'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Salir'),
+                    ),
+                  ],
+                ),
+              );
+              if (confirmar == true) {
+                exit(0);
+              }
+            },
             mostrarTexto: mostrarTexto,
           ),
         ],

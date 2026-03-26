@@ -158,14 +158,6 @@ class TicketWidget extends StatelessWidget {
           _buildTotals(),
           Divider(thickness: 2, height: 2),
           _buildTotal(),
-          SizedBox(height: isCompact ? 2 : 4),
-          Text(
-            'Pago: ${metodoPago.toUpperCase()}',
-            style: TextStyle(
-              fontSize: fontSizeSmall,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
           SizedBox(height: isCompact ? 8 : 12),
           _buildFooter(),
           SizedBox(height: isCompact ? 4 : 8),

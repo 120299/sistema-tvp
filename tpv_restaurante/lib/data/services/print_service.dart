@@ -236,8 +236,6 @@ class PrintService {
                 totalFinal: totalFinal,
               ),
               pw.SizedBox(height: 4),
-              _buildMetodoPago(metodoPago),
-              pw.SizedBox(height: 4),
               pw.Divider(thickness: 0.5),
               _buildFooter(
                 clienteNombre: clienteNombre,
