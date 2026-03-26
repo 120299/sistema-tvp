@@ -67,7 +67,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
       fechaInicio: _fechaInicio,
       fechaFin: _fechaFin,
       metodoPago: _filtroMetodo != 'Todos' ? _filtroMetodo : null,
-      cajeroId: isAdmin ? _filtroCajero : null,
+      cajeroId: isAdmin ? _filtroCajero : (cajeroActual?.id),
     );
 
     final totalVentas = pedidosFiltrados.fold<double>(
@@ -94,7 +94,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
 
             return Column(
               children: [
-                _buildFiltros(context, cajeros, isAdmin),
+                _buildFiltros(context, cajeros, isAdmin, cajeroActual),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(20),
@@ -145,13 +145,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
           children: [
             Expanded(
               flex: 2,
-              child: Column(
-                children: [
-                  _buildListadoPedidos(pedidosFiltrados),
-                  const SizedBox(height: 20),
-                  _buildAccionesExport(pedidosFiltrados, totalVentas),
-                ],
-              ),
+              child: Column(children: [_buildListadoPedidos(pedidosFiltrados)]),
             ),
             const SizedBox(width: 20),
             Expanded(
@@ -191,8 +185,6 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         ),
         const SizedBox(height: 20),
         _buildListadoPedidos(pedidosFiltrados),
-        const SizedBox(height: 20),
-        _buildAccionesExport(pedidosFiltrados, totalVentas),
       ],
     );
   }
@@ -201,6 +193,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     BuildContext context,
     List<Cajero> cajeros,
     bool isAdmin,
+    Cajero? cajeroActual,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -346,6 +339,30 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                         onChanged: (v) {
                           setState(() => _filtroCajero = v);
                         },
+                      ),
+                    ),
+                  ),
+                ),
+              ] else ...[
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.zero,
+                      color: Colors.grey.shade100,
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: cajeroActual?.nombre ?? 'Cajero',
+                        isExpanded: true,
+                        items: [
+                          DropdownMenuItem(
+                            value: cajeroActual?.nombre ?? 'Cajero',
+                            child: Text(cajeroActual?.nombre ?? 'Cajero'),
+                          ),
+                        ],
+                        onChanged: null,
                       ),
                     ),
                   ),

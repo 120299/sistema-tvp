@@ -228,18 +228,6 @@ class PrintService {
                 montoPropina: montoPropina,
                 totalFinal: totalFinal,
               ),
-              pw.SizedBox(height: 4),
-              pw.Container(
-                padding: const pw.EdgeInsets.symmetric(vertical: 4),
-                decoration: pw.BoxDecoration(border: pw.Border.all()),
-                child: pw.Text(
-                  'METODO DE PAGO: ${metodoPago.toUpperCase()}',
-                  style: pw.TextStyle(
-                    fontSize: 11,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-              ),
               pw.SizedBox(height: 6),
               pw.Divider(thickness: 0.5),
               _buildFooter(
@@ -417,6 +405,7 @@ class PrintService {
                 style: const pw.TextStyle(fontSize: 9),
               ),
               pw.SizedBox(height: 10),
+              // Fondo Inicial
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
@@ -425,11 +414,36 @@ class PrintService {
                     style: const pw.TextStyle(fontSize: 9),
                   ),
                   pw.Text(
-                    '€${caja.fondoInicial.toStringAsFixed(2)}',
+                    '${caja.fondoInicial.toStringAsFixed(2)} EUR',
                     style: const pw.TextStyle(fontSize: 9),
                   ),
                 ],
               ),
+              pw.SizedBox(height: 6),
+              // Ventas en Efectivo
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('EFECTIVO:', style: const pw.TextStyle(fontSize: 9)),
+                  pw.Text(
+                    '${caja.totalEfectivo.toStringAsFixed(2)} EUR',
+                    style: const pw.TextStyle(fontSize: 9),
+                  ),
+                ],
+              ),
+              // Ventas en Tarjeta
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('TARJETA:', style: const pw.TextStyle(fontSize: 9)),
+                  pw.Text(
+                    '${caja.totalTarjeta.toStringAsFixed(2)} EUR',
+                    style: const pw.TextStyle(fontSize: 9),
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 6),
+              // Total Ventas
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
@@ -438,24 +452,25 @@ class PrintService {
                     style: const pw.TextStyle(fontSize: 9),
                   ),
                   pw.Text(
-                    '€${caja.totalVentas.toStringAsFixed(2)}',
+                    '${caja.totalVentas.toStringAsFixed(2)} EUR',
                     style: const pw.TextStyle(fontSize: 9),
                   ),
                 ],
               ),
               pw.Divider(thickness: 1),
+              // Saldo Final
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text(
-                    'SALDO FINAL:',
+                    'SALDO CAJA:',
                     style: pw.TextStyle(
                       fontWeight: pw.FontWeight.bold,
                       fontSize: 10,
                     ),
                   ),
                   pw.Text(
-                    '€${caja.saldoCaja.toStringAsFixed(2)}',
+                    '${caja.saldoCaja.toStringAsFixed(2)} EUR',
                     style: pw.TextStyle(
                       fontWeight: pw.FontWeight.bold,
                       fontSize: 10,
@@ -538,7 +553,7 @@ class PrintService {
                         ),
                       ),
                       pw.Text(
-                        '${mov.tipo == "venta" || mov.tipo == "ingreso" ? "+" : "-"}€${mov.cantidad.toStringAsFixed(2)}',
+                        '${mov.tipo == "venta" || mov.tipo == "ingreso" ? "+" : "-"}${mov.cantidad.toStringAsFixed(2)} EUR',
                         style: pw.TextStyle(
                           fontSize: 9,
                           fontWeight: pw.FontWeight.bold,
@@ -641,7 +656,7 @@ class PrintService {
                 ),
                 decoration: pw.BoxDecoration(border: pw.Border.all()),
                 child: pw.Text(
-                  '${esIngreso ? "+" : "-"}€${movimiento.cantidad.toStringAsFixed(2)}',
+                  '${esIngreso ? "+" : "-"}${movimiento.cantidad.toStringAsFixed(2)} EUR',
                   style: pw.TextStyle(
                     fontSize: 16,
                     fontWeight: pw.FontWeight.bold,
@@ -836,17 +851,6 @@ class PrintService {
             pw.SizedBox(
               width: 45,
               child: pw.Text(
-                'P.UNIT',
-                style: pw.TextStyle(
-                  fontSize: 8,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-                textAlign: pw.TextAlign.right,
-              ),
-            ),
-            pw.SizedBox(
-              width: 45,
-              child: pw.Text(
                 'IMP.',
                 style: pw.TextStyle(
                   fontSize: 8,
@@ -889,7 +893,7 @@ class PrintService {
                   width: 45,
                   child: pw.Text(
                     // Calculamos el total de la línea (Cantidad * Precio)
-                    '${(item.cantidad * item.precioUnitario).toStringAsFixed(2)} €',
+                    '${(item.cantidad * item.precioUnitario).toStringAsFixed(2)} EUR',
                     style: pw.TextStyle(
                       fontSize: 9,
                       fontWeight: pw.FontWeight.bold,
@@ -921,7 +925,7 @@ class PrintService {
           children: [
             pw.Text('Base imponible: ', style: const pw.TextStyle(fontSize: 9)),
             pw.Text(
-              '${baseImponible.toStringAsFixed(2)} €',
+              '${baseImponible.toStringAsFixed(2)} EUR',
               style: const pw.TextStyle(fontSize: 9),
             ),
           ],
@@ -934,7 +938,7 @@ class PrintService {
               style: const pw.TextStyle(fontSize: 9),
             ),
             pw.Text(
-              '${importeIva.toStringAsFixed(2)} €',
+              '${importeIva.toStringAsFixed(2)} EUR',
               style: const pw.TextStyle(fontSize: 9),
             ),
           ],
@@ -945,7 +949,7 @@ class PrintService {
             children: [
               pw.Text('Propina: ', style: const pw.TextStyle(fontSize: 9)),
               pw.Text(
-                '${montoPropina.toStringAsFixed(2)} €',
+                '${montoPropina.toStringAsFixed(2)} EUR',
                 style: const pw.TextStyle(fontSize: 9),
               ),
             ],

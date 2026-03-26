@@ -942,12 +942,12 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
         }
 
         return GridView.builder(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(8),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.0,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 0.7,
           ),
           itemCount: productos.length,
           itemBuilder: (context, index) {
@@ -964,32 +964,10 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
   }
 
   Widget _buildProductCard(Producto producto, CategoriaProducto categoria) {
-    // Determinar flex adaptativo según longitud del título
-    final int tituloLength = producto.nombre.length;
-    final int imageFlex;
-    final int textFlex;
-    final int maxLines;
-
-    if (tituloLength < 20) {
-      // Título corto: más imagen
-      imageFlex = 4;
-      textFlex = 2;
-      maxLines = 1;
-    } else if (tituloLength > 40) {
-      // Título largo: menos imagen, más espacio para texto
-      imageFlex = 2;
-      textFlex = 3;
-      maxLines = 3;
-    } else {
-      // Título mediano: equilibrio
-      imageFlex = 3;
-      textFlex = 2;
-      maxLines = 2;
-    }
-
     return Card(
       clipBehavior: Clip.antiAlias,
       elevation: 1,
+      margin: EdgeInsets.zero,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       child: InkWell(
         onTap: () => _editarProducto(context, producto),
@@ -997,20 +975,14 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              flex: imageFlex,
+              flex: 3,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.zero,
-                    child: _buildProductImage(producto, categoria),
-                  ),
+                  _buildProductImage(producto, categoria),
                   if (!producto.disponible)
                     Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black45,
-                        borderRadius: BorderRadius.zero,
-                      ),
+                      color: Colors.black45,
                       child: const Center(
                         child: Text(
                           'AGOTADO',
@@ -1023,8 +995,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                     ),
                   if (producto.esAlergenico)
                     Positioned(
-                      top: 6,
-                      left: 6,
+                      top: 4,
+                      left: 4,
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
@@ -1033,15 +1005,15 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                         ),
                         child: const Icon(
                           Icons.warning_amber,
-                          size: 14,
+                          size: 12,
                           color: Colors.white,
                         ),
                       ),
                     ),
                   if (producto.esVariable)
                     Positioned(
-                      top: 6,
-                      right: 6,
+                      top: 4,
+                      right: 4,
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
@@ -1050,7 +1022,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                         ),
                         child: const Icon(
                           Icons.tune,
-                          size: 14,
+                          size: 12,
                           color: Colors.white,
                         ),
                       ),
@@ -1058,46 +1030,42 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                 ],
               ),
             ),
-            Expanded(
-              flex: textFlex,
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        producto.nombre,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: producto.disponible ? null : Colors.grey,
+            Container(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    producto.nombre,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: producto.disponible ? null : Colors.grey,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildPrecioProducto(producto),
+                      InkWell(
+                        onTap: () => _toggleDisponibilidad(producto),
+                        child: Icon(
+                          producto.disponible
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          size: 16,
+                          color: producto.disponible
+                              ? Colors.grey
+                              : AppColors.success,
                         ),
-                        maxLines: maxLines,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildPrecioProducto(producto),
-                        InkWell(
-                          onTap: () => _toggleDisponibilidad(producto),
-                          child: Icon(
-                            producto.disponible
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            size: 20,
-                            color: producto.disponible
-                                ? Colors.grey
-                                : AppColors.success,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
@@ -1235,7 +1203,6 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
   Widget _buildPrecioProducto(Producto producto, {bool compact = false}) {
     final color = producto.disponible ? AppColors.secondary : Colors.grey;
 
-    // Si es variable y precio base es 0, mostrar rango de precios de variantes
     if (producto.esVariable &&
         producto.precio == 0 &&
         (producto.variantes?.isNotEmpty ?? false)) {
@@ -1246,8 +1213,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
       if (compact) {
         return Text(
           precioMin == precioMax
-              ? '${precioMin.toStringAsFixed(2)} €'
-              : 'Desde ${precioMin.toStringAsFixed(2)} €',
+              ? '${precioMin.toStringAsFixed(2)} EUR'
+              : 'Desde ${precioMin.toStringAsFixed(2)} EUR',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
@@ -1262,38 +1229,29 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
         children: [
           if (precioMin == precioMax)
             Text(
-              '${precioMin.toStringAsFixed(2)} €',
+              '${precioMin.toStringAsFixed(2)} EUR',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             )
           else
             Text(
-              '${precioMin.toStringAsFixed(2)} - ${precioMax.toStringAsFixed(2)} €',
+              '${precioMin.toStringAsFixed(2)} - ${precioMax.toStringAsFixed(2)} EUR',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
-          Text(
-            '${producto.variantes!.length} variantes',
-            style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
-          ),
         ],
       );
     }
 
-    // Precio normal
     return Text(
-      '${producto.precio.toStringAsFixed(2)} €',
-      style: TextStyle(
-        fontSize: compact ? 13 : 14,
-        fontWeight: FontWeight.bold,
-        color: color,
-      ),
+      '${producto.precio.toStringAsFixed(2)} EUR',
+      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color),
     );
   }
 

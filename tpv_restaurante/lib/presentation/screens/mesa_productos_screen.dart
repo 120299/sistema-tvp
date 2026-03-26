@@ -355,15 +355,17 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        producto.nombre,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: producto.disponible ? null : Colors.grey,
+                      Expanded(
+                        child: Text(
+                          producto.nombre,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: producto.disponible ? null : Colors.grey,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         '${producto.precio.toStringAsFixed(2)} €',

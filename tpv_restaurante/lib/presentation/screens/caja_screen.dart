@@ -401,8 +401,143 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
         .fold<double>(0, (sum, p) => sum + p.total);
     final totalVentas = efectivo + tarjeta;
 
+    final horaApertura = caja.fechaApertura;
+    final tiempoAbierta = DateTime.now().difference(horaApertura);
+    final horas = tiempoAbierta.inHours;
+    final minutos = tiempoAbierta.inMinutes % 60;
+
     return Column(
       children: [
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.success, AppColors.success.withOpacity(0.8)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.zero,
+                    ),
+                    child: const Icon(
+                      Icons.lock_open,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Caja Abierta',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${caja.cajeroNombre ?? 'Cajero'} • Abierta hace ${horas}h ${minutos}m',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => setState(() => _mostrarHistorial = true),
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.zero,
+                      ),
+                      child: const Icon(Icons.history, color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.zero,
+                ),
+                child: Column(
+                  children: [
+                    // Fila 1: Fondo Inicial
+                    _buildSaldoCard(
+                      'Fondo Inicial',
+                      caja.fondoInicial,
+                      Icons.account_balance_wallet,
+                      Colors.grey,
+                    ),
+                    const SizedBox(height: 12),
+                    // Fila 2: Ventas en Efectivo y Tarjeta
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildSaldoCard(
+                            'Venta en Efectivo',
+                            efectivo,
+                            Icons.money,
+                            Colors.green,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildSaldoCard(
+                            'Venta en Tarjeta',
+                            tarjeta,
+                            Icons.credit_card,
+                            Colors.blue,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Fila 3: Total Ventas y Saldo en Caja
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildSaldoCard(
+                            'Total Ventas',
+                            totalVentas,
+                            Icons.trending_up,
+                            AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildSaldoCard(
+                            'Saldo en Caja',
+                            caja.saldoCaja,
+                            Icons.inventory_2,
+                            Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -410,86 +545,18 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
               children: [
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.success.withOpacity(0.1),
-                        borderRadius: BorderRadius.zero,
-                      ),
-                      child: const Icon(
-                        Icons.point_of_sale,
-                        color: AppColors.success,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'CAJA ABIERTA',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            '${caja.cajeroNombre ?? 'Cajero'} - ${_formatTime(caja.fechaApertura)}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => setState(() => _mostrarHistorial = true),
-                      icon: const Icon(Icons.history),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard('EFECTIVO', efectivo, Colors.green),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildStatCard('TARJETA', tarjeta, Colors.blue),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildStatCard(
-                        'TOTAL',
-                        totalVentas,
-                        AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildStatCard(
-                        'SALDO CAJA',
-                        caja.saldoCaja,
-                        Colors.orange,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
                     Expanded(
                       child: _buildAccionButton(
-                        Icons.add,
+                        Icons.add_circle,
                         'Ingreso',
                         AppColors.success,
                         () => _mostrarDialogoIngreso(caja),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: _buildAccionButton(
-                        Icons.remove,
+                        Icons.remove_circle,
                         'Retiro',
                         AppColors.error,
                         () => _mostrarDialogoRetiro(caja),
@@ -497,7 +564,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 if (esAdmin)
                   SizedBox(
                     width: double.infinity,
@@ -507,7 +574,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                       label: const Text('CERRAR CAJA'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.warning,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.zero,
                         ),
@@ -521,6 +588,59 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSaldoCard(
+    String label,
+    double valor,
+    IconData icono,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.zero,
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              borderRadius: BorderRadius.zero,
+            ),
+            child: Icon(icono, color: color, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '€${valor.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -564,20 +684,23 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color,
           borderRadius: BorderRadius.zero,
-          border: Border.all(color: color.withOpacity(0.3)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icono, color: color, size: 20),
-            const SizedBox(width: 8),
+            Icon(icono, color: Colors.white, size: 24),
+            const SizedBox(width: 10),
             Text(
               texto,
-              style: TextStyle(color: color, fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
           ],
         ),
@@ -750,26 +873,6 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                           },
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () async {
-                                  final negocio = ref.read(negocioProvider);
-                                  await PrintService.imprimirMovimientosAutomatico(
-                                    negocio: negocio,
-                                    movimientos: movimientos.toList(),
-                                  );
-                                },
-                                icon: const Icon(Icons.print, size: 18),
-                                label: const Text('Imprimir Movimientos'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
           ),
@@ -782,179 +885,313 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
     final historial = ref.watch(cajasHistorialProvider);
     final historialFiltrado = _filtrarHistorial(historial);
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
+    return Container(
+      color: AppColors.lightBackground,
       child: Column(
         children: [
-          Row(
-            children: [
-              IconButton(
-                onPressed: () => setState(() => _mostrarHistorial = false),
-                icon: const Icon(Icons.arrow_back),
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'HISTORIAL DE CAJAS',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  letterSpacing: 1,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Filtros de período
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+          // Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+            ),
             child: Row(
               children: [
-                _buildPeriodoChipHistorial('Hoy', 'hoy'),
+                IconButton(
+                  onPressed: () => setState(() => _mostrarHistorial = false),
+                  icon: const Icon(Icons.arrow_back),
+                ),
                 const SizedBox(width: 8),
-                _buildPeriodoChipHistorial('Semana', 'semana'),
-                const SizedBox(width: 8),
-                _buildPeriodoChipHistorial('Mes', 'mes'),
-                const SizedBox(width: 8),
-                _buildPeriodoChipHistorial('Trimestre', 'trimestre'),
-                const SizedBox(width: 8),
-                _buildPeriodoChipHistorial('Año', 'ano'),
-                const SizedBox(width: 8),
-                _buildPeriodoChipHistorial('Todos', 'todos'),
+                const Text(
+                  'Historial de Cajas',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          // Filtros
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            color: Colors.white,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildPeriodoChipHistorial('Hoy', 'hoy'),
+                  const SizedBox(width: 8),
+                  _buildPeriodoChipHistorial('Semana', 'semana'),
+                  const SizedBox(width: 8),
+                  _buildPeriodoChipHistorial('Mes', 'mes'),
+                  const SizedBox(width: 8),
+                  _buildPeriodoChipHistorial('Todos', 'todos'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Lista de cajas
           Expanded(
             child: historialFiltrado.isEmpty
                 ? Center(
-                    child: Text(
-                      'Sin historial',
-                      style: TextStyle(color: Colors.grey.shade400),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.history,
+                          size: 64,
+                          color: Colors.grey.shade300,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Sin historial de cajas',
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
                     ),
                   )
-                : ListView.separated(
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
                     itemCount: historialFiltrado.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final cajaHist = historialFiltrado[index];
                       final fecha =
                           cajaHist.fechaCierre ?? cajaHist.fechaApertura;
 
                       return Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: const BoxDecoration(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
                           color: Colors.white,
-                          border: Border(
-                            left: BorderSide(
-                              color: AppColors.primary,
-                              width: 4,
+                          borderRadius: BorderRadius.zero,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
                             ),
-                          ),
+                          ],
                         ),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Fecha y Horas
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  DateFormat(
-                                    'dd MMM',
-                                  ).format(fecha).toUpperCase(),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                  ),
+                            // Header de la caja
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.primary,
+                                    AppColors.primary.withOpacity(0.8),
+                                  ],
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '${DateFormat('HH:mm').format(cajaHist.fechaApertura)} - ${cajaHist.fechaCierre != null ? DateFormat('HH:mm').format(cajaHist.fechaCierre!) : '--:--'}',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.grey.shade500,
-                                    letterSpacing: -0.2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(width: 20),
-                            // Detalles
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              ),
+                              child: Row(
                                 children: [
-                                  Text(
-                                    cajaHist.cajeroNombre ?? 'SISTEMA',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.zero,
+                                    ),
+                                    child: const Icon(
+                                      Icons.lock,
+                                      color: Colors.white,
+                                      size: 20,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          DateFormat(
+                                            'EEEE, dd MMM yyyy',
+                                          ).format(fecha).toUpperCase(),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          '${DateFormat('HH:mm').format(cajaHist.fechaApertura)} - ${cajaHist.fechaCierre != null ? DateFormat('HH:mm').format(cajaHist.fechaCierre!) : 'Abierta'}',
+                                          style: TextStyle(
+                                            color: Colors.white.withOpacity(
+                                              0.8,
+                                            ),
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    cajaHist.cajeroNombre ?? 'Sistema',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Resumen de caja
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                children: [
+                                  // Fila 1: Fondo Inicial
+                                  _buildResumenFila(
+                                    'Fondo Inicial',
+                                    cajaHist.fondoInicial,
+                                    Icons.account_balance_wallet,
+                                    Colors.grey,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // Fila 2: Efectivo y Tarjeta
                                   Row(
                                     children: [
-                                      _buildSmallBadge(
-                                        'EF:',
-                                        cajaHist.totalEfectivo,
-                                        Colors.green,
+                                      Expanded(
+                                        child: _buildResumenFila(
+                                          'Ventas en Efectivo',
+                                          cajaHist.totalEfectivo,
+                                          Icons.payments,
+                                          Colors.green,
+                                        ),
                                       ),
-                                      const SizedBox(width: 8),
-                                      _buildSmallBadge(
-                                        'TA:',
-                                        cajaHist.totalTarjeta,
-                                        Colors.blue,
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _buildResumenFila(
+                                          'Ventas en Tarjeta',
+                                          cajaHist.totalTarjeta,
+                                          Icons.credit_card,
+                                          Colors.blue,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // Fila 3: Total y Saldo
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildResumenFila(
+                                          'Total Ventas',
+                                          cajaHist.totalVentas,
+                                          Icons.trending_up,
+                                          AppColors.primary,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _buildResumenFila(
+                                          'Saldo en Caja',
+                                          cajaHist.saldoCaja,
+                                          Icons.inventory_2,
+                                          Colors.orange,
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ],
                               ),
                             ),
-                            // Total
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                const Text(
-                                  'TOTAL',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey,
-                                    letterSpacing: 0.5,
-                                  ),
+                            // Acciones
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                border: Border(
+                                  top: BorderSide(color: Colors.grey.shade200),
                                 ),
-                                Text(
-                                  '€${cajaHist.saldoCaja.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    color: AppColors.primary,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  TextButton.icon(
+                                    onPressed: () async {
+                                      final negocio = ref.read(negocioProvider);
+                                      final pdf =
+                                          await PrintService.buildCierreCajaPdf(
+                                            negocio,
+                                            cajaHist,
+                                          );
+                                      if (context.mounted) {
+                                        await PrintService.previewCierreCaja(
+                                          context: context,
+                                          pdf: pdf,
+                                        );
+                                      }
+                                    },
+                                    icon: const Icon(Icons.print, size: 18),
+                                    label: const Text('Imprimir'),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(width: 12),
-                            IconButton(
-                              icon: const Icon(Icons.print_outlined, size: 20),
-                              onPressed: () async {
-                                final negocio = ref.read(negocioProvider);
-                                final pdf =
-                                    await PrintService.buildCierreCajaPdf(
-                                      negocio,
-                                      cajaHist,
-                                    );
-                                if (context.mounted) {
-                                  await PrintService.previewCierreCaja(
-                                    context: context,
-                                    pdf: pdf,
-                                  );
-                                }
-                              },
-                              tooltip: 'Imprimir Cierre',
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       );
                     },
                   ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResumenFila(
+    String label,
+    double valor,
+    IconData icono,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.zero,
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              borderRadius: BorderRadius.zero,
+            ),
+            child: Icon(icono, color: color, size: 20),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  '€${valor.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

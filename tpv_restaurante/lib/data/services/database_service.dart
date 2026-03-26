@@ -93,6 +93,8 @@ class DatabaseService {
     cajaRepositorio = CajaRepositorio(cajaBox);
     movimientoRepositorio = MovimientoRepositorio(movimientosBox);
 
+    _initialized = true;
+
     await _seedData();
   }
 
@@ -173,6 +175,27 @@ class DatabaseService {
     await Hive.close();
     _changeController.close();
   }
+
+  // Guardar preferencia de orden de productos
+  Future<void> guardarOrdenProducto(String campo, String direccion) async {
+    if (!this.isInitialized || !this.configBox.isOpen) return;
+    await configBox.put('orden_producto_campo', campo);
+    await configBox.put('orden_producto_direccion', direccion);
+  }
+
+  // Recuperar preferencia de orden de productos
+  Map<String, String> obtenerOrdenProducto() {
+    if (!this.isInitialized || !this.configBox.isOpen) {
+      return {'campo': 'nombre', 'direccion': 'ascendente'};
+    }
+    final campo = configBox.get('orden_producto_campo') as String? ?? 'nombre';
+    final direccion =
+        configBox.get('orden_producto_direccion') as String? ?? 'ascendente';
+    return {'campo': campo, 'direccion': direccion};
+  }
+
+  bool get isInitialized => _initialized;
+  bool _initialized = false;
 
   // Reset all data and seed initial data again
   Future<void> resetAll() async {

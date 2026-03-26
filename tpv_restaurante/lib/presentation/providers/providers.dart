@@ -394,9 +394,71 @@ class OrdenProducto {
   }
 }
 
-final ordenProductoProvider = StateProvider<OrdenProducto>(
-  (ref) => const OrdenProducto(),
-);
+class OrdenProductoNotifier extends StateNotifier<OrdenProducto> {
+  OrdenProductoNotifier() : super(_cargarOrdenProductoInicial());
+
+  Future<void> setOrden(OrdenProducto orden) async {
+    state = orden;
+    await _guardarOrden(orden);
+  }
+
+  Future<void> _guardarOrden(OrdenProducto orden) async {
+    try {
+      final db = DatabaseService();
+      String campo;
+      switch (orden.campo) {
+        case TipoOrdenProducto.precio:
+          campo = 'precio';
+          break;
+        case TipoOrdenProducto.disponible:
+          campo = 'disponible';
+          break;
+        default:
+          campo = 'nombre';
+      }
+      await db.guardarOrdenProducto(campo, orden.direccion.name);
+    } catch (e) {
+      debugPrint('Error guardando orden: $e');
+    }
+  }
+}
+
+OrdenProducto _cargarOrdenProductoInicial() {
+  try {
+    final db = DatabaseService();
+    final prefs = db.obtenerOrdenProducto();
+
+    TipoOrdenProducto campo;
+    switch (prefs['campo']) {
+      case 'precio':
+        campo = TipoOrdenProducto.precio;
+        break;
+      case 'disponible':
+        campo = TipoOrdenProducto.disponible;
+        break;
+      default:
+        campo = TipoOrdenProducto.nombre;
+    }
+
+    DireccionOrden direccion;
+    switch (prefs['direccion']) {
+      case 'descendente':
+        direccion = DireccionOrden.descendente;
+        break;
+      default:
+        direccion = DireccionOrden.ascendente;
+    }
+
+    return OrdenProducto(campo: campo, direccion: direccion);
+  } catch (e) {
+    return const OrdenProducto();
+  }
+}
+
+final ordenProductoProvider =
+    StateNotifierProvider<OrdenProductoNotifier, OrdenProducto>((ref) {
+      return OrdenProductoNotifier();
+    });
 
 final productosFiltradosProvider = Provider<List<Producto>>((ref) {
   final categoriaId = ref.watch(categoriaSeleccionadaProvider);

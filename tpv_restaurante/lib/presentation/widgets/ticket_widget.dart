@@ -78,7 +78,6 @@ class TicketWidget extends StatelessWidget {
         <span>TOTAL:</span>
         <span>${totalConPropina.toStringAsFixed(2)} €</span>
       </div>
-      <div class="center">Pago: ${metodoPago.toUpperCase()}</div>
       <div class="divider"></div>
       <div class="footer">
         <div><strong>FACTURA SIMPLIFICADA</strong></div>
