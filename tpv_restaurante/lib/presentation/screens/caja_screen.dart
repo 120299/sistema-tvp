@@ -600,127 +600,166 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                       style: TextStyle(color: Colors.grey.shade400),
                     ),
                   )
-                : ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: movimientos.length,
-                    separatorBuilder: (_, __) =>
-                        Divider(height: 1, color: Colors.grey.shade200),
-                    itemBuilder: (context, index) {
-                      final mov = movimientos[index];
-                      final esIngreso =
-                          mov.tipo == 'ingreso' || mov.tipo == 'venta';
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border(
-                            left: BorderSide(
-                              color: esIngreso
-                                  ? AppColors.success
-                                  : AppColors.error,
-                              width: 3,
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
+                : Column(
+                    children: [
+                      Expanded(
+                        child: ListView.separated(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          itemCount: movimientos.length,
+                          separatorBuilder: (_, __) =>
+                              Divider(height: 1, color: Colors.grey.shade200),
+                          itemBuilder: (context, index) {
+                            final mov = movimientos[index];
+                            final esIngreso =
+                                mov.tipo == 'ingreso' || mov.tipo == 'venta';
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
                               decoration: BoxDecoration(
-                                color:
-                                    (esIngreso
-                                            ? AppColors.success
-                                            : AppColors.error)
-                                        .withOpacity(0.1),
-                                shape: BoxShape.rectangle,
+                                color: Colors.white,
+                                border: Border(
+                                  left: BorderSide(
+                                    color: esIngreso
+                                        ? AppColors.success
+                                        : AppColors.error,
+                                    width: 3,
+                                  ),
+                                ),
                               ),
-                              child: Icon(
-                                esIngreso
-                                    ? Icons.arrow_downward
-                                    : Icons.arrow_upward,
-                                color: esIngreso
-                                    ? AppColors.success
-                                    : AppColors.error,
-                                size: 16,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              child: Row(
                                 children: [
-                                  Text(
-                                    mov.descripcion ?? mov.tipo.toUpperCase(),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          (esIngreso
+                                                  ? AppColors.success
+                                                  : AppColors.error)
+                                              .withOpacity(0.1),
+                                      shape: BoxShape.rectangle,
+                                    ),
+                                    child: Icon(
+                                      esIngreso
+                                          ? Icons.arrow_downward
+                                          : Icons.arrow_upward,
+                                      color: esIngreso
+                                          ? AppColors.success
+                                          : AppColors.error,
+                                      size: 16,
                                     ),
                                   ),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        DateFormat('HH:mm').format(mov.fecha),
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.grey.shade500,
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          mov.descripcion ??
+                                              mov.tipo.toUpperCase(),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13,
+                                          ),
                                         ),
-                                      ),
-                                      if (mov.metodoPago != null) ...[
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 4,
-                                            vertical: 1,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.shade100,
-                                            borderRadius: BorderRadius.zero,
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                mov.metodoPago == 'Efectivo'
-                                                    ? Icons.payments
-                                                    : Icons.credit_card,
-                                                size: 10,
-                                                color: Colors.grey.shade600,
+                                        Row(
+                                          children: [
+                                            Text(
+                                              DateFormat(
+                                                'HH:mm',
+                                              ).format(mov.fecha),
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.grey.shade500,
                                               ),
-                                              const SizedBox(width: 2),
-                                              Text(
-                                                mov.metodoPago!.toUpperCase(),
-                                                style: TextStyle(
-                                                  fontSize: 9,
-                                                  color: Colors.grey.shade600,
-                                                  fontWeight: FontWeight.bold,
+                                            ),
+                                            if (mov.metodoPago != null) ...[
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 4,
+                                                      vertical: 1,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey.shade100,
+                                                  borderRadius:
+                                                      BorderRadius.zero,
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      mov.metodoPago ==
+                                                              'Efectivo'
+                                                          ? Icons.payments
+                                                          : Icons.credit_card,
+                                                      size: 10,
+                                                      color:
+                                                          Colors.grey.shade600,
+                                                    ),
+                                                    const SizedBox(width: 2),
+                                                    Text(
+                                                      mov.metodoPago!
+                                                          .toUpperCase(),
+                                                      style: TextStyle(
+                                                        fontSize: 9,
+                                                        color: Colors
+                                                            .grey
+                                                            .shade600,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
                                             ],
-                                          ),
+                                          ],
                                         ),
                                       ],
-                                    ],
+                                    ),
+                                  ),
+                                  Text(
+                                    '${esIngreso ? '+' : '-'}€${mov.cantidad.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: esIngreso
+                                          ? AppColors.success
+                                          : AppColors.error,
+                                    ),
                                   ),
                                 ],
                               ),
-                            ),
-                            Text(
-                              '${esIngreso ? '+' : '-'}€${mov.cantidad.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: esIngreso
-                                    ? AppColors.success
-                                    : AppColors.error,
+                            );
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () async {
+                                  final negocio = ref.read(negocioProvider);
+                                  await PrintService.imprimirMovimientosAutomatico(
+                                    negocio: negocio,
+                                    movimientos: movimientos.toList(),
+                                  );
+                                },
+                                icon: const Icon(Icons.print, size: 18),
+                                label: const Text('Imprimir Movimientos'),
                               ),
                             ),
                           ],
                         ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
           ),
         ],
@@ -1041,11 +1080,23 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
           TextButton.icon(
             onPressed: () async {
               final negocio = ref.read(negocioProvider);
-              await TicketHelper.imprimirCierreCaja(negocio, caja);
+              await PrintService.imprimirCierreCajaAutomatico(
+                negocio: negocio,
+                caja: caja,
+              );
               if (context.mounted) Navigator.pop(ctx, true);
             },
             icon: const Icon(Icons.print, size: 18),
             label: const Text('Imprimir y Cerrar'),
+          ),
+          TextButton.icon(
+            onPressed: () async {
+              final negocio = ref.read(negocioProvider);
+              await TicketHelper.imprimirCierreCaja(negocio, caja);
+              if (context.mounted) Navigator.pop(ctx, true);
+            },
+            icon: const Icon(Icons.print_disabled, size: 18),
+            label: const Text('Cerrar sin Imprimir'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),

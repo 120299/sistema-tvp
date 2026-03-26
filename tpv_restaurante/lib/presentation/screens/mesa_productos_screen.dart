@@ -853,8 +853,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               .cerrar(mesaActual.pedidoActualId!, metodoPago);
           await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
 
-          await PrintService.previewTicket(
-            context: context,
+          await PrintService.imprimirTicketAutomatico(
             items: pedidoActual,
             subtotal: pedidoActual.fold<double>(
               0,

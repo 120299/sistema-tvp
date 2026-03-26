@@ -96,6 +96,39 @@ class PrintService {
     }
   }
 
+  static Future<void> imprimirTicketAutomatico({
+    required List<PedidoItem> items,
+    required double subtotal,
+    required double ivaPorcentaje,
+    required String metodoPago,
+    required DatosNegocio negocio,
+    String? mesaNumero,
+    String? cajeroNombre,
+    double porcentajePropina = 0,
+    String? clienteNombre,
+    String? clienteNif,
+  }) async {
+    try {
+      final pdf = await _buildTicketPdf(
+        items: items,
+        subtotal: subtotal,
+        ivaPorcentaje: ivaPorcentaje,
+        metodoPago: metodoPago,
+        negocio: negocio,
+        mesaNumero: mesaNumero,
+        cajeroNombre: cajeroNombre,
+        porcentajePropina: porcentajePropina,
+        clienteNombre: clienteNombre,
+        clienteNif: clienteNif,
+      );
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+      );
+    } catch (e) {
+      debugPrint('Error al imprimir ticket automáticamente: $e');
+    }
+  }
+
   static Future<pw.Document> _buildTicketPdf({
     required List<PedidoItem> items,
     required double subtotal,
@@ -160,7 +193,7 @@ class PrintService {
                 padding: const pw.EdgeInsets.symmetric(vertical: 4),
                 decoration: pw.BoxDecoration(border: pw.Border.all()),
                 child: pw.Text(
-                  'PAGO: ${metodoPago.toUpperCase()}',
+                  'METODO DE PAGO: ${metodoPago.toUpperCase()}',
                   style: pw.TextStyle(
                     fontSize: 11,
                     fontWeight: pw.FontWeight.bold,
@@ -265,6 +298,16 @@ class PrintService {
     await _showPdfPreview(context, pdf, 'Vista Previa - Cierre de Caja');
   }
 
+  static Future<void> imprimirCierreCajaAutomatico({
+    required DatosNegocio negocio,
+    required dynamic caja,
+  }) async {
+    final pdf = await buildCierreCajaPdf(negocio, caja);
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
+  }
+
   static Future<pw.Document> buildCierreCajaPdf(
     DatosNegocio negocio,
     dynamic caja,
@@ -363,6 +406,197 @@ class PrintService {
                 ],
               ),
               pw.SizedBox(height: 20),
+            ],
+          );
+        },
+      ),
+    );
+    return pdf;
+  }
+
+  static Future<pw.Document> buildMovimientosCajaPdf(
+    DatosNegocio negocio,
+    List<MovimientoCaja> movimientos,
+  ) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: const PdfPageFormat(
+          80 * PdfPageFormat.mm,
+          double.infinity,
+          marginAll: 5 * PdfPageFormat.mm,
+        ),
+        build: (pw.Context ctx) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            mainAxisSize: pw.MainAxisSize.min,
+            children: [
+              pw.Center(
+                child: pw.Text(
+                  'MOVIMIENTOS DE CAJA',
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              pw.Center(
+                child: pw.Text(
+                  negocio.nombre,
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
+              ),
+              pw.SizedBox(height: 8),
+              pw.Divider(thickness: 1),
+              pw.Text(
+                _fmtDate(DateTime.now()),
+                style: const pw.TextStyle(fontSize: 8),
+              ),
+              pw.SizedBox(height: 8),
+              pw.Divider(thickness: 0.5),
+              ...movimientos.map(
+                (mov) => pw.Padding(
+                  padding: const pw.EdgeInsets.symmetric(vertical: 2),
+                  child: pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Expanded(
+                        child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Text(
+                              mov.descripcion ?? mov.tipo.toUpperCase(),
+                              style: const pw.TextStyle(fontSize: 8),
+                            ),
+                            pw.Text(
+                              '${_fmtDate(mov.fecha)} ${mov.metodoPago ?? ""}',
+                              style: const pw.TextStyle(
+                                fontSize: 6,
+                                color: PdfColors.grey600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      pw.Text(
+                        '${mov.tipo == "venta" || mov.tipo == "ingreso" ? "+" : "-"}€${mov.cantidad.toStringAsFixed(2)}',
+                        style: pw.TextStyle(
+                          fontSize: 9,
+                          fontWeight: pw.FontWeight.bold,
+                          color: mov.tipo == "venta" || mov.tipo == "ingreso"
+                              ? PdfColors.green
+                              : PdfColors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              pw.Divider(thickness: 1),
+            ],
+          );
+        },
+      ),
+    );
+    return pdf;
+  }
+
+  static Future<void> previewMovimientosCaja({
+    required BuildContext context,
+    required DatosNegocio negocio,
+    required List<MovimientoCaja> movimientos,
+  }) async {
+    final pdf = await buildMovimientosCajaPdf(negocio, movimientos);
+    await _showPdfPreview(context, pdf, 'Vista Previa - Movimientos');
+  }
+
+  static Future<void> imprimirMovimientosAutomatico({
+    required DatosNegocio negocio,
+    required List<MovimientoCaja> movimientos,
+  }) async {
+    for (final mov in movimientos) {
+      final pdf = await _buildMovimientoTicketPdf(negocio, mov);
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+      );
+    }
+  }
+
+  static Future<pw.Document> _buildMovimientoTicketPdf(
+    DatosNegocio negocio,
+    MovimientoCaja movimiento,
+  ) async {
+    final pdf = pw.Document();
+    final esIngreso =
+        movimiento.tipo == 'venta' || movimiento.tipo == 'ingreso';
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: const PdfPageFormat(
+          80 * PdfPageFormat.mm,
+          100 * PdfPageFormat.mm,
+          marginAll: 5 * PdfPageFormat.mm,
+        ),
+        build: (pw.Context ctx) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
+            mainAxisSize: pw.MainAxisSize.min,
+            children: [
+              pw.Text(
+                negocio.nombre.toUpperCase(),
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 4),
+              pw.Text(
+                _fmtDate(DateTime.now()),
+                style: const pw.TextStyle(fontSize: 8),
+              ),
+              pw.SizedBox(height: 8),
+              pw.Divider(thickness: 1),
+              pw.Text(
+                esIngreso ? 'INGRESO' : 'RETIRO',
+                style: pw.TextStyle(
+                  fontSize: 14,
+                  fontWeight: pw.FontWeight.bold,
+                  color: esIngreso ? PdfColors.green : PdfColors.red,
+                ),
+              ),
+              pw.SizedBox(height: 8),
+              pw.Text(
+                movimiento.descripcion ?? movimiento.tipo.toUpperCase(),
+                style: const pw.TextStyle(fontSize: 10),
+              ),
+              if (movimiento.metodoPago != null)
+                pw.Text(
+                  'Metodo: ${movimiento.metodoPago}',
+                  style: const pw.TextStyle(fontSize: 8),
+                ),
+              pw.SizedBox(height: 8),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(
+                  vertical: 6,
+                  horizontal: 12,
+                ),
+                decoration: pw.BoxDecoration(border: pw.Border.all()),
+                child: pw.Text(
+                  '${esIngreso ? "+" : "-"}€${movimiento.cantidad.toStringAsFixed(2)}',
+                  style: pw.TextStyle(
+                    fontSize: 16,
+                    fontWeight: pw.FontWeight.bold,
+                    color: esIngreso ? PdfColors.green : PdfColors.red,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 8),
+              pw.Divider(thickness: 1),
+              pw.Text(
+                'N: ${movimiento.id.substring(0, 8).toUpperCase()}',
+                style: const pw.TextStyle(fontSize: 7),
+              ),
             ],
           );
         },
@@ -487,6 +721,11 @@ class PrintService {
           pw.Text(negocio.razonSocial!, style: const pw.TextStyle(fontSize: 9)),
         pw.Text(negocio.direccion, style: const pw.TextStyle(fontSize: 9)),
         pw.Text(negocio.ciudad, style: const pw.TextStyle(fontSize: 9)),
+        if (negocio.telefono != null && negocio.telefono!.isNotEmpty)
+          pw.Text(
+            'Tel: ${negocio.telefono}',
+            style: const pw.TextStyle(fontSize: 9),
+          ),
         pw.Text(
           'CIF/NIF: ${negocio.cifNif ?? 'N/A'}',
           style: const pw.TextStyle(fontSize: 9),
@@ -513,28 +752,93 @@ class PrintService {
 
   static pw.Widget _buildItems(List<PedidoItem> items) {
     return pw.Column(
-      children: items
-          .map(
-            (item) => pw.Padding(
-              padding: const pw.EdgeInsets.symmetric(vertical: 2),
-              child: pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Expanded(
-                    child: pw.Text(
-                      '${item.cantidad}x ${item.productoNombre}',
-                      style: const pw.TextStyle(fontSize: 10),
-                    ),
-                  ),
-                  pw.Text(
-                    '${item.subtotal.toStringAsFixed(2)}',
-                    style: const pw.TextStyle(fontSize: 10),
-                  ),
-                ],
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Row(
+          children: [
+            pw.SizedBox(
+              width: 20,
+              child: pw.Text(
+                'C',
+                style: pw.TextStyle(
+                  fontSize: 8,
+                  fontWeight: pw.FontWeight.bold,
+                ),
               ),
             ),
-          )
-          .toList(),
+            pw.Expanded(
+              child: pw.Text(
+                'CONCEPTO',
+                style: pw.TextStyle(
+                  fontSize: 8,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+            pw.SizedBox(
+              width: 45,
+              child: pw.Text(
+                'P.UNIT',
+                style: pw.TextStyle(
+                  fontSize: 8,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+                textAlign: pw.TextAlign.right,
+              ),
+            ),
+            pw.SizedBox(
+              width: 45,
+              child: pw.Text(
+                'IMP.',
+                style: pw.TextStyle(
+                  fontSize: 8,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+                textAlign: pw.TextAlign.right,
+              ),
+            ),
+          ],
+        ),
+        pw.Divider(thickness: 0.5),
+        ...items.map(
+          (item) => pw.Padding(
+            padding: const pw.EdgeInsets.symmetric(vertical: 1),
+            child: pw.Row(
+              children: [
+                pw.SizedBox(
+                  width: 20,
+                  child: pw.Text(
+                    '${item.cantidad}',
+                    style: const pw.TextStyle(fontSize: 9),
+                  ),
+                ),
+                pw.Expanded(
+                  child: pw.Text(
+                    item.productoNombre,
+                    style: const pw.TextStyle(fontSize: 9),
+                  ),
+                ),
+                pw.SizedBox(
+                  width: 45,
+                  child: pw.Text(
+                    item.precioUnitario.toStringAsFixed(2),
+                    style: const pw.TextStyle(fontSize: 9),
+                    textAlign: pw.TextAlign.right,
+                  ),
+                ),
+                pw.SizedBox(
+                  width: 45,
+                  child: pw.Text(
+                    item.subtotal.toStringAsFixed(2),
+                    style: const pw.TextStyle(fontSize: 9),
+                    textAlign: pw.TextAlign.right,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 

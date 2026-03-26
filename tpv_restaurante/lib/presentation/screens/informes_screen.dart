@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/ticket_helper.dart';
 import '../../data/models/models.dart';
+import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
 
 class InformesScreen extends ConsumerStatefulWidget {
@@ -958,9 +959,19 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                     const SizedBox(width: 8),
                     IconButton(
                       icon: const Icon(Icons.print_outlined, size: 18),
-                      onPressed: () {
+                      onPressed: () async {
                         final negocio = ref.read(negocioProvider);
-                        TicketHelper.imprimirPedido(negocio, p);
+                        await PrintService.imprimirTicketAutomatico(
+                          items: p.items,
+                          subtotal: p.total / (1 + negocio.ivaPorcentaje / 100),
+                          ivaPorcentaje: negocio.ivaPorcentaje,
+                          metodoPago: p.metodoPago ?? 'Efectivo',
+                          negocio: negocio,
+                          mesaNumero: p.mesaId,
+                          cajeroNombre: p.cajeroNombre,
+                          porcentajePropina: p.porcentajePropina,
+                          clienteNombre: p.clienteNombre,
+                        );
                       },
                       tooltip: 'Imprimir Ticket',
                     ),
