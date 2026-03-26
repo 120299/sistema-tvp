@@ -207,17 +207,70 @@ class ProductosNotifier extends StateNotifier<List<Producto>> {
   }
 
   Future<void> actualizar(Producto producto) async {
-    final index = state.indexWhere((p) => p.id == producto.id);
-    if (index >= 0) {
-      await _db.productosBox.putAt(index, producto);
+    try {
+      // Buscar el producto existente por ID
+      final box = _db.productosBox;
+      dynamic keyEncontrada;
+      Producto? productoExistente;
+
+      for (int i = 0; i < box.length; i++) {
+        final p = box.getAt(i);
+        if (p != null && p.id == producto.id) {
+          keyEncontrada = box.keyAt(i);
+          productoExistente = p;
+          break;
+        }
+      }
+
+      if (keyEncontrada != null) {
+        // Actualizar usando la clave encontrada
+        await box.put(keyEncontrada, producto);
+        debugPrint(
+          'DEBUG: Producto actualizado correctamente con key: $keyEncontrada',
+        );
+      } else {
+        // Si no se encuentra, agregar como nuevo
+        debugPrint('DEBUG: Producto no encontrado, agregando como nuevo');
+        await box.add(producto);
+      }
+
+      // Forzar refresh
       _refresh();
+
+      // Verificar que se guardó
+      final actualizado = _db.productosBox.values
+          .where((p) => p.id == producto.id)
+          .firstOrNull;
+      if (actualizado != null) {
+        debugPrint(
+          'DEBUG: Verificación exitosa - producto guardado: ${actualizado.nombre}',
+        );
+      } else {
+        debugPrint(
+          'ERROR: Verificación falló - producto no encontrado después de guardar',
+        );
+      }
+    } catch (e, st) {
+      debugPrint('ERROR en actualizar(): $e');
+      debugPrint('Stack trace: $st');
+      rethrow;
     }
   }
 
   Future<void> eliminar(String id) async {
-    final index = state.indexWhere((p) => p.id == id);
-    if (index >= 0) {
-      await _db.productosBox.deleteAt(index);
+    final box = _db.productosBox;
+    dynamic productoKey;
+
+    for (int i = 0; i < box.length; i++) {
+      final p = box.getAt(i);
+      if (p != null && p.id == id) {
+        productoKey = box.keyAt(i);
+        break;
+      }
+    }
+
+    if (productoKey != null) {
+      await box.delete(productoKey);
       _refresh();
     }
   }
@@ -275,9 +328,25 @@ class CategoriasNotifier extends StateNotifier<List<CategoriaProducto>> {
     final item = categorias.removeAt(oldIndex);
     categorias.insert(newIndex, item);
 
+    // Actualizar el orden de cada categoría
     for (int i = 0; i < categorias.length; i++) {
       final updated = categorias[i].copyWith(orden: i);
-      await _db.categoriasBox.putAt(i, updated);
+
+      // Buscar la clave de esta categoría
+      final box = _db.categoriasBox;
+      dynamic keyEncontrado;
+
+      for (int j = 0; j < box.length; j++) {
+        final cat = box.getAt(j);
+        if (cat != null && cat.id == updated.id) {
+          keyEncontrado = box.keyAt(j);
+          break;
+        }
+      }
+
+      if (keyEncontrado != null) {
+        await box.put(keyEncontrado, updated);
+      }
     }
     _refresh();
   }

@@ -575,12 +575,20 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
                 items: categorias.map((cat) {
                   return DropdownMenuItem(
                     value: cat.id,
-                    child: Row(
-                      children: [
-                        Text(cat.icono, style: const TextStyle(fontSize: 18)),
-                        const SizedBox(width: 12),
-                        Expanded(child: Text(cat.nombre)),
-                      ],
+                    child: SizedBox(
+                      width: 200,
+                      child: Row(
+                        children: [
+                          Text(cat.icono, style: const TextStyle(fontSize: 18)),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              cat.nombre,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }).toList(),
@@ -945,12 +953,32 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
       );
 
       if (widget.producto != null) {
-        ref.read(productosProvider.notifier).actualizar(producto);
+        await ref.read(productosProvider.notifier).actualizar(producto);
+
+        // Verificar que se actualizó correctamente
+        final productos = ref.read(productosProvider);
+        final actualizado = productos
+            .where((p) => p.id == producto.id)
+            .firstOrNull;
+
+        if (actualizado == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Error: No se pudo guardar el producto'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        }
       } else {
-        ref.read(productosProvider.notifier).agregar(producto);
+        await ref.read(productosProvider.notifier).agregar(producto);
       }
 
       triggerImageRefresh(ref);
+
+      await Future.delayed(const Duration(milliseconds: 100));
 
       if (mounted) {
         Navigator.pop(context, producto);

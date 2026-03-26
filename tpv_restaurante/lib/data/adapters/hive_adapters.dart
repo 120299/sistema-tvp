@@ -18,13 +18,14 @@ class CategoriaProductoAdapter extends TypeAdapter<CategoriaProducto> {
       icono: fields[2] as String,
       color: Color(fields[3] as int),
       imagenUrl: fields[4] as String?,
+      orden: fields[5] as int? ?? 0,
     );
   }
 
   @override
   void write(BinaryWriter writer, CategoriaProducto obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -34,7 +35,9 @@ class CategoriaProductoAdapter extends TypeAdapter<CategoriaProducto> {
       ..writeByte(3)
       ..write(obj.color.toARGB32())
       ..writeByte(4)
-      ..write(obj.imagenUrl);
+      ..write(obj.imagenUrl)
+      ..writeByte(5)
+      ..write(obj.orden);
   }
 }
 
@@ -59,13 +62,18 @@ class ProductoAdapter extends TypeAdapter<Producto> {
       precioCompra: fields[7] as double?,
       esAlergenico: fields[8] as bool? ?? false,
       codigoBarras: fields[9] as String?,
+      esVariable: fields[10] as bool? ?? false,
+      variantes: (fields[11] as List?)?.map((v) {
+        final map = Map<String, dynamic>.from(v as Map);
+        return VarianteProducto.fromJson(map);
+      }).toList(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Producto obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -85,7 +93,11 @@ class ProductoAdapter extends TypeAdapter<Producto> {
       ..writeByte(8)
       ..write(obj.esAlergenico)
       ..writeByte(9)
-      ..write(obj.codigoBarras);
+      ..write(obj.codigoBarras)
+      ..writeByte(10)
+      ..write(obj.esVariable)
+      ..writeByte(11)
+      ..write(obj.variantes?.map((v) => v.toJson()).toList());
   }
 }
 
@@ -141,28 +153,31 @@ class PedidoItemAdapter extends TypeAdapter<PedidoItem> {
     return PedidoItem(
       id: fields[0] as String,
       productoId: fields[1] as String,
-      productoNombre: fields[2] as String,
-      cantidad: fields[3] as int,
-      precioUnitario: fields[4] as double,
-      notas: fields[5] as String?,
+      varianteId: fields[2] as String?,
+      productoNombre: fields[3] as String,
+      cantidad: fields[4] as int,
+      precioUnitario: fields[5] as double,
+      notas: fields[6] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, PedidoItem obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.productoId)
       ..writeByte(2)
-      ..write(obj.productoNombre)
+      ..write(obj.varianteId)
       ..writeByte(3)
-      ..write(obj.cantidad)
+      ..write(obj.productoNombre)
       ..writeByte(4)
-      ..write(obj.precioUnitario)
+      ..write(obj.cantidad)
       ..writeByte(5)
+      ..write(obj.precioUnitario)
+      ..writeByte(6)
       ..write(obj.notas);
   }
 }
@@ -191,13 +206,15 @@ class PedidoAdapter extends TypeAdapter<Pedido> {
       numeroPersonas: fields[10] as int?,
       cajeroId: fields[11] as String?,
       cajeroNombre: fields[12] as String?,
+      clienteId: fields[13] as String?,
+      clienteNombre: fields[14] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Pedido obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -223,7 +240,11 @@ class PedidoAdapter extends TypeAdapter<Pedido> {
       ..writeByte(11)
       ..write(obj.cajeroId)
       ..writeByte(12)
-      ..write(obj.cajeroNombre);
+      ..write(obj.cajeroNombre)
+      ..writeByte(13)
+      ..write(obj.clienteId)
+      ..writeByte(14)
+      ..write(obj.clienteNombre);
   }
 }
 

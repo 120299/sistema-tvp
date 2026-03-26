@@ -1465,7 +1465,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              ref.read(indiceNavegacionProvider.notifier).state = 3;
+              ref.read(indiceNavegacionProvider.notifier).state = 4;
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.warning),
             child: const Text('Ir a Caja'),
