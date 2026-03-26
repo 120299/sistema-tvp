@@ -18,6 +18,162 @@ class ProductoDialog extends ConsumerStatefulWidget {
   ConsumerState<ProductoDialog> createState() => _ProductoDialogState();
 }
 
+// Top-level Variante dialog for editing/adding a variant
+class _VarianteDialog extends StatefulWidget {
+  final VarianteProducto? variante;
+  final ValueChanged<VarianteProducto> onGuardar;
+  const _VarianteDialog({Key? key, this.variante, required this.onGuardar})
+    : super(key: key);
+
+  @override
+  State<_VarianteDialog> createState() => _VarianteDialogState();
+}
+
+class _VarianteDialogState extends State<_VarianteDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _nombreController;
+  late TextEditingController _precioController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nombreController = TextEditingController(
+      text: widget.variante?.nombre ?? '',
+    );
+    _precioController = TextEditingController(
+      text: widget.variante?.precio.toString() ?? '0',
+    );
+  }
+
+  @override
+  void dispose() {
+    _nombreController.dispose();
+    _precioController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Nueva Variante'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _nombreController,
+              decoration: const InputDecoration(labelText: 'Nombre'),
+              validator: (v) =>
+                  v == null || v.isEmpty ? 'Nombre obligatorio' : null,
+            ),
+            TextFormField(
+              controller: _precioController,
+              decoration: const InputDecoration(labelText: 'Precio'),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Precio obligatorio';
+                if (double.tryParse(v) == null) return 'Precio inválido';
+                return null;
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              final v = VarianteProducto(
+                id: widget.variante?.id ?? 'var_${const Uuid().v4()}',
+                nombre: _nombreController.text.trim(),
+                precio: double.parse(_precioController.text),
+              );
+              widget.onGuardar(v);
+              Navigator.pop(context);
+            }
+          },
+          child: const Text('Guardar'),
+        ),
+      ],
+    );
+  }
+}
+
+// Public variant picker for usage across screens
+class VarianteDialog extends StatefulWidget {
+  final ValueChanged<VarianteProducto> onGuardar;
+  const VarianteDialog({Key? key, required this.onGuardar}) : super(key: key);
+
+  @override
+  State<VarianteDialog> createState() => _VarianteDialogStatePublic();
+}
+
+class _VarianteDialogStatePublic extends State<VarianteDialog> {
+  final _formKey = GlobalKey<FormState>();
+  String _nombre = '';
+  double _precio = 0.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Nueva Variante'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Nombre'),
+              onChanged: (v) => _nombre = v,
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? 'Nombre obligatorio' : null,
+            ),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Precio'),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              onChanged: (v) => _precio = double.tryParse(v) ?? 0,
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Precio obligatorio';
+                if (double.tryParse(v) == null) return 'Precio inválido';
+                return null;
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              final v = VarianteProducto(
+                id: 'var_${Uuid().v4()}',
+                nombre: _nombre.trim(),
+                precio: _precio,
+              );
+              widget.onGuardar(v);
+              Navigator.pop(context);
+            }
+          },
+          child: const Text('Guardar'),
+        ),
+      ],
+    );
+  }
+}
+
 class _ProductoDialogState extends ConsumerState<ProductoDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nombreController;
@@ -28,6 +184,8 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
   late String _categoriaId;
   late bool _disponible;
   late bool _esAlergenico;
+  late bool _esVariable;
+  List<VarianteProducto> _variantes = [];
 
   String? _localImageBase64;
   String? _currentImagePath;
@@ -54,6 +212,8 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
     _categoriaId = widget.producto?.categoriaId ?? 'cafes';
     _disponible = widget.producto?.disponible ?? true;
     _esAlergenico = widget.producto?.esAlergenico ?? false;
+    _esVariable = widget.producto?.esVariable ?? false;
+    _variantes = List.from(widget.producto?.variantes ?? []);
 
     if (widget.producto?.imagenUrl != null &&
         widget.producto!.imagenUrl!.startsWith('products/')) {
@@ -62,11 +222,32 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
     }
   }
 
+  // Variantes editoras se mueven a nivel superior (ver abajo)
+
   void _loadLocalImage(String imagePath) {
     final base64 = imageStorageService.getBase64FromPath(imagePath);
     if (base64.isNotEmpty) {
       setState(() => _localImageBase64 = base64);
     }
+  }
+
+  void _agregarVariante() {
+    showDialog(
+      context: context,
+      builder: (ctx) => _VarianteDialog(
+        onGuardar: (variante) {
+          setState(() {
+            _variantes.add(variante);
+          });
+        },
+      ),
+    );
+  }
+
+  void _eliminarVariante(int index) {
+    setState(() {
+      _variantes.removeAt(index);
+    });
   }
 
   @override
@@ -468,6 +649,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
           ),
         ),
         const SizedBox(height: 12),
+        // Codigo de barras y alergenos
         Row(
           children: [
             Expanded(
@@ -526,6 +708,140 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
             ),
           ],
         ),
+        const SizedBox(height: 20),
+        // Producto Variable Section
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: _esVariable
+                ? AppColors.primary.withOpacity(0.05)
+                : Colors.grey.shade50,
+            border: Border.all(
+              color: _esVariable
+                  ? AppColors.primary.withOpacity(0.3)
+                  : Colors.grey.shade300,
+            ),
+            borderRadius: BorderRadius.zero,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.tune,
+                    color: _esVariable ? AppColors.primary : Colors.grey,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Producto Variable',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'Permite crear variantes (ej: tamaños, sabores)',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: _esVariable,
+                    onChanged: (value) => setState(() {
+                      _esVariable = value;
+                      if (!value) {
+                        _variantes.clear();
+                      }
+                    }),
+                    activeThumbColor: AppColors.primary,
+                  ),
+                ],
+              ),
+              if (_esVariable) ...[
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Text(
+                      'Variantes',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    ElevatedButton.icon(
+                      onPressed: _agregarVariante,
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Añadir'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                if (_variantes.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.zero,
+                    ),
+                    child: Center(
+                      child: Text(
+                        'No hay variantes. Añade al menos una.',
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _variantes.length,
+                      itemBuilder: (context, index) {
+                        final variante = _variantes[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            title: Text(variante.nombre),
+                            subtitle: Text(
+                              '${variante.precio.toStringAsFixed(2)} €',
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: AppColors.error,
+                              ),
+                              onPressed: () => _eliminarVariante(index),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -571,6 +887,19 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
 
   Future<void> _guardar() async {
     if (_formKey.currentState!.validate()) {
+      // Validate variants if variable product
+      if (_esVariable && _variantes.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Los productos variables deben tener al menos una variante',
+            ),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+
       final productoId = widget.producto?.id ?? 'prod_${const Uuid().v4()}';
 
       String? imagenPath;
@@ -598,6 +927,8 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
         codigoBarras: _codigoBarrasController.text.isEmpty
             ? null
             : _codigoBarrasController.text.trim(),
+        esVariable: _esVariable,
+        variantes: _esVariable ? _variantes : null,
       );
 
       if (widget.producto != null) {

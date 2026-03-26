@@ -11,7 +11,7 @@ class PrintService {
       pdf.addPage(
         pw.Page(
           pageFormat: const PdfPageFormat(
-            80 * PdfPageFormat.mm,
+            72 * PdfPageFormat.mm,
             30 * PdfPageFormat.mm,
           ),
           build: (pw.Context context) {
@@ -151,7 +151,7 @@ class PrintService {
     pdf.addPage(
       pw.Page(
         pageFormat: const PdfPageFormat(
-          80 * PdfPageFormat.mm,
+          72 * PdfPageFormat.mm,
           double.infinity,
           marginAll: 5 * PdfPageFormat.mm,
         ),
@@ -319,7 +319,7 @@ class PrintService {
     pdf.addPage(
       pw.Page(
         pageFormat: const PdfPageFormat(
-          80 * PdfPageFormat.mm,
+          72 * PdfPageFormat.mm,
           double.infinity,
           marginAll: 5 * PdfPageFormat.mm,
         ),
@@ -423,7 +423,7 @@ class PrintService {
     pdf.addPage(
       pw.Page(
         pageFormat: const PdfPageFormat(
-          80 * PdfPageFormat.mm,
+          72 * PdfPageFormat.mm,
           double.infinity,
           marginAll: 5 * PdfPageFormat.mm,
         ),
@@ -534,7 +534,7 @@ class PrintService {
     pdf.addPage(
       pw.Page(
         pageFormat: const PdfPageFormat(
-          80 * PdfPageFormat.mm,
+          72 * PdfPageFormat.mm,
           100 * PdfPageFormat.mm,
           marginAll: 5 * PdfPageFormat.mm,
         ),
@@ -617,7 +617,7 @@ class PrintService {
     pdf.addPage(
       pw.Page(
         pageFormat: const PdfPageFormat(
-          80 * PdfPageFormat.mm,
+          72 * PdfPageFormat.mm,
           double.infinity,
           marginAll: 5 * PdfPageFormat.mm,
         ),

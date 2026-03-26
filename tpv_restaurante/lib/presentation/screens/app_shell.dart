@@ -15,7 +15,9 @@ import 'clientes_screen.dart';
 import 'usuarios_screen.dart';
 
 class AppShell extends ConsumerWidget {
-  const AppShell({super.key});
+  final VoidCallback? onLogout;
+
+  const AppShell({super.key, this.onLogout});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -202,6 +204,7 @@ class AppShell extends ConsumerWidget {
           await _borrarSesion();
           ref.read(cajeroActualProvider.notifier).state = null;
           ref.read(isLoggedInProvider.notifier).state = false;
+          onLogout?.call();
         }
       },
       itemBuilder: (context) => [
@@ -296,43 +299,43 @@ class AppShell extends ConsumerWidget {
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
-            icon: Icons.account_balance_wallet,
-            label: 'Caja',
+            icon: Icons.people,
+            label: 'Clientes',
             isSelected: indiceActual == 3,
             onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 3,
             mostrarTexto: mostrarTexto,
           ),
-          _buildMenuVerticalItem(
-            icon: Icons.people,
-            label: 'Clientes',
-            isSelected: indiceActual == 4,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 4,
-            mostrarTexto: mostrarTexto,
-          ),
           const Divider(color: Colors.white24, height: 24),
           _buildMenuVerticalItem(
-            icon: Icons.analytics,
-            label: 'Informes',
-            isSelected: indiceActual == 5,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 5,
-            mostrarTexto: mostrarTexto,
-          ),
-          _buildMenuVerticalItem(
-            icon: Icons.settings,
-            label: 'Config',
-            isSelected: indiceActual == 6,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 6,
+            icon: Icons.account_balance_wallet,
+            label: 'Caja',
+            isSelected: indiceActual == 4,
+            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 4,
             mostrarTexto: mostrarTexto,
           ),
           if (cajeroActual?.isAdministrador == true)
             _buildMenuVerticalItem(
               icon: Icons.people_alt,
               label: 'Usuarios',
-              isSelected: indiceActual == 7,
+              isSelected: indiceActual == 5,
               onTap: () =>
-                  ref.read(indiceNavegacionProvider.notifier).state = 7,
+                  ref.read(indiceNavegacionProvider.notifier).state = 5,
               mostrarTexto: mostrarTexto,
             ),
+          _buildMenuVerticalItem(
+            icon: Icons.analytics,
+            label: 'Informes',
+            isSelected: indiceActual == 6,
+            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 6,
+            mostrarTexto: mostrarTexto,
+          ),
+          _buildMenuVerticalItem(
+            icon: Icons.settings,
+            label: 'Config',
+            isSelected: indiceActual == 7,
+            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 7,
+            mostrarTexto: mostrarTexto,
+          ),
         ],
       ),
     );
@@ -396,15 +399,15 @@ class AppShell extends ConsumerWidget {
       case 2:
         return const MesasScreen();
       case 3:
-        return const CajaScreen();
-      case 4:
         return const ClientesScreen();
+      case 4:
+        return const CajaScreen();
       case 5:
-        return const InformesScreen();
-      case 6:
-        return const ConfiguracionScreen();
-      case 7:
         return const UsuariosScreen();
+      case 6:
+        return const InformesScreen();
+      case 7:
+        return const ConfiguracionScreen();
       default:
         return const VentaLibreScreen();
     }

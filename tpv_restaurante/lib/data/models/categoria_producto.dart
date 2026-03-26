@@ -122,6 +122,14 @@ class CategoriaProducto {
       imagenUrl:
           'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=400',
     ),
+    // Nueva categoría para productos variables
+    CategoriaProducto(
+      id: 'variable',
+      nombre: 'Variable',
+      icono: '⚙️',
+      color: Color(0xFF9E9E9E),
+      imagenUrl: null,
+    ),
   ];
 }
 

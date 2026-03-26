@@ -6,6 +6,7 @@ import '../../data/models/models.dart';
 import '../../data/services/image_storage_service.dart';
 import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
+import '../widgets/producto_dialog.dart';
 
 class MesaProductosScreen extends ConsumerStatefulWidget {
   final Mesa mesa;
@@ -726,7 +727,22 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
           );
       await ref.read(mesasProvider.notifier).ocupar(widget.mesa.id, pedidoId);
     }
-
+    // Si el producto es variable, pedimos seleccionar variante
+    if (producto.esVariable && (producto.variantes?.isNotEmpty ?? false)) {
+      showDialog(
+        context: context,
+        builder: (ctx) => VarianteDialog(
+          onGuardar: (vari) async {
+            await ref
+                .read(pedidosProvider.notifier)
+                .agregarItem(pedidoId, producto, cantidad: 1, variante: vari);
+            _mostrarMensaje('${producto.nombre} - ${vari.nombre} añadido');
+            setState(() {});
+          },
+        ),
+      );
+      return;
+    }
     await ref
         .read(pedidosProvider.notifier)
         .agregarItem(pedidoId, producto, cantidad: 1);

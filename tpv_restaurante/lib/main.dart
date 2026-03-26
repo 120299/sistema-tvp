@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,14 +7,11 @@ import 'package:window_manager/window_manager.dart';
 import 'core/theme/app_theme.dart';
 import 'data/services/database_service.dart';
 import 'presentation/screens/app_shell.dart';
-import 'presentation/screens/mesas_screen.dart';
-import 'presentation/screens/configuracion_screen.dart';
 import 'presentation/screens/login_screen.dart';
 import 'presentation/providers/providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await windowManager.ensureInitialized();
 
   const windowOptions = WindowOptions(
@@ -28,55 +27,83 @@ Future<void> main() async {
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();
+    await windowManager.maximize();
   });
 
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-    DeviceOrientation.portraitUp,
-  ]);
-
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-    ),
-  );
-
-  final dbService = DatabaseService();
-  await dbService.initialize();
-
-  runApp(
-    ProviderScope(
-      overrides: [databaseServiceProvider.overrideWithValue(dbService)],
-      child: const TPVRestauranteApp(),
-    ),
-  );
+  runApp(const TPVRestauranteApp());
 }
 
-class TPVRestauranteApp extends ConsumerWidget {
+class TPVRestauranteApp extends ConsumerStatefulWidget {
   const TPVRestauranteApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TPVRestauranteApp> createState() => _TPVRestauranteAppState();
+}
+
+class _TPVRestauranteAppState extends ConsumerState<TPVRestauranteApp> {
+  late final DatabaseService _dbService;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _dbService = DatabaseService();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _dbService.initialize();
+      if (mounted) setState(() => _isInitialized = true);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      return MaterialApp(
+        home: Scaffold(body: Center(child: CircularProgressIndicator())),
+      );
+    }
+
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: ProviderScope(
+        overrides: [databaseServiceProvider.overrideWithValue(_dbService)],
+        child: MaterialApp(
+          title: 'TPV Restaurante',
+          theme: AppTheme.lightTheme(),
+          darkTheme: AppTheme.darkTheme(),
+          themeMode: ThemeMode.light,
+          home: const _AppWithAuth(),
+          debugShowCheckedModeBanner: false,
+        ),
+      ),
+    );
+  }
+}
+
+class _AppWithAuth extends ConsumerStatefulWidget {
+  const _AppWithAuth();
+
+  @override
+  ConsumerState<_AppWithAuth> createState() => _AppWithAuthState();
+}
+
+class _AppWithAuthState extends ConsumerState<_AppWithAuth> {
+  void _onLoginSuccess() {
+    ref.read(isLoggedInProvider.notifier).state = true;
+  }
+
+  void _onLogout() {
+    ref.read(isLoggedInProvider.notifier).state = false;
+    ref.read(cajeroActualProvider.notifier).state = null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isLoggedIn = ref.watch(isLoggedInProvider);
 
-    return MaterialApp(
-      title: 'TPV Restaurante',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme(),
-      themeMode: ThemeMode.light,
-      home: isLoggedIn
-          ? const AppShell()
-          : LoginScreen(
-              onLoginSuccess: () {
-                ref.read(isLoggedInProvider.notifier).state = true;
-              },
-            ),
-      routes: {
-        '/mesas': (context) => const MesasScreen(),
-        '/configuracion': (context) => const ConfiguracionScreen(),
-      },
-    );
+    if (!isLoggedIn) {
+      return LoginScreen(onLoginSuccess: _onLoginSuccess);
+    }
+
+    return AppShell(onLogout: _onLogout);
   }
 }

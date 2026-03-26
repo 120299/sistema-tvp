@@ -1,3 +1,33 @@
+class VarianteProducto {
+  final String id;
+  final String nombre;
+  final double precio;
+  final double? precioExtra;
+
+  const VarianteProducto({
+    required this.id,
+    required this.nombre,
+    required this.precio,
+    this.precioExtra,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'nombre': nombre,
+    'precio': precio,
+    'precioExtra': precioExtra,
+  };
+
+  factory VarianteProducto.fromJson(Map<String, dynamic> json) {
+    return VarianteProducto(
+      id: json['id'] as String,
+      nombre: json['nombre'] as String,
+      precio: (json['precio'] as num).toDouble(),
+      precioExtra: (json['precioExtra'] as num?)?.toDouble(),
+    );
+  }
+}
+
 class Producto {
   final String id;
   final String nombre;
@@ -9,6 +39,8 @@ class Producto {
   final double? precioCompra;
   final bool esAlergenico;
   final String? codigoBarras;
+  final bool esVariable;
+  final List<VarianteProducto>? variantes;
 
   const Producto({
     required this.id,
@@ -21,6 +53,8 @@ class Producto {
     this.precioCompra,
     this.esAlergenico = false,
     this.codigoBarras,
+    this.esVariable = false,
+    this.variantes,
   });
 
   Producto copyWith({
@@ -34,6 +68,8 @@ class Producto {
     double? precioCompra,
     bool? esAlergenico,
     String? codigoBarras,
+    bool? esVariable,
+    List<VarianteProducto>? variantes,
   }) {
     return Producto(
       id: id ?? this.id,
@@ -46,6 +82,8 @@ class Producto {
       precioCompra: precioCompra ?? this.precioCompra,
       esAlergenico: esAlergenico ?? this.esAlergenico,
       codigoBarras: codigoBarras ?? this.codigoBarras,
+      esVariable: esVariable ?? this.esVariable,
+      variantes: variantes ?? this.variantes,
     );
   }
 
@@ -61,6 +99,8 @@ class Producto {
       'precioCompra': precioCompra,
       'esAlergenico': esAlergenico,
       'codigoBarras': codigoBarras,
+      'esVariable': esVariable,
+      'variantes': variantes?.map((v) => v.toJson()).toList(),
     };
   }
 
@@ -76,6 +116,10 @@ class Producto {
       precioCompra: (json['precioCompra'] as num?)?.toDouble(),
       esAlergenico: json['esAlergenico'] as bool? ?? false,
       codigoBarras: json['codigoBarras'] as String?,
+      esVariable: json['esVariable'] as bool? ?? false,
+      variantes: (json['variantes'] as List?)
+          ?.map((v) => VarianteProducto.fromJson(v as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -397,6 +441,20 @@ class Producto {
         categoriaId: 'snacks',
         imagenUrl:
             'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=400',
+      ),
+      // Ejemplo de Producto Variable
+      const Producto(
+        id: 'prod_var_example',
+        nombre: 'Producto Variable (Ejemplo)',
+        precio: 6.50,
+        categoriaId: 'variable',
+        descripcion: 'Ejemplo de producto con variantes',
+        esVariable: true,
+        variantes: [
+          VarianteProducto(id: 'var_s', nombre: 'Pequeño', precio: 6.50),
+          VarianteProducto(id: 'var_m', nombre: 'Mediano', precio: 7.50),
+          VarianteProducto(id: 'var_l', nombre: 'Grande', precio: 9.00),
+        ],
       ),
     ];
   }

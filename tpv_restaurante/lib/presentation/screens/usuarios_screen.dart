@@ -12,6 +12,18 @@ class UsuariosScreen extends ConsumerStatefulWidget {
 }
 
 class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
+  void _cargarEjemplos() async {
+    await ref.read(cajerosProvider.notifier).cargarEjemplos();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Usuarios de ejemplo cargados correctamente'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cajeros = ref.watch(cajerosProvider);
@@ -92,6 +104,16 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                     ],
                   ),
                 ),
+                if (cajeros.isEmpty)
+                  ElevatedButton.icon(
+                    onPressed: _cargarEjemplos,
+                    icon: const Icon(Icons.download, size: 18),
+                    label: const Text('Cargar Ejemplos'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppColors.primary,
+                    ),
+                  ),
               ],
             ),
             const SizedBox(height: 16),
@@ -292,7 +314,7 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.zero,
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: Row(
                     children: [
@@ -368,9 +390,7 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     color: rolSeleccionado == RolCajero.cajero
-                                        ? AppColors.primary.withOpacity(
-                                            0.1,
-                                          )
+                                        ? AppColors.primary.withOpacity(0.1)
                                         : Colors.grey.shade100,
                                     borderRadius: BorderRadius.zero,
                                     border: Border.all(
@@ -419,9 +439,7 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                                     color:
                                         rolSeleccionado ==
                                             RolCajero.administrador
-                                        ? AppColors.warning.withOpacity(
-                                            0.2,
-                                          )
+                                        ? AppColors.warning.withOpacity(0.2)
                                         : Colors.grey.shade100,
                                     borderRadius: BorderRadius.zero,
                                     border: Border.all(
@@ -488,7 +506,7 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.zero,
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: Row(
                     children: [

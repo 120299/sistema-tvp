@@ -5,6 +5,8 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../../data/services/image_storage_service.dart';
 import '../../data/services/print_service.dart';
+import '../widgets/producto_dialog.dart';
+import '../widgets/seleccion_variante_dialog.dart';
 import '../providers/providers.dart';
 import 'cobro_sheet.dart';
 
@@ -58,21 +60,14 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     final categorias = ref.watch(categoriasProvider);
     final categoriaSeleccionada = ref.watch(categoriaSeleccionadaProvider);
     final todasMesas = ref.watch(mesasProvider);
-    final todosProductos = ref.watch(productosProvider);
+    final busquedaCompartida = ref.watch(busquedaCompartidaProvider);
 
     final mesasDisponibles = todasMesas
         .where((m) => m.estado == EstadoMesa.libre)
         .toList();
 
-    final productosAMostrar = _textoBusqueda.isNotEmpty
-        ? todosProductos
-              .where(
-                (p) => p.nombre.toLowerCase().contains(
-                  _textoBusqueda.toLowerCase(),
-                ),
-              )
-              .toList()
-        : productosFiltrados;
+    // Los productos ya vienen filtrados por el provider compartido
+    final productosAMostrar = productosFiltrados;
 
     return Scaffold(
       body: LayoutBuilder(
@@ -532,28 +527,70 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
   }
 
   Widget _buildBuscador() {
+    final busquedaCompartida = ref.watch(busquedaCompartidaProvider);
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.lightDivider)),
+        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
       ),
-      child: TextField(
-        controller: _buscadorController,
-        decoration: InputDecoration(
-          hintText: 'Buscar producto...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: _textoBusqueda.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _buscadorController.clear();
-                    setState(() => _textoBusqueda = '');
-                  },
-                )
-              : null,
-        ),
-        onChanged: (value) => setState(() => _textoBusqueda = value),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _buscadorController,
+              decoration: InputDecoration(
+                hintText: 'Buscar producto...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon:
+                    _buscadorController.text.isNotEmpty ||
+                        busquedaCompartida.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _buscadorController.clear();
+                          ref.read(busquedaCompartidaProvider.notifier).state =
+                              '';
+                          setState(() => _textoBusqueda = '');
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: Colors.grey.shade100,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              onChanged: (value) {
+                ref.read(busquedaCompartidaProvider.notifier).state = value;
+                setState(() => _textoBusqueda = value);
+              },
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Indicador de filtros activos
+          if (busquedaCompartida.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.filter_list, size: 16, color: AppColors.primary),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Buscando: "$busquedaCompartida"',
+                    style: TextStyle(fontSize: 12, color: AppColors.primary),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -1121,6 +1158,57 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       return;
     }
 
+    // Si es variable con variantes, mostrar diálogo de selección
+    if (producto.esVariable && (producto.variantes?.isNotEmpty ?? false)) {
+      showDialog(
+        context: context,
+        builder: (ctx) => SeleccionVarianteDialog(
+          producto: producto,
+          onVarianteSeleccionada: (variante) async {
+            final itemExistente = _carrito
+                .where(
+                  (i) =>
+                      i.productoId == producto.id &&
+                      i.varianteId == variante.id,
+                )
+                .firstOrNull;
+
+            if (itemExistente != null) {
+              final index = _carrito.indexOf(itemExistente);
+              setState(() {
+                _carrito[index] = itemExistente.copyWith(
+                  cantidad: itemExistente.cantidad + 1,
+                );
+              });
+              if (_mesaAsignada != null) {
+                await _actualizarItemBD(
+                  itemExistente,
+                  itemExistente.cantidad + 1,
+                );
+              }
+            } else {
+              final nuevoItem = PedidoItem(
+                id: 'item_${DateTime.now().millisecondsSinceEpoch}',
+                productoId: producto.id,
+                varianteId: variante.id,
+                productoNombre: '${producto.nombre} (${variante.nombre})',
+                cantidad: 1,
+                precioUnitario: variante.precio,
+              );
+              setState(() {
+                _carrito.add(nuevoItem);
+              });
+              if (_mesaAsignada != null) {
+                await _agregarItemBDConVar(nuevoItem, variante);
+              }
+            }
+          },
+        ),
+      );
+      return;
+    }
+
+    // Producto normal (no variable)
     final itemExistente = _carrito
         .where((i) => i.productoId == producto.id)
         .firstOrNull;
@@ -1152,6 +1240,44 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     }
   }
 
+  Future<void> _agregarItemBDConVar(
+    PedidoItem item,
+    VarianteProducto variante,
+  ) async {
+    if (_mesaAsignada == null) return;
+
+    final mesaActual = ref
+        .read(mesasProvider)
+        .firstWhere((m) => m.id == _mesaAsignada);
+    String pedidoId = mesaActual.pedidoActualId ?? '';
+
+    if (pedidoId.isEmpty) {
+      final cajeroActual = ref.read(cajeroActualProvider);
+      pedidoId = await ref
+          .read(pedidosProvider.notifier)
+          .crear(
+            _mesaAsignada!,
+            cajeroId: cajeroActual?.id,
+            cajeroNombre: cajeroActual?.nombre,
+          );
+      await ref.read(mesasProvider.notifier).ocupar(_mesaAsignada!, pedidoId);
+    }
+
+    final baseName = item.productoNombre.split(' - ').first;
+    await ref
+        .read(pedidosProvider.notifier)
+        .agregarItem(
+          pedidoId,
+          Producto(
+            id: item.productoId,
+            nombre: baseName,
+            precio: item.precioUnitario,
+            categoriaId: '',
+          ),
+          cantidad: item.cantidad,
+        );
+  }
+
   Future<void> _agregarItemBD(PedidoItem item) async {
     if (_mesaAsignada == null) return;
 
@@ -1172,13 +1298,15 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       await ref.read(mesasProvider.notifier).ocupar(_mesaAsignada!, pedidoId);
     }
 
+    // Derive base product name to avoid duplicating variant name in order item
+    final String baseName = item.productoNombre.split(' - ').first;
     await ref
         .read(pedidosProvider.notifier)
         .agregarItem(
           pedidoId,
           Producto(
             id: item.productoId,
-            nombre: item.productoNombre,
+            nombre: baseName,
             precio: item.precioUnitario,
             categoriaId: '',
           ),

@@ -10,6 +10,34 @@ import '../widgets/categoria_dialog.dart';
 
 final busquedaProductoProvider = StateProvider<String>((ref) => '');
 
+enum TipoOrdenProducto { nombre, precio, disponible }
+
+enum DireccionOrden { ascendente, descendente }
+
+class OrdenProducto {
+  final TipoOrdenProducto campo;
+  final DireccionOrden direccion;
+
+  const OrdenProducto({
+    this.campo = TipoOrdenProducto.nombre,
+    this.direccion = DireccionOrden.ascendente,
+  });
+
+  OrdenProducto copyWith({
+    TipoOrdenProducto? campo,
+    DireccionOrden? direccion,
+  }) {
+    return OrdenProducto(
+      campo: campo ?? this.campo,
+      direccion: direccion ?? this.direccion,
+    );
+  }
+}
+
+final ordenProductoProvider = StateProvider<OrdenProducto>(
+  (ref) => const OrdenProducto(),
+);
+
 class ProductosScreen extends ConsumerStatefulWidget {
   const ProductosScreen({super.key});
 
@@ -33,8 +61,10 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     final categorias = ref.watch(categoriasProvider);
     final categoriaSeleccionada = ref.watch(categoriaSeleccionadaProvider);
     final busqueda = ref.watch(busquedaProductoProvider);
+    final ordenProducto = ref.watch(ordenProductoProvider);
 
-    final productosFiltrados = busqueda.isEmpty
+    // Apply search filter
+    var productosFiltrados = busqueda.isEmpty
         ? productos
         : productos
               .where(
@@ -46,6 +76,9 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                         false),
               )
               .toList();
+
+    // Apply sorting
+    productosFiltrados = _ordenarProductos(productosFiltrados, ordenProducto);
 
     return Scaffold(
       body: Column(
@@ -152,47 +185,240 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     String? categoriaSeleccionada,
     List<CategoriaProducto> categorias,
   ) {
+    final filtroDisp = ref.watch(filtroDisponibilidadProvider);
+    final filtroTipo = ref.watch(filtroTipoProvider);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.lightDivider)),
+        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: TextField(
-              controller: _busquedaController,
-              decoration: InputDecoration(
-                hintText: 'Buscar...',
-                prefixIcon: const Icon(Icons.search, size: 20),
-                suffixIcon: busqueda.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () {
-                          _busquedaController.clear();
-                          ref.read(busquedaProductoProvider.notifier).state =
-                              '';
-                        },
-                      )
-                    : null,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
+          // Barra de búsqueda
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _busquedaController,
+                  decoration: InputDecoration(
+                    hintText: 'Buscar productos...',
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    suffixIcon: busqueda.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 18),
+                            onPressed: () {
+                              _busquedaController.clear();
+                              ref
+                                      .read(busquedaCompartidaProvider.notifier)
+                                      .state =
+                                  '';
+                              ref
+                                      .read(busquedaProductoProvider.notifier)
+                                      .state =
+                                  '';
+                            },
+                          )
+                        : null,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey.shade100,
+                  ),
+                  onChanged: (value) {
+                    ref.read(busquedaCompartidaProvider.notifier).state = value;
+                    ref.read(busquedaProductoProvider.notifier).state = value;
+                  },
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.zero,
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.grey.shade100,
               ),
-              onChanged: (value) =>
-                  ref.read(busquedaProductoProvider.notifier).state = value,
+              const SizedBox(width: 12),
+              IconButton(
+                icon: const Icon(Icons.sort),
+                onPressed: _mostrarOpcionesOrden,
+                tooltip: 'Ordenar',
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.grey.shade100,
+                  padding: const EdgeInsets.all(12),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Filtros rápidos
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                // Filtro disponibilidad
+                _buildFilterChip(
+                  icon: Icons.inventory,
+                  label: 'Disponibilidad',
+                  value: _getDisponibilidadLabel(filtroDisp),
+                  onTap: () => _mostrarFiltroDisponibilidad(),
+                  isActive: filtroDisp != FiltroDisponibilidad.todos,
+                ),
+                const SizedBox(width: 8),
+                // Filtro tipo
+                _buildFilterChip(
+                  icon: Icons.tune,
+                  label: 'Tipo',
+                  value: _getTipoLabel(filtroTipo),
+                  onTap: () => _mostrarFiltroTipo(),
+                  isActive: filtroTipo != FiltroTipo.todos,
+                ),
+                const SizedBox(width: 8),
+                // Limpiar filtros
+                if (filtroDisp != FiltroDisponibilidad.todos ||
+                    filtroTipo != FiltroTipo.todos ||
+                    busqueda.isNotEmpty)
+                  ActionChip(
+                    avatar: const Icon(Icons.clear_all, size: 18),
+                    label: const Text('Limpiar'),
+                    onPressed: () {
+                      ref.read(filtroDisponibilidadProvider.notifier).state =
+                          FiltroDisponibilidad.todos;
+                      ref.read(filtroTipoProvider.notifier).state =
+                          FiltroTipo.todos;
+                      ref.read(busquedaCompartidaProvider.notifier).state = '';
+                      ref.read(busquedaProductoProvider.notifier).state = '';
+                      _busquedaController.clear();
+                    },
+                  ),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip({
+    required IconData icon,
+    required String label,
+    required String value,
+    required VoidCallback onTap,
+    required bool isActive,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive
+              ? AppColors.primary.withOpacity(0.1)
+              : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? AppColors.primary : Colors.grey.shade300,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isActive ? AppColors.primary : Colors.grey.shade600,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              '$label: $value',
+              style: TextStyle(
+                fontSize: 12,
+                color: isActive ? AppColors.primary : Colors.grey.shade700,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.arrow_drop_down,
+              size: 18,
+              color: isActive ? AppColors.primary : Colors.grey.shade600,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getDisponibilidadLabel(FiltroDisponibilidad filtro) {
+    switch (filtro) {
+      case FiltroDisponibilidad.todos:
+        return 'Todos';
+      case FiltroDisponibilidad.disponibles:
+        return 'Disponibles';
+      case FiltroDisponibilidad.noDisponibles:
+        return 'Agotados';
+    }
+  }
+
+  String _getTipoLabel(FiltroTipo filtro) {
+    switch (filtro) {
+      case FiltroTipo.todos:
+        return 'Todos';
+      case FiltroTipo.normales:
+        return 'Normales';
+      case FiltroTipo.variables:
+        return 'Variables';
+    }
+  }
+
+  void _mostrarFiltroDisponibilidad() {
+    final actual = ref.read(filtroDisponibilidadProvider);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Filtrar por disponibilidad'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: FiltroDisponibilidad.values.map((f) {
+            return RadioListTile<FiltroDisponibilidad>(
+              title: Text(_getDisponibilidadLabel(f)),
+              value: f,
+              groupValue: actual,
+              onChanged: (value) {
+                if (value != null) {
+                  ref.read(filtroDisponibilidadProvider.notifier).state = value;
+                }
+                Navigator.pop(ctx);
+              },
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  void _mostrarFiltroTipo() {
+    final actual = ref.read(filtroTipoProvider);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Filtrar por tipo'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: FiltroTipo.values.map((f) {
+            return RadioListTile<FiltroTipo>(
+              title: Text(_getTipoLabel(f)),
+              value: f,
+              groupValue: actual,
+              onChanged: (value) {
+                if (value != null) {
+                  ref.read(filtroTipoProvider.notifier).state = value;
+                }
+                Navigator.pop(ctx);
+              },
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -457,6 +683,23 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                         ),
                       ),
                     ),
+                  if (producto.esVariable)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.zero,
+                        ),
+                        child: const Icon(
+                          Icons.tune,
+                          size: 14,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -599,6 +842,149 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
         expand: false,
         builder: (context, scrollController) =>
             _buildCategoriasSheet(scrollController),
+      ),
+    );
+  }
+
+  List<Producto> _ordenarProductos(
+    List<Producto> productos,
+    OrdenProducto orden,
+  ) {
+    final productosOrdenados = List<Producto>.from(productos);
+
+    switch (orden.campo) {
+      case TipoOrdenProducto.nombre:
+        productosOrdenados.sort((a, b) {
+          final comparacion = a.nombre.toLowerCase().compareTo(
+            b.nombre.toLowerCase(),
+          );
+          return orden.direccion == DireccionOrden.ascendente
+              ? comparacion
+              : -comparacion;
+        });
+        break;
+      case TipoOrdenProducto.precio:
+        productosOrdenados.sort((a, b) {
+          final comparacion = a.precio.compareTo(b.precio);
+          return orden.direccion == DireccionOrden.ascendente
+              ? comparacion
+              : -comparacion;
+        });
+        break;
+      case TipoOrdenProducto.disponible:
+        productosOrdenados.sort((a, b) {
+          final comparacion = a.disponible == b.disponible
+              ? 0
+              : (a.disponible ? -1 : 1);
+          return orden.direccion == DireccionOrden.ascendente
+              ? comparacion
+              : -comparacion;
+        });
+        break;
+    }
+
+    return productosOrdenados;
+  }
+
+  void _mostrarOpcionesOrden() {
+    final ordenActual = ref.read(ordenProductoProvider);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Ordenar Productos'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Ordenar por:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: [
+                ChoiceChip(
+                  label: const Text('Nombre'),
+                  selected: ordenActual.campo == TipoOrdenProducto.nombre,
+                  onSelected: (selected) {
+                    if (selected) {
+                      ref.read(ordenProductoProvider.notifier).state =
+                          ordenActual.copyWith(campo: TipoOrdenProducto.nombre);
+                    }
+                  },
+                ),
+                ChoiceChip(
+                  label: const Text('Precio'),
+                  selected: ordenActual.campo == TipoOrdenProducto.precio,
+                  onSelected: (selected) {
+                    if (selected) {
+                      ref.read(ordenProductoProvider.notifier).state =
+                          ordenActual.copyWith(campo: TipoOrdenProducto.precio);
+                    }
+                  },
+                ),
+                ChoiceChip(
+                  label: const Text('Disponibilidad'),
+                  selected: ordenActual.campo == TipoOrdenProducto.disponible,
+                  onSelected: (selected) {
+                    if (selected) {
+                      ref
+                          .read(ordenProductoProvider.notifier)
+                          .state = ordenActual.copyWith(
+                        campo: TipoOrdenProducto.disponible,
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Dirección:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: [
+                ChoiceChip(
+                  label: const Text('A-Z / Menor precio'),
+                  selected: ordenActual.direccion == DireccionOrden.ascendente,
+                  onSelected: (selected) {
+                    if (selected) {
+                      ref
+                          .read(ordenProductoProvider.notifier)
+                          .state = ordenActual.copyWith(
+                        direccion: DireccionOrden.ascendente,
+                      );
+                    }
+                  },
+                ),
+                ChoiceChip(
+                  label: const Text('Z-A / Mayor precio'),
+                  selected: ordenActual.direccion == DireccionOrden.descendente,
+                  onSelected: (selected) {
+                    if (selected) {
+                      ref
+                          .read(ordenProductoProvider.notifier)
+                          .state = ordenActual.copyWith(
+                        direccion: DireccionOrden.descendente,
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cerrar'),
+          ),
+        ],
       ),
     );
   }

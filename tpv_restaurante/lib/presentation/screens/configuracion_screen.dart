@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../../data/services/backup_service.dart';
+import '../../data/services/database_service.dart';
 import '../providers/providers.dart';
 
 class ConfiguracionScreen extends ConsumerStatefulWidget {
@@ -17,7 +18,6 @@ class ConfiguracionScreen extends ConsumerStatefulWidget {
 class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nombreController;
-  late TextEditingController _sloganController;
   late TextEditingController _razonSocialController;
   late TextEditingController _direccionController;
   late TextEditingController _ciudadController;
@@ -25,9 +25,6 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
   late TextEditingController _emailController;
   late TextEditingController _cifController;
   late TextEditingController _ivaController;
-  late TextEditingController _webController;
-  late TextEditingController _numeroSerieController;
-  late TextEditingController _numeroLicenciaController;
   late TextEditingController _actividadController;
   bool _imprimeLogo = true;
 
@@ -36,7 +33,6 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
     super.initState();
     final negocio = ref.read(negocioProvider);
     _nombreController = TextEditingController(text: negocio.nombre);
-    _sloganController = TextEditingController(text: negocio.slogan ?? '');
     _razonSocialController = TextEditingController(
       text: negocio.razonSocial ?? '',
     );
@@ -48,13 +44,6 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
     _ivaController = TextEditingController(
       text: negocio.ivaPorcentaje.toString(),
     );
-    _webController = TextEditingController(text: negocio.website ?? '');
-    _numeroSerieController = TextEditingController(
-      text: negocio.numeroSerie ?? '',
-    );
-    _numeroLicenciaController = TextEditingController(
-      text: negocio.numeroLicencia ?? '',
-    );
     _actividadController = TextEditingController(text: negocio.actividad ?? '');
     _imprimeLogo = negocio.imprimeLogo;
   }
@@ -62,7 +51,6 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
   @override
   void dispose() {
     _nombreController.dispose();
-    _sloganController.dispose();
     _razonSocialController.dispose();
     _direccionController.dispose();
     _ciudadController.dispose();
@@ -70,9 +58,6 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
     _emailController.dispose();
     _cifController.dispose();
     _ivaController.dispose();
-    _webController.dispose();
-    _numeroSerieController.dispose();
-    _numeroLicenciaController.dispose();
     _actividadController.dispose();
     super.dispose();
   }
@@ -132,7 +117,7 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                 ),
               ]),
               const SizedBox(height: 24),
-              _buildSeccion('Dirección Fiscal', [
+              _buildSeccion('Datos del Negocio y Dirección', [
                 TextFormField(
                   controller: _direccionController,
                   decoration: const InputDecoration(
@@ -144,48 +129,8 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                 TextFormField(
                   controller: _ciudadController,
                   decoration: const InputDecoration(
-                    labelText: 'Ciudad y Código Postal',
-                    prefixIcon: Icon(Icons.map),
-                    hintText: 'Ej: 28001 Madrid',
-                  ),
-                ),
-              ]),
-              const SizedBox(height: 24),
-              _buildSeccion('Datos del TPV', [
-                TextFormField(
-                  controller: _numeroSerieController,
-                  decoration: const InputDecoration(
-                    labelText: 'Número de serie del terminal',
-                    prefixIcon: Icon(Icons.confirmation_number),
-                    helperText: 'Identificador único del terminal TPV',
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _numeroLicenciaController,
-                  decoration: const InputDecoration(
-                    labelText: 'Número de licencia software',
-                    prefixIcon: Icon(Icons.key),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Imprimir logo en tickets'),
-                  subtitle: const Text(
-                    'Incluye el logo del negocio en los tickets',
-                  ),
-                  value: _imprimeLogo,
-                  onChanged: (value) => setState(() => _imprimeLogo = value),
-                ),
-              ]),
-              const SizedBox(height: 24),
-              _buildSeccion('Datos del Negocio', [
-                TextFormField(
-                  controller: _sloganController,
-                  decoration: const InputDecoration(
-                    labelText: 'Slogan (opcional)',
-                    prefixIcon: Icon(Icons.format_quote),
+                    labelText: 'Ciudad',
+                    prefixIcon: Icon(Icons.location_city),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -213,12 +158,14 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _webController,
-                  decoration: const InputDecoration(
-                    labelText: 'Website',
-                    prefixIcon: Icon(Icons.language),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Imprimir logo en tickets'),
+                  subtitle: const Text(
+                    'Incluye el logo del negocio en los tickets',
                   ),
+                  value: _imprimeLogo,
+                  onChanged: (value) => setState(() => _imprimeLogo = value),
                 ),
               ]),
               const SizedBox(height: 24),
@@ -242,29 +189,66 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
+                Row(
                   children: [
-                    ChoiceChip(
-                      label: const Text('4%'),
-                      selected: _ivaController.text == '4',
-                      onSelected: (s) {
-                        if (s) setState(() => _ivaController.text = '4');
-                      },
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () =>
+                            setState(() => _ivaController.text = '4'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _ivaController.text == '4'
+                              ? AppColors.primary
+                              : Colors.grey.shade200,
+                          foregroundColor: _ivaController.text == '4'
+                              ? Colors.white
+                              : Colors.black87,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text(
+                          '4%',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
-                    ChoiceChip(
-                      label: const Text('10%'),
-                      selected: _ivaController.text == '10',
-                      onSelected: (s) {
-                        if (s) setState(() => _ivaController.text = '10');
-                      },
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () =>
+                            setState(() => _ivaController.text = '10'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _ivaController.text == '10'
+                              ? AppColors.primary
+                              : Colors.grey.shade200,
+                          foregroundColor: _ivaController.text == '10'
+                              ? Colors.white
+                              : Colors.black87,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text(
+                          '10%',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
-                    ChoiceChip(
-                      label: const Text('21%'),
-                      selected: _ivaController.text == '21',
-                      onSelected: (s) {
-                        if (s) setState(() => _ivaController.text = '21');
-                      },
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () =>
+                            setState(() => _ivaController.text = '21'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _ivaController.text == '21'
+                              ? AppColors.primary
+                              : Colors.grey.shade200,
+                          foregroundColor: _ivaController.text == '21'
+                              ? Colors.white
+                              : Colors.black87,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text(
+                          '21%',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -304,6 +288,23 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.secondary,
                       foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+                // Reset del sistema
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.delete_forever, color: Colors.red),
+                  title: const Text('Resetear sistema completo'),
+                  subtitle: const Text(
+                    'Borra todos los datos y reinicia el estado inicial',
+                  ),
+                  trailing: ElevatedButton.icon(
+                    onPressed: _resetSystem,
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: const Text('Reset'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
                     ),
                   ),
                 ),
@@ -393,44 +394,43 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
 
   void _guardar() {
     if (_formKey.currentState!.validate()) {
-      final negocio = DatosNegocio(
-        nombre: _nombreController.text.trim(),
-        slogan: _sloganController.text.isEmpty
-            ? null
-            : _sloganController.text.trim(),
-        razonSocial: _razonSocialController.text.isEmpty
-            ? null
-            : _razonSocialController.text.trim(),
-        direccion: _direccionController.text.trim(),
-        ciudad: _ciudadController.text.trim(),
-        telefono: _telefonoController.text.trim(),
-        email: _emailController.text.isEmpty
-            ? null
-            : _emailController.text.trim(),
-        cifNif: _cifController.text.isEmpty ? null : _cifController.text.trim(),
-        website: _webController.text.isEmpty
-            ? null
-            : _webController.text.trim(),
-        ivaPorcentaje: double.tryParse(_ivaController.text) ?? 10.0,
-        imprimeLogo: _imprimeLogo,
-        numeroSerie: _numeroSerieController.text.isEmpty
-            ? null
-            : _numeroSerieController.text.trim(),
-        numeroLicencia: _numeroLicenciaController.text.isEmpty
-            ? null
-            : _numeroLicenciaController.text.trim(),
-        actividad: _actividadController.text.isEmpty
-            ? null
-            : _actividadController.text.trim(),
-      );
-      ref.read(negocioProvider.notifier).actualizar(negocio);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Configuración guardada correctamente'),
-          backgroundColor: AppColors.success,
-        ),
-      );
-      Navigator.pop(context);
+      try {
+        final negocio = DatosNegocio(
+          nombre: _nombreController.text.trim(),
+          razonSocial: _razonSocialController.text.isEmpty
+              ? null
+              : _razonSocialController.text.trim(),
+          direccion: _direccionController.text.trim(),
+          ciudad: _ciudadController.text.trim(),
+          telefono: _telefonoController.text.trim(),
+          email: _emailController.text.isEmpty
+              ? null
+              : _emailController.text.trim(),
+          cifNif: _cifController.text.isEmpty
+              ? null
+              : _cifController.text.trim(),
+          ivaPorcentaje: double.tryParse(_ivaController.text) ?? 10.0,
+          imprimeLogo: _imprimeLogo,
+          actividad: _actividadController.text.isEmpty
+              ? null
+              : _actividadController.text.trim(),
+        );
+        ref.read(negocioProvider.notifier).actualizar(negocio);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Configuración guardada correctamente'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al guardar configuración: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 
@@ -466,6 +466,51 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
           ),
         );
       }
+    }
+  }
+
+  void _resetSystem() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Resetear sistema'),
+        content: const Text(
+          'Esto borrará todos los datos y volverá al estado inicial. ¿Continuar?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Continuar'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      final db = DatabaseService();
+      await db.resetAll();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Sistema reseteado. Por favor reinicia la aplicación para aplicar el reinicio completo.',
+          ),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al resetear: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
   }
 

@@ -316,6 +316,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
     final codigoPostalController = TextEditingController(
       text: cliente?.codigoPostal ?? '',
     );
+    final ciudadController = TextEditingController(text: cliente?.ciudad ?? '');
     final poblacionController = TextEditingController(
       text: cliente?.poblacion ?? '',
     );
@@ -408,7 +409,6 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                                 labelText: 'NIF/CIF/NIE',
                                 prefixIcon: Icon(Icons.badge),
                                 border: OutlineInputBorder(),
-                                helperText: 'Para facturación',
                               ),
                               textCapitalization: TextCapitalization.characters,
                             ),
@@ -442,15 +442,24 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: TextField(
-                              controller: poblacionController,
+                              controller: ciudadController,
                               decoration: const InputDecoration(
-                                labelText: 'Población',
+                                labelText: 'Ciudad',
                                 border: OutlineInputBorder(),
                               ),
                               textCapitalization: TextCapitalization.words,
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: poblacionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Población/Provincia',
+                          border: OutlineInputBorder(),
+                        ),
+                        textCapitalization: TextCapitalization.words,
                       ),
                       const SizedBox(height: 16),
                       TextField(
@@ -548,6 +557,9 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                               codigoPostalController.text.trim().isNotEmpty
                               ? codigoPostalController.text.trim()
                               : null,
+                          ciudad: ciudadController.text.trim().isNotEmpty
+                              ? ciudadController.text.trim()
+                              : null,
                           poblacion: poblacionController.text.trim().isNotEmpty
                               ? poblacionController.text.trim()
                               : null,
@@ -598,9 +610,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       builder: (ctx) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.5,

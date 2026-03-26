@@ -29,6 +29,7 @@ extension EstadoPedidoExtension on EstadoPedido {
 class PedidoItem {
   final String id;
   final String productoId;
+  final String? varianteId;
   final String productoNombre;
   final int cantidad;
   final double precioUnitario;
@@ -37,6 +38,7 @@ class PedidoItem {
   const PedidoItem({
     required this.id,
     required this.productoId,
+    this.varianteId,
     required this.productoNombre,
     required this.cantidad,
     required this.precioUnitario,
@@ -48,6 +50,7 @@ class PedidoItem {
   PedidoItem copyWith({
     String? id,
     String? productoId,
+    String? varianteId,
     String? productoNombre,
     int? cantidad,
     double? precioUnitario,
@@ -56,6 +59,7 @@ class PedidoItem {
     return PedidoItem(
       id: id ?? this.id,
       productoId: productoId ?? this.productoId,
+      varianteId: varianteId ?? this.varianteId,
       productoNombre: productoNombre ?? this.productoNombre,
       cantidad: cantidad ?? this.cantidad,
       precioUnitario: precioUnitario ?? this.precioUnitario,
@@ -67,6 +71,7 @@ class PedidoItem {
     return {
       'id': id,
       'productoId': productoId,
+      'varianteId': varianteId,
       'productoNombre': productoNombre,
       'cantidad': cantidad,
       'precioUnitario': precioUnitario,
@@ -78,6 +83,7 @@ class PedidoItem {
     return PedidoItem(
       id: json['id'] as String,
       productoId: json['productoId'] as String,
+      varianteId: json['varianteId'] as String?,
       productoNombre: json['productoNombre'] as String,
       cantidad: json['cantidad'] as int,
       precioUnitario: (json['precioUnitario'] as num).toDouble(),

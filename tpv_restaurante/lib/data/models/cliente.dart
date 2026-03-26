@@ -6,6 +6,7 @@ class Cliente {
   final String? nif;
   final String? direccion;
   final String? codigoPostal;
+  final String? ciudad;
   final String? poblacion;
   final String? observaciones;
   final DateTime fechaCreacion;
@@ -20,6 +21,7 @@ class Cliente {
     this.nif,
     this.direccion,
     this.codigoPostal,
+    this.ciudad,
     this.poblacion,
     this.observaciones,
     required this.fechaCreacion,
@@ -35,6 +37,7 @@ class Cliente {
     String? nif,
     String? direccion,
     String? codigoPostal,
+    String? ciudad,
     String? poblacion,
     String? observaciones,
     DateTime? fechaCreacion,
@@ -49,6 +52,7 @@ class Cliente {
       nif: nif ?? this.nif,
       direccion: direccion ?? this.direccion,
       codigoPostal: codigoPostal ?? this.codigoPostal,
+      ciudad: ciudad ?? this.ciudad,
       poblacion: poblacion ?? this.poblacion,
       observaciones: observaciones ?? this.observaciones,
       fechaCreacion: fechaCreacion ?? this.fechaCreacion,
@@ -66,6 +70,7 @@ class Cliente {
       'nif': nif,
       'direccion': direccion,
       'codigoPostal': codigoPostal,
+      'ciudad': ciudad,
       'poblacion': poblacion,
       'observaciones': observaciones,
       'fechaCreacion': fechaCreacion.toIso8601String(),
@@ -83,6 +88,7 @@ class Cliente {
       nif: json['nif'] as String?,
       direccion: json['direccion'] as String?,
       codigoPostal: json['codigoPostal'] as String?,
+      ciudad: json['ciudad'] as String?,
       poblacion: json['poblacion'] as String?,
       observaciones: json['observaciones'] as String?,
       fechaCreacion: DateTime.parse(json['fechaCreacion'] as String),

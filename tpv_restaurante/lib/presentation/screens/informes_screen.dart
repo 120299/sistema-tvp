@@ -479,32 +479,38 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
             BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
           ],
         ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.show_chart, size: 48, color: Colors.grey.shade300),
-              const SizedBox(height: 12),
-              Text(
-                'Sin datos para el período seleccionado',
-                style: TextStyle(color: Colors.grey.shade500),
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Tendencia de Ventas',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const Spacer(),
+            Icon(Icons.show_chart, size: 64, color: Colors.grey.shade300),
+            const SizedBox(height: 16),
+            Text(
+              'No hay datos suficientes',
+              style: TextStyle(color: Colors.grey.shade500),
+            ),
+            const Spacer(),
+          ],
         ),
       );
     }
 
     final spots = <FlSpot>[];
-    for (int i = 0; i < datos.length; i++) {
+    for (var i = 0; i < datos.length; i++) {
       spots.add(FlSpot(i.toDouble(), datos[i].value));
     }
 
     final maxY =
         datos.map((e) => e.value).reduce((a, b) => a > b ? a : b) * 1.2;
+    final totalVentas = datos.fold<double>(0, (sum, e) => sum + e.value);
+    final promedioDiario = totalVentas / datos.length;
 
     return Container(
-      height: 300,
+      height: 320,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -523,27 +529,23 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.zero,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(width: 12, height: 3, color: AppColors.primary),
-                    const SizedBox(width: 4),
-                    Text(
-                      '€',
-                      style: TextStyle(fontSize: 10, color: AppColors.primary),
-                    ),
-                  ],
-                ),
+              _buildChartLegend(
+                'Total: €${totalVentas.toStringAsFixed(2)}',
+                AppColors.primary,
+              ),
+              const SizedBox(width: 12),
+              _buildChartLegend(
+                'Media: €${promedioDiario.toStringAsFixed(2)}',
+                AppColors.secondary,
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 8),
+          Text(
+            '${datos.length} días con ventas',
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 16),
           Expanded(
             child: LineChart(
               LineChartData(
@@ -552,28 +554,45 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                   drawVerticalLine: false,
                   horizontalInterval: maxY > 0 ? maxY / 4 : 1,
                   getDrawingHorizontalLine: (value) {
-                    return FlLine(color: Colors.grey.shade200, strokeWidth: 1);
+                    return FlLine(
+                      color: Colors.grey.shade200,
+                      strokeWidth: 1,
+                      dashArray: [5, 5],
+                    );
                   },
                 ),
                 titlesData: FlTitlesData(
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 30,
+                      reservedSize: 35,
                       interval: datos.length > 7
                           ? (datos.length / 7).ceilToDouble()
                           : 1,
                       getTitlesWidget: (value, meta) {
                         final index = value.toInt();
                         if (index >= 0 && index < datos.length) {
+                          final fecha = datos[index].key;
                           return Padding(
                             padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              DateFormat('dd').format(datos[index].key),
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey.shade600,
-                              ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  DateFormat('dd').format(fecha),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                                Text(
+                                  DateFormat('MMM').format(fecha),
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                ),
+                              ],
                             ),
                           );
                         }
@@ -584,13 +603,17 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 50,
+                      reservedSize: 55,
+                      interval: maxY > 0 ? maxY / 4 : 1,
                       getTitlesWidget: (value, meta) {
-                        return Text(
-                          '€${value.toInt()}',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey.shade600,
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Text(
+                            '€${value.toInt()}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey.shade600,
+                            ),
                           ),
                         );
                       },
@@ -611,33 +634,97 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                 lineBarsData: [
                   LineChartBarData(
                     spots: spots,
-                    isCurved: true,
+                    isCurved: datos.length > 2,
                     color: AppColors.primary,
                     barWidth: 3,
                     isStrokeCapRound: true,
-                    dotData: const FlDotData(show: false),
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) {
+                        return FlDotCirclePainter(
+                          radius: 4,
+                          color: AppColors.primary,
+                          strokeColor: Colors.white,
+                          strokeWidth: 2,
+                        );
+                      },
+                    ),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: AppColors.primary.withOpacity(0.1),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppColors.primary.withOpacity(0.3),
+                          AppColors.primary.withOpacity(0.05),
+                        ],
+                      ),
                     ),
+                  ),
+                  // Average line
+                  LineChartBarData(
+                    spots: [
+                      FlSpot(0, promedioDiario),
+                      FlSpot((datos.length - 1).toDouble(), promedioDiario),
+                    ],
+                    isCurved: false,
+                    color: AppColors.secondary.withOpacity(0.5),
+                    barWidth: 2,
+                    dotData: const FlDotData(show: false),
+                    dashArray: [5, 5],
                   ),
                 ],
                 lineTouchData: LineTouchData(
                   touchTooltipData: LineTouchTooltipData(
                     getTooltipItems: (touchedSpots) {
                       return touchedSpots.map((spot) {
+                        final index = spot.x.toInt();
+                        String dateStr = '';
+                        if (index >= 0 && index < datos.length) {
+                          dateStr = DateFormat(
+                            'dd/MM',
+                          ).format(datos[index].key);
+                        }
                         return LineTooltipItem(
-                          '€${spot.y.toStringAsFixed(2)}',
+                          '$dateStr\n€${spot.y.toStringAsFixed(2)}',
                           const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
+                            fontSize: 12,
                           ),
                         );
                       }).toList();
                     },
                   ),
+                  handleBuiltInTouches: true,
+                  touchSpotThreshold: 20,
                 ),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChartLegend(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.zero,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(width: 12, height: 3, color: color),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 10,
+              color: color,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],

@@ -462,6 +462,14 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                         AppColors.primary,
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildStatCard(
+                        'SALDO CAJA',
+                        caja.saldoCaja,
+                        Colors.orange,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -668,7 +676,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                                           children: [
                                             Text(
                                               DateFormat(
-                                                'HH:mm',
+                                                'dd/MM/yyyy HH:mm',
                                               ).format(mov.fecha),
                                               style: TextStyle(
                                                 fontSize: 11,

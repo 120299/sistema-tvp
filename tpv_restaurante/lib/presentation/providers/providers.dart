@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/services/database_service.dart';
 import '../../data/services/image_storage_service.dart';
 import '../../data/models/models.dart';
+import '../../data/examples/ejemplos_usuarios.dart';
 
 final isLoggedInProvider = StateProvider<bool>((ref) => false);
 
@@ -75,6 +76,18 @@ class CajerosNotifier extends StateNotifier<List<Cajero>> {
 
   void actualizarLista() {
     state = _db.cajerosBox.values.toList();
+  }
+
+  Future<void> cargarEjemplos() async {
+    final ejemplos = EjemplosUsuarios.crearEjemplos();
+    for (final cajero in ejemplos) {
+      // Verificar si ya existe
+      final existe = state.any((c) => c.id == cajero.id);
+      if (!existe) {
+        await _db.cajerosBox.add(cajero);
+      }
+    }
+    actualizarLista();
   }
 }
 
@@ -276,12 +289,67 @@ class CategoriasNotifier extends StateNotifier<List<CategoriaProducto>> {
 
 final categoriaSeleccionadaProvider = StateProvider<String?>((ref) => null);
 
+// Filtros compartidos entre Productos y Ventas
+enum FiltroDisponibilidad { todos, disponibles, noDisponibles }
+
+enum FiltroTipo { todos, normales, variables }
+
+final filtroDisponibilidadProvider = StateProvider<FiltroDisponibilidad>(
+  (ref) => FiltroDisponibilidad.todos,
+);
+final filtroTipoProvider = StateProvider<FiltroTipo>((ref) => FiltroTipo.todos);
+final busquedaCompartidaProvider = StateProvider<String>((ref) => '');
+
 final productosFiltradosProvider = Provider<List<Producto>>((ref) {
   final categoriaId = ref.watch(categoriaSeleccionadaProvider);
   final productos = ref.watch(productosProvider);
+  final filtroDisp = ref.watch(filtroDisponibilidadProvider);
+  final filtroTipo = ref.watch(filtroTipoProvider);
+  final busqueda = ref.watch(busquedaCompartidaProvider).toLowerCase();
 
-  if (categoriaId == null) return productos;
-  return productos.where((p) => p.categoriaId == categoriaId).toList();
+  var resultado = productos;
+
+  // Filtro por categoría
+  if (categoriaId != null) {
+    resultado = resultado.where((p) => p.categoriaId == categoriaId).toList();
+  }
+
+  // Filtro por disponibilidad
+  switch (filtroDisp) {
+    case FiltroDisponibilidad.disponibles:
+      resultado = resultado.where((p) => p.disponible).toList();
+      break;
+    case FiltroDisponibilidad.noDisponibles:
+      resultado = resultado.where((p) => !p.disponible).toList();
+      break;
+    case FiltroDisponibilidad.todos:
+      break;
+  }
+
+  // Filtro por tipo
+  switch (filtroTipo) {
+    case FiltroTipo.variables:
+      resultado = resultado.where((p) => p.esVariable).toList();
+      break;
+    case FiltroTipo.normales:
+      resultado = resultado.where((p) => !p.esVariable).toList();
+      break;
+    case FiltroTipo.todos:
+      break;
+  }
+
+  // Filtro por búsqueda
+  if (busqueda.isNotEmpty) {
+    resultado = resultado
+        .where(
+          (p) =>
+              p.nombre.toLowerCase().contains(busqueda) ||
+              (p.descripcion?.toLowerCase().contains(busqueda) ?? false),
+        )
+        .toList();
+  }
+
+  return resultado;
 });
 
 final mesasProvider = StateNotifierProvider<MesasNotifier, List<Mesa>>((ref) {
@@ -427,17 +495,22 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
     Producto producto, {
     int cantidad = 1,
     String? notas,
+    VarianteProducto? variante,
   }) async {
     final pedidoIndex = state.indexWhere((p) => p.id == pedidoId);
     if (pedidoIndex < 0) return;
 
     final pedido = state[pedidoIndex];
+    final precio = variante?.precio ?? producto.precio;
+    final nombre = variante != null
+        ? '${producto.nombre} - ${variante.nombre}'
+        : producto.nombre;
     final item = PedidoItem(
       id: 'item_${DateTime.now().millisecondsSinceEpoch}',
       productoId: producto.id,
-      productoNombre: producto.nombre,
+      productoNombre: nombre,
       cantidad: cantidad,
-      precioUnitario: producto.precio,
+      precioUnitario: precio,
       notas: notas,
     );
 

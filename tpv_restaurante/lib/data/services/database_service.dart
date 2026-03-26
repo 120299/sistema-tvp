@@ -173,4 +173,22 @@ class DatabaseService {
     await Hive.close();
     _changeController.close();
   }
+
+  // Reset all data and seed initial data again
+  Future<void> resetAll() async {
+    await productosBox.clear();
+    await categoriasBox.clear();
+    await mesasBox.clear();
+    await pedidosBox.clear();
+    await negocioBox.clear();
+    await cajaBox.clear();
+    await movimientosBox.clear();
+    await cajerosBox.clear();
+    await clientesBox.clear();
+    await configBox.clear();
+    // Seed initial data again
+    await _seedData();
+    // Notify listeners about a global reset
+    notifyChange('reset');
+  }
 }
