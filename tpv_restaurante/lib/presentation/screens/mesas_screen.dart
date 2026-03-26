@@ -903,7 +903,8 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
         .map((e) => '${e.key}: ${e.value.toStringAsFixed(2)}€')
         .join(' + ');
 
-    await PrintService.printTicket(
+    await PrintService.previewTicket(
+      context: context,
       items: pedido.items,
       subtotal: pedido.subtotal,
       ivaPorcentaje: negocio.ivaPorcentaje,

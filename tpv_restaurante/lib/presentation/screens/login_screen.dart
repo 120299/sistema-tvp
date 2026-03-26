@@ -206,10 +206,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                AppColors.primary,
-                AppColors.primary.withOpacity(0.7),
-              ],
+              colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
             ),
           ),
           child: const Center(
@@ -222,67 +219,88 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     final negocio = ref.watch(negocioProvider);
     final cajeros = ref.watch(cajerosProvider);
     final cajerosActivos = cajeros.where((c) => c.activo).toList();
+    final screenH = MediaQuery.of(context).size.height;
+    final screenW = MediaQuery.of(context).size.width;
+    final isCompact = screenH < 700;
+    final isWide = screenW > 600;
 
     return Scaffold(
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth > 600;
-          return Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.primary,
-                  AppColors.primary.withOpacity(0.7),
-                ],
-              ),
-            ),
-            child: SafeArea(
-              child: isWide
-                  ? _buildLayoutHorizontal(negocio, cajerosActivos)
-                  : _buildLayoutVertical(negocio, cajerosActivos),
-            ),
-          );
-        },
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
+          ),
+        ),
+        child: SafeArea(
+          child: isWide
+              ? _buildLayoutHorizontal(
+                  negocio,
+                  cajerosActivos,
+                  isCompact: isCompact,
+                )
+              : _buildLayoutVertical(
+                  negocio,
+                  cajerosActivos,
+                  isCompact: isCompact,
+                ),
+        ),
       ),
     );
   }
 
-  Widget _buildLayoutHorizontal(DatosNegocio negocio, List<Cajero> cajeros) {
+  Widget _buildLayoutHorizontal(
+    DatosNegocio negocio,
+    List<Cajero> cajeros, {
+    bool isCompact = false,
+  }) {
     return Row(
       children: [
-        Expanded(flex: 2, child: _buildPanelIzquierdo(negocio)),
-        Expanded(flex: 3, child: _buildPanelDerecho(cajeros)),
+        Expanded(
+          flex: 2,
+          child: _buildPanelIzquierdo(negocio, isCompact: isCompact),
+        ),
+        Expanded(
+          flex: 3,
+          child: _buildPanelDerecho(cajeros, isCompact: isCompact),
+        ),
       ],
     );
   }
 
-  Widget _buildLayoutVertical(DatosNegocio negocio, List<Cajero> cajeros) {
+  Widget _buildLayoutVertical(
+    DatosNegocio negocio,
+    List<Cajero> cajeros, {
+    bool isCompact = false,
+  }) {
+    final screenW = MediaQuery.of(context).size.width;
+    final isNarrow = screenW < 380;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isCompact ? 8 : 16),
       child: Column(
         children: [
-          _buildHeader(negocio),
-          const SizedBox(height: 24),
-          _buildSelectorUsuarioSimple(cajeros),
-          const SizedBox(height: 24),
-          _buildPinPad(),
-          const SizedBox(height: 24),
-          _buildFooter(),
+          _buildHeader(negocio, isCompact: isCompact),
+          SizedBox(height: isCompact ? 12 : 24),
+          _buildSelectorUsuarioSimple(cajeros, isCompact: isCompact),
+          SizedBox(height: isCompact ? 12 : 24),
+          _buildPinPad(isCompact: isCompact, isNarrow: isNarrow),
+          SizedBox(height: isCompact ? 8 : 24),
+          _buildFooter(isCompact: isCompact),
         ],
       ),
     );
   }
 
-  Widget _buildPanelIzquierdo(DatosNegocio negocio) {
+  Widget _buildPanelIzquierdo(DatosNegocio negocio, {bool isCompact = false}) {
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: EdgeInsets.all(isCompact ? 16 : 32),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(isCompact ? 16 : 24),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.15),
               shape: BoxShape.rectangle,
@@ -294,29 +312,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 ),
               ],
             ),
-            child: const Icon(Icons.restaurant, size: 64, color: Colors.white),
+            child: Icon(
+              Icons.restaurant,
+              size: isCompact ? 48 : 64,
+              color: Colors.white,
+            ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: isCompact ? 12 : 24),
           Text(
             negocio.nombre,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 28,
+              fontSize: isCompact ? 20 : 28,
               fontWeight: FontWeight.bold,
               letterSpacing: 1,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: isCompact ? 6 : 12),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            padding: EdgeInsets.symmetric(
+              horizontal: isCompact ? 10 : 16,
+              vertical: isCompact ? 4 : 6,
+            ),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.zero,
             ),
-            child: const Text(
+            child: Text(
               'Sistema de Punto de Venta',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: isCompact ? 11 : 14,
+              ),
             ),
           ),
         ],
@@ -324,52 +352,56 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
-  Widget _buildPanelDerecho(List<Cajero> cajeros) {
+  Widget _buildPanelDerecho(List<Cajero> cajeros, {bool isCompact = false}) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.zero,
       ),
-      padding: const EdgeInsets.all(32),
+      padding: EdgeInsets.all(isCompact ? 16 : 32),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text(
+          Text(
             'Acceso al sistema',
             style: TextStyle(
-              fontSize: 24,
+              fontSize: isCompact ? 18 : 24,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 24),
-          _buildSelectorUsuarioSimple(cajeros),
-          const SizedBox(height: 32),
-          _buildPinPad(),
-          const SizedBox(height: 24),
-          _buildFooter(),
+          SizedBox(height: isCompact ? 12 : 24),
+          _buildSelectorUsuarioSimple(cajeros, isCompact: isCompact),
+          SizedBox(height: isCompact ? 16 : 32),
+          _buildPinPad(isCompact: isCompact, isNarrow: false),
+          SizedBox(height: isCompact ? 12 : 24),
+          _buildFooter(isCompact: isCompact),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(DatosNegocio negocio) {
+  Widget _buildHeader(DatosNegocio negocio, {bool isCompact = false}) {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(isCompact ? 12 : 20),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.15),
             shape: BoxShape.rectangle,
           ),
-          child: const Icon(Icons.restaurant, size: 48, color: Colors.white),
+          child: Icon(
+            Icons.restaurant,
+            size: isCompact ? 32 : 48,
+            color: Colors.white,
+          ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: isCompact ? 8 : 16),
         Text(
           negocio.nombre,
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
-            fontSize: 24,
+            fontSize: isCompact ? 18 : 24,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -377,14 +409,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
-  Widget _buildSelectorUsuarioSimple(List<Cajero> cajeros) {
+  Widget _buildSelectorUsuarioSimple(
+    List<Cajero> cajeros, {
+    bool isCompact = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Selecciona tu usuario',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: isCompact ? 14 : 16,
             fontWeight: FontWeight.w600,
             color: Colors.black87,
           ),
@@ -478,7 +513,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
-  Widget _buildPinPad() {
+  Widget _buildPinPad({bool isCompact = false, bool isNarrow = false}) {
+    final buttonSize = isNarrow ? 50.0 : (isCompact ? 55.0 : 70.0);
+
     return AnimatedBuilder(
       animation: _shakeAnimation,
       builder: (context, child) {
@@ -488,13 +525,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 ((_shakeController.value * 10).toInt().isOdd ? 1 : -1),
             0,
           ),
-          child: _buildPinPadContent(),
+          child: _buildPinPadContent(
+            isCompact: isCompact,
+            buttonSize: buttonSize,
+          ),
         );
       },
     );
   }
 
-  Widget _buildPinPadContent() {
+  Widget _buildPinPadContent({bool isCompact = false, double buttonSize = 70}) {
     return Column(
       children: [
         if (_cajeroSeleccionado != null) ...[
@@ -506,19 +546,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     ? Icons.admin_panel_settings
                     : Icons.person,
                 color: AppColors.primary,
-                size: 20,
+                size: isCompact ? 16 : 20,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: isCompact ? 4 : 8),
               Text(
                 _cajeroSeleccionado!.nombre,
-                style: const TextStyle(
-                  fontSize: 16,
+                style: TextStyle(
+                  fontSize: isCompact ? 14 : 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isCompact ? 8 : 16),
         ],
         Text(
           _bloqueado
@@ -526,14 +566,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               : _cajeroSeleccionado == null
               ? 'Selecciona un usuario'
               : 'Introduce tu PIN',
-          style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+          style: TextStyle(
+            fontSize: isCompact ? 14 : 16,
+            color: Colors.grey.shade600,
+          ),
         ),
-        const SizedBox(height: 16),
-        _buildIndicadoresPin(),
+        SizedBox(height: isCompact ? 8 : 16),
+        _buildIndicadoresPin(isCompact: isCompact),
         if (_error != null) ...[
-          const SizedBox(height: 12),
+          SizedBox(height: isCompact ? 6 : 12),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(
+              horizontal: isCompact ? 10 : 16,
+              vertical: isCompact ? 4 : 8,
+            ),
             decoration: BoxDecoration(
               color: _bloqueado ? Colors.orange.shade100 : Colors.red.shade100,
               borderRadius: BorderRadius.zero,
@@ -541,6 +587,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             child: Text(
               _error!,
               style: TextStyle(
+                fontSize: isCompact ? 11 : 12,
                 color: _bloqueado
                     ? Colors.orange.shade800
                     : Colors.red.shade800,
@@ -548,22 +595,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             ),
           ),
         ],
-        const SizedBox(height: 24),
-        _buildTecladoNumerico(),
+        SizedBox(height: isCompact ? 12 : 24),
+        _buildTecladoNumerico(buttonSize: buttonSize, isCompact: isCompact),
       ],
     );
   }
 
-  Widget _buildIndicadoresPin() {
+  Widget _buildIndicadoresPin({bool isCompact = false}) {
+    final size = isCompact ? 14.0 : 18.0;
+    final margin = isCompact ? 6.0 : 10.0;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(4, (index) {
         final estaLleno = index < _pinIngresado.length;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          margin: const EdgeInsets.symmetric(horizontal: 10),
-          width: estaLleno ? 20 : 18,
-          height: estaLleno ? 20 : 18,
+          margin: EdgeInsets.symmetric(horizontal: margin),
+          width: estaLleno ? size + 2 : size,
+          height: size,
           decoration: BoxDecoration(
             shape: BoxShape.rectangle,
             color: estaLleno ? AppColors.primary : Colors.transparent,
@@ -577,40 +626,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
-  Widget _buildTecladoNumerico() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final buttonSize = constraints.maxWidth > 400 ? 70.0 : 60.0;
-        return Column(
-          children: [
-            _buildFilaTeclado(['1', '2', '3'], buttonSize),
-            const SizedBox(height: 12),
-            _buildFilaTeclado(['4', '5', '6'], buttonSize),
-            const SizedBox(height: 12),
-            _buildFilaTeclado(['7', '8', '9'], buttonSize),
-            const SizedBox(height: 12),
-            _buildFilaTeclado(['C', '0', '⌫'], buttonSize),
-          ],
-        );
-      },
+  Widget _buildTecladoNumerico({
+    double buttonSize = 70,
+    bool isCompact = false,
+  }) {
+    final spacing = isCompact ? 6.0 : 12.0;
+    return Column(
+      children: [
+        _buildFilaTeclado(['1', '2', '3'], buttonSize, isCompact: isCompact),
+        SizedBox(height: spacing),
+        _buildFilaTeclado(['4', '5', '6'], buttonSize, isCompact: isCompact),
+        SizedBox(height: spacing),
+        _buildFilaTeclado(['7', '8', '9'], buttonSize, isCompact: isCompact),
+        SizedBox(height: spacing),
+        _buildFilaTeclado(['C', '0', '⌫'], buttonSize, isCompact: isCompact),
+      ],
     );
   }
 
-  Widget _buildFilaTeclado(List<String> teclas, double buttonSize) {
+  Widget _buildFilaTeclado(
+    List<String> teclas,
+    double buttonSize, {
+    bool isCompact = false,
+  }) {
+    final padding = isCompact ? 4.0 : 8.0;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: teclas.map((tecla) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: _buildTecla(tecla, buttonSize),
+          padding: EdgeInsets.symmetric(horizontal: padding),
+          child: _buildTecla(tecla, buttonSize, isCompact: isCompact),
         );
       }).toList(),
     );
   }
 
-  Widget _buildTecla(String tecla, double size) {
+  Widget _buildTecla(String tecla, double size, {bool isCompact = false}) {
     final esAccion = tecla == 'C' || tecla == '⌫';
     final estaDeshabilitado = _bloqueado && !esAccion;
+    final iconSize = isCompact ? 16.0 : 20.0;
+    final fontSize = isCompact ? 14.0 : 18.0;
 
     return GestureDetector(
       onTap: estaDeshabilitado
@@ -653,13 +708,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             ? Icon(
                 tecla == 'C' ? Icons.close : Icons.backspace_outlined,
                 color: estaDeshabilitado ? Colors.grey : Colors.grey.shade700,
-                size: 24,
+                size: iconSize,
               )
             : Text(
                 tecla,
                 style: TextStyle(
                   color: estaDeshabilitado ? Colors.grey : Colors.black87,
-                  fontSize: size > 65 ? 28 : 24,
+                  fontSize: fontSize,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -667,7 +722,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
-  Widget _buildFooter() {
+  Widget _buildFooter({bool isCompact = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -680,10 +735,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             activeColor: AppColors.primary,
           ),
         ),
-        const SizedBox(width: 8),
-        const Text(
-          'Recordarme en este dispositivo',
-          style: TextStyle(color: Colors.black54, fontSize: 14),
+        SizedBox(width: isCompact ? 4 : 8),
+        Text(
+          'Recordarme',
+          style: TextStyle(
+            color: Colors.black54,
+            fontSize: isCompact ? 12 : 14,
+          ),
         ),
       ],
     );
@@ -772,9 +830,7 @@ class _UsuarioSelectorSheetState extends State<_UsuarioSelectorSheet> {
                   decoration: InputDecoration(
                     hintText: 'Buscar usuario...',
                     prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.zero,
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.zero),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,

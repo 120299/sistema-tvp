@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../../presentation/providers/providers.dart';
@@ -31,9 +30,15 @@ class BackupService {
     };
 
     final jsonString = const JsonEncoder.withIndent('  ').convert(datos);
-    final directorio = await getApplicationDocumentsDirectory();
+    final basePath = Directory.current.path;
     final fecha = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-    final archivo = File('${directorio.path}/backup_tpv_$fecha.json');
+    final backupsDir = Directory('$basePath/backups');
+
+    if (!await backupsDir.exists()) {
+      await backupsDir.create(recursive: true);
+    }
+
+    final archivo = File('${backupsDir.path}/backup_tpv_$fecha.json');
 
     await archivo.writeAsString(jsonString);
 
@@ -126,8 +131,14 @@ class BackupService {
 
   Future<List<BackupInfo>> listarBackups() async {
     try {
-      final directorio = await getApplicationDocumentsDirectory();
-      final archivos = directorio
+      final basePath = Directory.current.path;
+      final backupsDir = Directory('$basePath/backups');
+
+      if (!await backupsDir.exists()) {
+        return [];
+      }
+
+      final archivos = backupsDir
           .listSync()
           .where(
             (f) => f.path.contains('backup_tpv_') && f.path.endsWith('.json'),

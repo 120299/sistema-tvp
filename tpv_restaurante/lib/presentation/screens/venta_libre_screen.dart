@@ -1444,7 +1444,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 .map((e) => '${e.key}: ${e.value.toStringAsFixed(2)}€')
                 .join(' + ');
 
-            await PrintService.printTicket(
+            await PrintService.previewTicket(
+              context: context,
               items: List.from(_carrito),
               subtotal: subtotal,
               ivaPorcentaje: negocio.ivaPorcentaje,

@@ -75,10 +75,7 @@ class AppShell extends ConsumerWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppColors.primary,
-            AppColors.primary.withOpacity(0.85),
-          ],
+          colors: [AppColors.primary, AppColors.primary.withOpacity(0.85)],
         ),
         boxShadow: [
           BoxShadow(
@@ -273,6 +270,7 @@ class AppShell extends ConsumerWidget {
 
     return Container(
       width: anchoMenu,
+      height: double.infinity,
       color: AppColors.primary,
       child: Column(
         children: [
@@ -352,7 +350,7 @@ class AppShell extends ConsumerWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.zero,
@@ -363,10 +361,10 @@ class AppShell extends ConsumerWidget {
             Icon(
               icon,
               color: isSelected ? AppColors.primary : Colors.white70,
-              size: 24,
+              size: 22,
             ),
             if (mostrarTexto) ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: 3),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Text(

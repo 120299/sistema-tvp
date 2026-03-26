@@ -91,9 +91,17 @@ class TicketWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenH = MediaQuery.of(context).size.height;
+    final isCompact = screenH < 600;
+    final ticketWidth = isCompact ? 260.0 : 280.0;
+    final padding = isCompact ? 12.0 : 16.0;
+    final fontSizeHeader = isCompact ? 14.0 : 16.0;
+    final fontSizeSmall = isCompact ? 8.0 : 9.0;
+    final fontSizeBody = isCompact ? 8.0 : 9.0;
+
     return Container(
-      width: 280,
-      padding: const EdgeInsets.all(16),
+      width: ticketWidth,
+      padding: EdgeInsets.all(padding),
       color: Colors.white,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -101,56 +109,70 @@ class TicketWidget extends StatelessWidget {
         children: [
           Text(
             negocio.nombre.toUpperCase(),
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: fontSizeHeader,
+              fontWeight: FontWeight.bold,
+            ),
             textAlign: TextAlign.center,
           ),
           if (negocio.razonSocial != null &&
               negocio.razonSocial!.isNotEmpty) ...[
-            const SizedBox(height: 2),
+            SizedBox(height: isCompact ? 1 : 2),
             Text(
               negocio.razonSocial!,
-              style: const TextStyle(fontSize: 10),
+              style: TextStyle(fontSize: fontSizeSmall),
               textAlign: TextAlign.center,
             ),
           ],
-          const SizedBox(height: 4),
-          Text(negocio.direccion, style: const TextStyle(fontSize: 9)),
-          Text(negocio.ciudad, style: const TextStyle(fontSize: 9)),
+          SizedBox(height: isCompact ? 2 : 4),
+          Text(negocio.direccion, style: TextStyle(fontSize: fontSizeSmall)),
+          Text(negocio.ciudad, style: TextStyle(fontSize: fontSizeSmall)),
           Text(
             'CIF/NIF: ${negocio.cifNif ?? "N/A"}',
-            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: fontSizeSmall,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const SizedBox(height: 8),
-          const Divider(thickness: 1),
+          SizedBox(height: isCompact ? 4 : 8),
+          Divider(thickness: 1, height: 1),
           _buildRow(
             'Nº Ticket',
             _generateNumeroTicket(DateTime.now()),
             bold: true,
+            fontSize: fontSizeBody,
+            isCompact: isCompact,
           ),
-          const Divider(thickness: 1),
+          Divider(thickness: 1, height: 1),
           if (mesaNumero != null) ...[
             Text(
               'Mesa: $mesaNumero',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: fontSizeSmall,
+              ),
             ),
-            const Divider(thickness: 1),
+            Divider(thickness: 1, height: 1),
           ],
-          _buildItemsList(),
-          const Divider(thickness: 1),
+          _buildItemsList(fontSize: fontSizeBody, isCompact: isCompact),
+          Divider(thickness: 1, height: 1),
           _buildTotals(),
-          const Divider(thickness: 2),
+          Divider(thickness: 2, height: 2),
           _buildTotal(),
-          const SizedBox(height: 4),
+          SizedBox(height: isCompact ? 2 : 4),
           Text(
             'Pago: ${metodoPago.toUpperCase()}',
-            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: fontSizeSmall,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: isCompact ? 8 : 12),
           _buildFooter(),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: isCompact ? 4 : 8),
+          Text(
             '------------------------------------',
-            style: TextStyle(fontSize: 8, color: Colors.grey),
+            style: TextStyle(fontSize: 7, color: Colors.grey),
           ),
         ],
       ),
@@ -161,23 +183,29 @@ class TicketWidget extends StatelessWidget {
     return 'T-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.millisecondsSinceEpoch.toString().substring(7)}';
   }
 
-  Widget _buildRow(String label, String value, {bool bold = false}) {
+  Widget _buildRow(
+    String label,
+    String value, {
+    bool bold = false,
+    double fontSize = 9,
+    bool isCompact = false,
+  }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: EdgeInsets.symmetric(vertical: isCompact ? 1 : 2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
             style: TextStyle(
-              fontSize: 9,
+              fontSize: fontSize,
               fontWeight: bold ? FontWeight.bold : FontWeight.normal,
             ),
           ),
           Text(
             value,
             style: TextStyle(
-              fontSize: 9,
+              fontSize: fontSize,
               fontWeight: bold ? FontWeight.bold : FontWeight.normal,
             ),
           ),
@@ -186,59 +214,68 @@ class TicketWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildItemsList() {
+  Widget _buildItemsList({double fontSize = 9, bool isCompact = false}) {
     return Column(
       children: [
         Row(
-          children: const [
+          children: [
             SizedBox(
-              width: 30,
+              width: isCompact ? 25 : 30,
               child: Text(
                 'Qty',
-                style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             Expanded(
               child: Text(
                 'Descripcion',
-                style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             SizedBox(
-              width: 50,
+              width: isCompact ? 45 : 50,
               child: Text(
                 'Importe',
-                style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.right,
               ),
             ),
           ],
         ),
-        const Divider(thickness: 1),
+        Divider(thickness: 1, height: 1),
         ...items.map(
           (item) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
+            padding: EdgeInsets.symmetric(vertical: isCompact ? 1 : 2),
             child: Row(
               children: [
                 SizedBox(
-                  width: 30,
+                  width: isCompact ? 25 : 30,
                   child: Text(
                     '${item.cantidad}',
-                    style: const TextStyle(fontSize: 9),
+                    style: TextStyle(fontSize: fontSize),
                   ),
                 ),
                 Expanded(
                   child: Text(
                     item.productoNombre,
-                    style: const TextStyle(fontSize: 9),
+                    style: TextStyle(fontSize: fontSize),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 SizedBox(
-                  width: 50,
+                  width: isCompact ? 45 : 50,
                   child: Text(
                     '${item.subtotal.toStringAsFixed(2)} €',
-                    style: const TextStyle(fontSize: 9),
+                    style: TextStyle(fontSize: fontSize),
                     textAlign: TextAlign.right,
                   ),
                 ),
@@ -329,54 +366,17 @@ class TicketPrintHelper {
           mesaNumero: mesaNumero,
         );
 
-        return AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.check_circle, color: AppColors.success),
-              SizedBox(width: 12),
-              Text('Venta Completada'),
-            ],
-          ),
-          content: SizedBox(
-            width: 320,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Desea imprimir el ticket?'),
-                const SizedBox(height: 16),
-                Container(
-                  constraints: const BoxConstraints(maxHeight: 400),
-                  child: SingleChildScrollView(child: ticketWidget),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                onCerrar?.call();
-              },
-              child: const Text('Cerrar sin imprimir'),
-            ),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                _printTicket(
-                  items,
-                  subtotal,
-                  ivaPorcentaje,
-                  metodoPago,
-                  negocio,
-                  mesaNumero,
-                  porcentajePropina,
-                );
-                onImprimir?.call();
-              },
-              icon: const Icon(Icons.print),
-              label: const Text('Imprimir Ticket'),
-            ),
-          ],
+        return _TicketPrintDialog(
+          ticketWidget: ticketWidget,
+          items: items,
+          subtotal: subtotal,
+          ivaPorcentaje: ivaPorcentaje,
+          metodoPago: metodoPago,
+          negocio: negocio,
+          mesaNumero: mesaNumero,
+          porcentajePropina: porcentajePropina,
+          onImprimir: onImprimir,
+          onCerrar: onCerrar,
         );
       },
     );
@@ -410,5 +410,242 @@ class TicketPrintHelper {
         ? pedidoId.substring(pedidoId.length - 6)
         : pedidoId;
     return 'T-$year$month$day-$suffix';
+  }
+}
+
+class _TicketPrintDialog extends StatefulWidget {
+  final Widget ticketWidget;
+  final List<PedidoItem> items;
+  final double subtotal;
+  final double ivaPorcentaje;
+  final String metodoPago;
+  final DatosNegocio negocio;
+  final String? mesaNumero;
+  final double porcentajePropina;
+  final VoidCallback? onImprimir;
+  final VoidCallback? onCerrar;
+
+  const _TicketPrintDialog({
+    required this.ticketWidget,
+    required this.items,
+    required this.subtotal,
+    required this.ivaPorcentaje,
+    required this.metodoPago,
+    required this.negocio,
+    this.mesaNumero,
+    required this.porcentajePropina,
+    this.onImprimir,
+    this.onCerrar,
+  });
+
+  @override
+  State<_TicketPrintDialog> createState() => _TicketPrintDialogState();
+}
+
+class _TicketPrintDialogState extends State<_TicketPrintDialog> {
+  bool _vistaPreviaActiva = false;
+
+  void _abrirPrevisualizacionPdf() async {
+    await PrintService.previewTicket(
+      context: context,
+      items: widget.items,
+      subtotal: widget.subtotal,
+      ivaPorcentaje: widget.ivaPorcentaje,
+      metodoPago: widget.metodoPago,
+      negocio: widget.negocio,
+      mesaNumero: widget.mesaNumero,
+      porcentajePropina: widget.porcentajePropina,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenH = MediaQuery.of(context).size.height;
+    final screenW = MediaQuery.of(context).size.width;
+    final isCompactH = screenH < 700;
+    final isCompactW = screenW < 400;
+
+    return Dialog(
+      insetPadding: EdgeInsets.all(isCompactH ? 8 : 16),
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: isCompactW ? screenW - 16 : 360,
+          maxHeight: screenH * (isCompactH ? 0.85 : 0.8),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: isCompactH ? 10 : 12,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(0),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white, size: 22),
+                  SizedBox(width: isCompactH ? 8 : 12),
+                  Expanded(
+                    child: Text(
+                      'Venta Completada',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: isCompactH ? 14 : 16,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      widget.onCerrar?.call();
+                    },
+                    icon: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
+            Flexible(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Vista Previa del Ticket',
+                      style: TextStyle(
+                        fontSize: isCompactH ? 12 : 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: isCompactH ? 8 : 12),
+                    Flexible(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: SingleChildScrollView(
+                            child: widget.ticketWidget,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.all(isCompactH ? 8 : 12),
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: Colors.grey.shade200)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        widget.onCerrar?.call();
+                      },
+                      icon: Icons.close,
+                      label: 'Cerrar',
+                      color: Colors.grey.shade600,
+                      isCompact: isCompactH,
+                    ),
+                  ),
+                  SizedBox(width: isCompactH ? 6 : 8),
+                  Expanded(
+                    child: _buildButton(
+                      onPressed: _abrirPrevisualizacionPdf,
+                      icon: Icons.visibility,
+                      label: 'Ver PDF',
+                      color: Colors.blue,
+                      isCompact: isCompactH,
+                    ),
+                  ),
+                  SizedBox(width: isCompactH ? 6 : 8),
+                  Expanded(
+                    child: _buildButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await PrintService.printTicket(
+                          items: widget.items,
+                          subtotal: widget.subtotal,
+                          ivaPorcentaje: widget.ivaPorcentaje,
+                          metodoPago: widget.metodoPago,
+                          negocio: widget.negocio,
+                          mesaNumero: widget.mesaNumero,
+                          porcentajePropina: widget.porcentajePropina,
+                        );
+                        widget.onImprimir?.call();
+                      },
+                      icon: Icons.print,
+                      label: 'Imprimir',
+                      color: AppColors.success,
+                      isCompact: isCompactH,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildButton({
+    required VoidCallback onPressed,
+    required IconData icon,
+    required String label,
+    required Color color,
+    required bool isCompact,
+  }) {
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(4),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(4),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            vertical: isCompact ? 8 : 10,
+            horizontal: 4,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: isCompact ? 14 : 16),
+              SizedBox(width: isCompact ? 4 : 6),
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: isCompact ? 10 : 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

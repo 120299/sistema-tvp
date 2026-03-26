@@ -10,6 +10,8 @@ class CocinaScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final screenH = MediaQuery.of(context).size.height;
+    final isCompact = screenH < 600;
     final pedidos = ref.watch(pedidosProvider);
     final mesas = ref.watch(mesasProvider);
 
@@ -29,27 +31,27 @@ class CocinaScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(isCompact ? 12 : 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Cocina',
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: isCompact ? 22 : 28,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      SizedBox(height: isCompact ? 2 : 4),
                       Text(
                         'Pedidos en cola',
                         style: TextStyle(
                           color: AppColors.textSecondary,
-                          fontSize: 14,
+                          fontSize: isCompact ? 12 : 14,
                         ),
                       ),
                     ],
@@ -58,6 +60,7 @@ class CocinaScreen extends ConsumerWidget {
                     pendientes.length,
                     enPreparacion.length,
                     listos.length,
+                    isCompact: isCompact,
                   ),
                 ],
               ),
@@ -65,7 +68,7 @@ class CocinaScreen extends ConsumerWidget {
             Expanded(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: isCompact ? 12 : 20),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -77,6 +80,7 @@ class CocinaScreen extends ConsumerWidget {
                       AppColors.error,
                       AppColors.error,
                       mesas,
+                      isCompact: isCompact,
                     ),
                     _buildColumna(
                       context,
@@ -86,6 +90,7 @@ class CocinaScreen extends ConsumerWidget {
                       AppColors.warning,
                       AppColors.warning,
                       mesas,
+                      isCompact: isCompact,
                     ),
                     _buildColumna(
                       context,
@@ -95,6 +100,7 @@ class CocinaScreen extends ConsumerWidget {
                       AppColors.success,
                       AppColors.success,
                       mesas,
+                      isCompact: isCompact,
                     ),
                   ],
                 ),
@@ -106,47 +112,76 @@ class CocinaScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildContador(int pendientes, int preparacion, int listos) {
+  Widget _buildContador(
+    int pendientes,
+    int preparacion,
+    int listos, {
+    bool isCompact = false,
+  }) {
     return Row(
       children: [
-        _contadorBadge(pendientes, AppColors.error, 'Pendientes'),
-        const SizedBox(width: 12),
-        _contadorBadge(preparacion, AppColors.warning, 'Preparando'),
-        const SizedBox(width: 12),
-        _contadorBadge(listos, AppColors.success, 'Listos'),
+        _contadorBadge(
+          pendientes,
+          AppColors.error,
+          'Pendientes',
+          isCompact: isCompact,
+        ),
+        SizedBox(width: isCompact ? 8 : 12),
+        _contadorBadge(
+          preparacion,
+          AppColors.warning,
+          'Preparando',
+          isCompact: isCompact,
+        ),
+        SizedBox(width: isCompact ? 8 : 12),
+        _contadorBadge(
+          listos,
+          AppColors.success,
+          'Listos',
+          isCompact: isCompact,
+        ),
       ],
     );
   }
 
-  Widget _contadorBadge(int count, Color color, String texto) {
+  Widget _contadorBadge(
+    int count,
+    Color color,
+    String texto, {
+    bool isCompact = false,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.symmetric(
+        horizontal: isCompact ? 8 : 12,
+        vertical: isCompact ? 4 : 6,
+      ),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.zero,
         border: Border.all(color: color),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(6),
+            padding: EdgeInsets.all(isCompact ? 4 : 6),
             decoration: BoxDecoration(color: color, shape: BoxShape.rectangle),
             child: Text(
               '$count',
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 12,
+                fontSize: isCompact ? 10 : 12,
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: isCompact ? 4 : 8),
           Text(
             texto,
             style: TextStyle(
               color: color,
               fontWeight: FontWeight.w600,
-              fontSize: 12,
+              fontSize: isCompact ? 10 : 12,
             ),
           ),
         ],
@@ -161,16 +196,20 @@ class CocinaScreen extends ConsumerWidget {
     List<Pedido> pedidos,
     Color colorHeader,
     Color colorAccent,
-    List<Mesa> mesas,
-  ) {
+    List<Mesa> mesas, {
+    bool isCompact = false,
+  }) {
     return Container(
-      width: 300,
-      margin: const EdgeInsets.only(right: 20),
+      width: isCompact ? 280 : 300,
+      margin: EdgeInsets.only(right: isCompact ? 12 : 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: EdgeInsets.symmetric(
+              horizontal: isCompact ? 12 : 16,
+              vertical: isCompact ? 8 : 12,
+            ),
             decoration: BoxDecoration(
               color: colorAccent,
               borderRadius: BorderRadius.zero,
@@ -180,16 +219,16 @@ class CocinaScreen extends ConsumerWidget {
               children: [
                 Text(
                   titulo,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: isCompact ? 14 : 16,
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isCompact ? 8 : 10,
+                    vertical: isCompact ? 2 : 4,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
@@ -197,16 +236,17 @@ class CocinaScreen extends ConsumerWidget {
                   ),
                   child: Text(
                     '${pedidos.length}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
+                      fontSize: isCompact ? 12 : 14,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isCompact ? 10 : 16),
           if (pedidos.isEmpty)
             Expanded(
               child: Center(
@@ -215,13 +255,16 @@ class CocinaScreen extends ConsumerWidget {
                   children: [
                     Icon(
                       Icons.inbox_outlined,
-                      size: 48,
+                      size: isCompact ? 36 : 48,
                       color: Colors.grey[400],
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: isCompact ? 8 : 12),
                     Text(
                       'Sin pedidos',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: isCompact ? 12 : 14,
+                      ),
                     ),
                   ],
                 ),
@@ -238,7 +281,7 @@ class CocinaScreen extends ConsumerWidget {
                     orElse: () => Mesa(id: '', numero: 0, capacidad: 0),
                   );
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
+                    padding: EdgeInsets.only(bottom: isCompact ? 10 : 16),
                     child: CocinaTicket(
                       pedido: pedido,
                       numeroMesa: mesa.numero.toString(),

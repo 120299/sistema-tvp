@@ -373,108 +373,115 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
         .fold<double>(0, (sum, p) => sum + p.total);
     final totalVentas = efectivo + tarjeta;
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.1),
-                  borderRadius: BorderRadius.zero,
-                ),
-                child: const Icon(
-                  Icons.point_of_sale,
-                  color: AppColors.success,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
                   children: [
-                    const Text(
-                      'CAJA ABIERTA',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withOpacity(0.1),
+                        borderRadius: BorderRadius.zero,
+                      ),
+                      child: const Icon(
+                        Icons.point_of_sale,
+                        color: AppColors.success,
+                        size: 28,
+                      ),
                     ),
-                      Text(
-                        '${caja.cajeroNombre ?? 'Cajero'} - ${_formatTime(caja.fechaApertura)}',
-                        style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'CAJA ABIERTA',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            '${caja.cajeroNombre ?? 'Cajero'} - ${_formatTime(caja.fechaApertura)}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => setState(() => _mostrarHistorial = true),
+                      icon: const Icon(Icons.history),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard('EFECTIVO', efectivo, Colors.green),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildStatCard('TARJETA', tarjeta, Colors.blue)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildStatCard('TOTAL', totalVentas, AppColors.primary),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildAccionButton(
+                        Icons.add,
+                        'Ingreso',
+                        AppColors.success,
+                        () => _mostrarDialogoIngreso(caja),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildAccionButton(
+                        Icons.remove,
+                        'Retiro',
+                        AppColors.error,
+                        () => _mostrarDialogoRetiro(caja),
                       ),
                     ),
                   ],
                 ),
-              ),
-              IconButton(
-                onPressed: () => setState(() => _mostrarHistorial = true),
-                icon: const Icon(Icons.history),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard('EFECTIVO', efectivo, Colors.green),
-              ),
-              const SizedBox(width: 8),
-              Expanded(child: _buildStatCard('TARJETA', tarjeta, Colors.blue)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildStatCard('TOTAL', totalVentas, AppColors.primary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildAccionButton(
-                  Icons.add,
-                  'Ingreso',
-                  AppColors.success,
-                  () => _mostrarDialogoIngreso(caja),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildAccionButton(
-                  Icons.remove,
-                  'Retiro',
-                  AppColors.error,
-                  () => _mostrarDialogoRetiro(caja),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (esAdmin)
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => _cerrarCaja(caja, efectivo, tarjeta),
-                icon: const Icon(Icons.lock),
-                label: const Text('CERRAR CAJA'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.warning,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.zero,
+                const SizedBox(height: 16),
+                if (esAdmin)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _cerrarCaja(caja, efectivo, tarjeta),
+                      icon: const Icon(Icons.lock),
+                      label: const Text('CERRAR CAJA'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.warning,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                const SizedBox(height: 16),
+                Expanded(child: _buildMovimientosCaja(caja)),
+              ],
             ),
-          const SizedBox(height: 16),
-          Expanded(child: _buildMovimientosCaja(caja)),
-        ],
-      ),
+          ),
+        ),
+      ],
     );
   }
+
 
   Widget _buildStatCard(String label, double valor, Color color) {
     return Container(

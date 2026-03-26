@@ -32,6 +32,37 @@ class PrintService {
     }
   }
 
+  /// Opens a PDF preview dialog and allows the user to print from there.
+  static Future<void> previewTicket({
+    required BuildContext context,
+    required List<PedidoItem> items,
+    required double subtotal,
+    required double ivaPorcentaje,
+    required String metodoPago,
+    required DatosNegocio negocio,
+    String? mesaNumero,
+    String? cajeroNombre,
+    double porcentajePropina = 0,
+    String? clienteNombre,
+    String? clienteNif,
+  }) async {
+    final pdf = await _buildTicketPdf(
+      items: items,
+      subtotal: subtotal,
+      ivaPorcentaje: ivaPorcentaje,
+      metodoPago: metodoPago,
+      negocio: negocio,
+      mesaNumero: mesaNumero,
+      cajeroNombre: cajeroNombre,
+      porcentajePropina: porcentajePropina,
+      clienteNombre: clienteNombre,
+      clienteNif: clienteNif,
+    );
+
+    if (!context.mounted) return;
+    await _showPdfPreview(context, pdf, 'Vista Previa del Ticket');
+  }
+
   static Future<void> printTicket({
     required List<PedidoItem> items,
     required double subtotal,
@@ -45,78 +76,18 @@ class PrintService {
     String? clienteNif,
   }) async {
     try {
-      final pdf = pw.Document();
-
-      final baseImponible = subtotal / (1 + ivaPorcentaje / 100);
-      final importeIva = subtotal - baseImponible;
-      final totalConIva = subtotal;
-      final montoPropina = totalConIva * (porcentajePropina / 100);
-      final totalFinal = totalConIva + montoPropina;
-
-      pdf.addPage(
-        pw.Page(
-          pageFormat: const PdfPageFormat(
-            80 * PdfPageFormat.mm,
-            double.infinity,
-            marginAll: 5 * PdfPageFormat.mm,
-          ),
-          build: (pw.Context context) {
-            return pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.center,
-              mainAxisSize: pw.MainAxisSize.min,
-              children: [
-                _buildHeader(negocio),
-                pw.SizedBox(height: 5),
-                _buildFechaHora(),
-                if (mesaNumero != null)
-                  pw.Text(
-                    'MESA: $mesaNumero',
-                    style: pw.TextStyle(
-                      fontSize: 11,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                if (cajeroNombre != null)
-                  pw.Text(
-                    'Cajero: $cajeroNombre',
-                    style: const pw.TextStyle(fontSize: 8),
-                  ),
-                pw.SizedBox(height: 4),
-                pw.Divider(thickness: 0.5),
-                _buildItems(items),
-                pw.Divider(thickness: 0.5),
-                _buildTotalsImproved(
-                  baseImponible: baseImponible,
-                  ivaPorcentaje: ivaPorcentaje,
-                  importeIva: importeIva,
-                  totalConIva: totalConIva,
-                  montoPropina: montoPropina,
-                  totalFinal: totalFinal,
-                ),
-                pw.SizedBox(height: 4),
-                pw.Container(
-                  padding: const pw.EdgeInsets.symmetric(vertical: 4),
-                  decoration: pw.BoxDecoration(border: pw.Border.all()),
-                  child: pw.Text(
-                    'PAGO: ${metodoPago.toUpperCase()}',
-                    style: pw.TextStyle(
-                      fontSize: 11,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                ),
-                pw.SizedBox(height: 6),
-                pw.Divider(thickness: 0.5),
-                _buildFooter(
-                  clienteNombre: clienteNombre,
-                  clienteNif: clienteNif,
-                ),
-              ],
-            );
-          },
-        ),
+      final pdf = await _buildTicketPdf(
+        items: items,
+        subtotal: subtotal,
+        ivaPorcentaje: ivaPorcentaje,
+        metodoPago: metodoPago,
+        negocio: negocio,
+        mesaNumero: mesaNumero,
+        cajeroNombre: cajeroNombre,
+        porcentajePropina: porcentajePropina,
+        clienteNombre: clienteNombre,
+        clienteNif: clienteNif,
       );
-
       await Printing.layoutPdf(
         onLayout: (PdfPageFormat format) async => pdf.save(),
       );
@@ -124,6 +95,193 @@ class PrintService {
       debugPrint('Error al imprimir ticket: $e');
     }
   }
+
+  static Future<pw.Document> _buildTicketPdf({
+    required List<PedidoItem> items,
+    required double subtotal,
+    required double ivaPorcentaje,
+    required String metodoPago,
+    required DatosNegocio negocio,
+    String? mesaNumero,
+    String? cajeroNombre,
+    double porcentajePropina = 0,
+    String? clienteNombre,
+    String? clienteNif,
+  }) async {
+    final pdf = pw.Document();
+    final baseImponible = subtotal / (1 + ivaPorcentaje / 100);
+    final importeIva = subtotal - baseImponible;
+    final totalConIva = subtotal;
+    final montoPropina = totalConIva * (porcentajePropina / 100);
+    final totalFinal = totalConIva + montoPropina;
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: const PdfPageFormat(
+          80 * PdfPageFormat.mm,
+          double.infinity,
+          marginAll: 5 * PdfPageFormat.mm,
+        ),
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
+            mainAxisSize: pw.MainAxisSize.min,
+            children: [
+              _buildHeader(negocio),
+              pw.SizedBox(height: 5),
+              _buildFechaHora(),
+              if (mesaNumero != null)
+                pw.Text(
+                  'MESA: $mesaNumero',
+                  style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                ),
+              if (cajeroNombre != null)
+                pw.Text('Cajero: $cajeroNombre', style: const pw.TextStyle(fontSize: 8)),
+              pw.SizedBox(height: 4),
+              pw.Divider(thickness: 0.5),
+              _buildItems(items),
+              pw.Divider(thickness: 0.5),
+              _buildTotalsImproved(
+                baseImponible: baseImponible,
+                ivaPorcentaje: ivaPorcentaje,
+                importeIva: importeIva,
+                totalConIva: totalConIva,
+                montoPropina: montoPropina,
+                totalFinal: totalFinal,
+              ),
+              pw.SizedBox(height: 4),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(vertical: 4),
+                decoration: pw.BoxDecoration(border: pw.Border.all()),
+                child: pw.Text(
+                  'PAGO: ${metodoPago.toUpperCase()}',
+                  style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                ),
+              ),
+              pw.SizedBox(height: 6),
+              pw.Divider(thickness: 0.5),
+              _buildFooter(clienteNombre: clienteNombre, clienteNif: clienteNif),
+            ],
+          );
+        },
+      ),
+    );
+    return pdf;
+  }
+
+  static Future<void> _showPdfPreview(
+    BuildContext context,
+    pw.Document pdf,
+    String title,
+  ) async {
+    await showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        insetPadding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: Colors.blueGrey.shade800,
+              child: Row(
+                children: [
+                  const Icon(Icons.print, color: Colors.white, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    tooltip: 'Cerrar',
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: PdfPreview(
+                build: (format) => pdf.save(),
+                allowPrinting: true,
+                allowSharing: false,
+                canChangePageFormat: false,
+                canChangeOrientation: false,
+                canDebug: false,
+                pdfFileName: 'ticket.pdf',
+                actions: [],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Future<void> previewCierreCaja({
+    required BuildContext context,
+    required pw.Document pdf,
+  }) async {
+    await _showPdfPreview(context, pdf, 'Vista Previa - Cierre de Caja');
+  }
+
+  static Future<pw.Document> buildCierreCajaPdf(DatosNegocio negocio, dynamic caja) async {
+    final pdf = pw.Document();
+    final fechaApertura = caja.fechaApertura as DateTime;
+    final fechaCierre = caja.fechaCierre as DateTime?;
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: const PdfPageFormat(
+          80 * PdfPageFormat.mm,
+          double.infinity,
+          marginAll: 5 * PdfPageFormat.mm,
+        ),
+        build: (pw.Context ctx) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            mainAxisSize: pw.MainAxisSize.min,
+            children: [
+              pw.Center(child: pw.Text('CIERRE DE CAJA', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14))),
+              pw.Center(child: pw.Text(negocio.nombre, style: const pw.TextStyle(fontSize: 10))),
+              pw.SizedBox(height: 10),
+              pw.Divider(thickness: 1),
+              pw.Text('APERTURA: ${_fmtDate(fechaApertura)}', style: const pw.TextStyle(fontSize: 9)),
+              if (fechaCierre != null)
+                pw.Text('CIERRE: ${_fmtDate(fechaCierre)}', style: const pw.TextStyle(fontSize: 9)),
+              pw.Text('CAJERO: ${caja.cajeroNombre ?? "Sistema"}', style: const pw.TextStyle(fontSize: 9)),
+              pw.SizedBox(height: 10),
+              pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
+                pw.Text('FONDO INICIAL:', style: const pw.TextStyle(fontSize: 9)),
+                pw.Text('€${caja.fondoInicial.toStringAsFixed(2)}', style: const pw.TextStyle(fontSize: 9)),
+              ]),
+              pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
+                pw.Text('TOTAL VENTAS:', style: const pw.TextStyle(fontSize: 9)),
+                pw.Text('€${caja.totalVentas.toStringAsFixed(2)}', style: const pw.TextStyle(fontSize: 9)),
+              ]),
+              pw.Divider(thickness: 1),
+              pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
+                pw.Text('SALDO FINAL:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                pw.Text('€${caja.saldoCaja.toStringAsFixed(2)}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+              ]),
+              pw.SizedBox(height: 20),
+            ],
+          );
+        },
+      ),
+    );
+    return pdf;
+  }
+
+  static String _fmtDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+
+
 
   static Future<void> printCocinaTicket({
     required List<PedidoItem> items,

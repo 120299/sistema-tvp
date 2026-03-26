@@ -47,8 +47,15 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
   Future<void> _cargarBackups() async {
     try {
-      final directorio = await getApplicationDocumentsDirectory();
-      final archivos = await Directory(directorio.path)
+      final basePath = Directory.current.path;
+      final backupsDir = Directory('$basePath/backups');
+
+      if (!await backupsDir.exists()) {
+        setState(() => _backupsDisponibles = []);
+        return;
+      }
+
+      final archivos = await backupsDir
           .list()
           .where(
             (f) => f.path.contains('backup_tpv_') && f.path.endsWith('.json'),
@@ -156,10 +163,16 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       }
 
       final jsonString = const JsonEncoder.withIndent('  ').convert(datos);
-      final directorio = await getApplicationDocumentsDirectory();
+      final basePath = Directory.current.path;
+      final backupsDir = Directory('$basePath/backups');
+
+      if (!await backupsDir.exists()) {
+        await backupsDir.create(recursive: true);
+      }
+
       final fecha = DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now());
       final nombreArchivo = 'backup_tpv_$fecha.json';
-      final archivo = File('${directorio.path}/$nombreArchivo');
+      final archivo = File('${backupsDir.path}/$nombreArchivo');
 
       await archivo.writeAsString(jsonString);
 

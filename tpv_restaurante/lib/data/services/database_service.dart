@@ -1,14 +1,19 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
-import '../adapters/hive_adapters.dart';
+import '../../core/theme/app_theme.dart';
 import '../models/models.dart';
+import '../adapters/hive_adapters.dart';
 import '../repositories/repositories.dart';
 import 'image_storage_service.dart';
 
 class DatabaseService {
+  static final DatabaseService _instance = DatabaseService._internal();
+  factory DatabaseService() => _instance;
+  DatabaseService._internal();
+
   static const String _productosBox = 'productos';
   static const String _categoriasBox = 'categorias';
   static const String _mesasBox = 'mesas';
@@ -25,11 +30,11 @@ class DatabaseService {
   late Box<Mesa> mesasBox;
   late Box<Pedido> pedidosBox;
   late Box<DatosNegocio> negocioBox;
-  late Box<dynamic> configBox;
   late Box<Caja> cajaBox;
   late Box<MovimientoCaja> movimientosBox;
   late Box<Cajero> cajerosBox;
   late Box<Cliente> clientesBox;
+  late Box configBox;
 
   late ProductoRepositorio productoRepositorio;
   late CategoriaRepositorio categoriaRepositorio;
@@ -38,13 +43,14 @@ class DatabaseService {
   late CajaRepositorio cajaRepositorio;
   late MovimientoRepositorio movimientoRepositorio;
 
-  final StreamController<String> _changeController =
-      StreamController<String>.broadcast();
+  final _changeController = StreamController<String>.broadcast();
+
+  Stream<String> get changeStream => _changeController.stream;
 
   Stream<String> get onBoxChanged => _changeController.stream;
 
-  void notifyChange(String boxName) {
-    _changeController.add(boxName);
+  void notifyChange(String collection) {
+    _changeController.add(collection);
   }
 
   Future<void> initialize() async {
@@ -96,14 +102,17 @@ class DatabaseService {
 
     if (kIsWeb) {
       basePath = (await getApplicationDocumentsDirectory()).path;
-    } else if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-      final documentsDir = await getApplicationDocumentsDirectory();
-      basePath = documentsDir.path;
+    } else if (Platform.isWindows ||
+        Platform.isMacOS ||
+        Platform.isLinux ||
+        Platform.isIOS ||
+        Platform.isAndroid) {
+      basePath = Directory.current.path;
     } else {
       basePath = (await getApplicationDocumentsDirectory()).path;
     }
 
-    final tpvdDir = Directory('$basePath/TPV_Datos');
+    final tpvdDir = Directory('$basePath/tpv_datos');
 
     if (!await tpvdDir.exists()) {
       await tpvdDir.create(recursive: true);
