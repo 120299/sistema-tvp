@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/ticket_helper.dart';
 import '../../data/models/models.dart';
 import '../providers/providers.dart';
 
@@ -74,7 +75,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
+          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
         ),
       ),
       child: SafeArea(
@@ -84,8 +85,8 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(10),
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.zero,
               ),
               child: const Icon(Icons.people, color: Colors.white, size: 24),
             ),
@@ -133,7 +134,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                   },
                 )
               : null,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          border: const OutlineInputBorder(borderRadius: BorderRadius.zero),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 12,
@@ -183,7 +184,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () => _mostrarHistorialPedidos(context, cliente),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -192,8 +193,8 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.zero,
                 ),
                 alignment: Alignment.center,
                 child: Text(
@@ -272,8 +273,8 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.secondary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.secondary.withOpacity(0.1),
+                        borderRadius: BorderRadius.zero,
                       ),
                       child: Text(
                         '${cliente.totalPedidos} pedidos',
@@ -334,10 +335,8 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: Row(
                   children: [
@@ -471,9 +470,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade100,
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(16),
-                  ),
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -602,7 +599,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.zero,
       ),
       builder: (ctx) => DraggableScrollableSheet(
         initialChildSize: 0.7,
@@ -612,17 +609,15 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
         builder: (context, scrollController) => Container(
           decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            borderRadius: BorderRadius.zero,
           ),
           child: Column(
             children: [
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(24),
-                  ),
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: Column(
                   children: [
@@ -631,7 +626,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                       height: 4,
                       decoration: BoxDecoration(
                         color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -641,8 +636,8 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.zero,
                           ),
                           alignment: Alignment.center,
                           child: Text(
@@ -735,7 +730,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () => _mostrarDetallePedido(pedido),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -746,8 +741,8 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.zero,
                     ),
                     child: Icon(
                       Icons.receipt,
@@ -774,37 +769,50 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                       ],
                     ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        '€${pedido.total.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: AppColors.success,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: pedido.metodoPago == 'Efectivo'
-                              ? Colors.green.shade50
-                              : Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          pedido.metodoPago ?? 'N/A',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: pedido.metodoPago == 'Efectivo'
-                                ? Colors.green.shade700
-                                : Colors.blue.shade700,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '€${pedido.total.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: AppColors.success,
+                            ),
                           ),
-                        ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: pedido.metodoPago == 'Efectivo'
+                                  ? Colors.green.shade50
+                                  : Colors.blue.shade50,
+                              borderRadius: BorderRadius.zero,
+                            ),
+                            child: Text(
+                              pedido.metodoPago ?? 'N/A',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: pedido.metodoPago == 'Efectivo'
+                                    ? Colors.green.shade700
+                                    : Colors.blue.shade700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.print_outlined, size: 20),
+                        onPressed: () {
+                          final negocio = ref.read(negocioProvider);
+                          TicketHelper.imprimirPedido(negocio, pedido);
+                        },
                       ),
                     ],
                   ),
@@ -827,7 +835,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                     ),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.zero,
                     ),
                     child: Text(
                       '${item.cantidad}x ${item.productoNombre}',

@@ -23,17 +23,17 @@ class CategoryChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected ? categoria.color : Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.zero,
           border: Border.all(
             color: isSelected
                 ? categoria.color
-                : Colors.grey.withValues(alpha: 0.3),
+                : Colors.grey.withOpacity(0.3),
             width: 1.5,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: categoria.color.withValues(alpha: 0.3),
+                    color: categoria.color.withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),

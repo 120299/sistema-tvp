@@ -126,15 +126,15 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
       padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
         color: AppColors.primary,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.zero,
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.zero,
             ),
             child: Icon(
               esEdicion ? Icons.edit : Icons.add_circle,
@@ -184,11 +184,11 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
               height: 150,
               decoration: BoxDecoration(
                 color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.zero,
                 border: Border.all(color: Colors.grey.shade200, width: 2),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.zero,
                 child: _localImageBase64 != null
                     ? Image.memory(
                         base64Decode(_localImageBase64!),
@@ -411,7 +411,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: Row(
                   children: [
@@ -485,7 +485,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: Row(
                   children: [
@@ -535,10 +535,10 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+        borderRadius: BorderRadius.zero,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),

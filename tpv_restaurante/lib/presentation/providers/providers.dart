@@ -11,7 +11,7 @@ final databaseServiceProvider = Provider<DatabaseService>((ref) {
   throw UnimplementedError('DatabaseService must be initialized before use');
 });
 
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
+final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
 
 enum UbicacionAlmacenamiento { local, usb, personalizado }
 
@@ -707,10 +707,11 @@ class CajaNotifier extends StateNotifier<Caja?> {
     final cerrada = state!.copyWith(
       estado: EstadoCaja.cerrada,
       fechaCierre: DateTime.now(),
-      saldoFinal: saldoFinal,
+      saldoFinal: saldoFinal ?? state!.saldoCaja,
     );
 
-    final index = _db.cajaBox.values.toList().indexOf(state!);
+    final values = _db.cajaBox.values.toList();
+    final index = values.indexWhere((c) => c.id == state!.id);
     if (index >= 0) {
       await _db.cajaBox.putAt(index, cerrada);
     }
@@ -733,7 +734,8 @@ class CajaNotifier extends StateNotifier<Caja?> {
       movimientos: [...state!.movimientos, movimiento],
     );
 
-    final index = _db.cajaBox.values.toList().indexOf(state!);
+    final values = _db.cajaBox.values.toList();
+    final index = values.indexWhere((c) => c.id == state!.id);
     if (index >= 0) {
       await _db.cajaBox.putAt(index, actualizada);
       state = actualizada;
@@ -755,7 +757,8 @@ class CajaNotifier extends StateNotifier<Caja?> {
       movimientos: [...state!.movimientos, movimiento],
     );
 
-    final index = _db.cajaBox.values.toList().indexOf(state!);
+    final values = _db.cajaBox.values.toList();
+    final index = values.indexWhere((c) => c.id == state!.id);
     if (index >= 0) {
       await _db.cajaBox.putAt(index, actualizada);
       state = actualizada;
@@ -789,7 +792,8 @@ class CajaNotifier extends StateNotifier<Caja?> {
       movimientos: [...state!.movimientos, movimiento],
     );
 
-    final index = _db.cajaBox.values.toList().indexOf(state!);
+    final values = _db.cajaBox.values.toList();
+    final index = values.indexWhere((c) => c.id == state!.id);
     if (index >= 0) {
       await _db.cajaBox.putAt(index, actualizada);
       state = actualizada;

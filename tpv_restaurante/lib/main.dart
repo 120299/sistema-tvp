@@ -41,15 +41,13 @@ class TPVRestauranteApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
     final isLoggedIn = ref.watch(isLoggedInProvider);
 
     return MaterialApp(
       title: 'TPV Restaurante',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme(),
-      darkTheme: AppTheme.darkTheme(),
-      themeMode: themeMode,
+      themeMode: ThemeMode.light,
       home: isLoggedIn
           ? const AppShell()
           : LoginScreen(

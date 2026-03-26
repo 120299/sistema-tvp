@@ -79,8 +79,6 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeModeProvider);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Configuración del Negocio'),
@@ -304,7 +302,7 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: Row(
                     children: [
@@ -386,47 +384,12 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                 ),
               ]),
               const SizedBox(height: 24),
-              _buildSeccion('Apariencia', [
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    themeMode == ThemeMode.dark
-                        ? Icons.dark_mode
-                        : Icons.light_mode,
-                    color: AppColors.primary,
-                  ),
-                  title: const Text('Tema de la aplicación'),
-                  subtitle: Text(_getThemeText(themeMode)),
-                  trailing: SegmentedButton<ThemeMode>(
-                    segments: const [
-                      ButtonSegment(
-                        value: ThemeMode.light,
-                        icon: Icon(Icons.light_mode),
-                      ),
-                      ButtonSegment(
-                        value: ThemeMode.system,
-                        icon: Icon(Icons.settings_suggest),
-                      ),
-                      ButtonSegment(
-                        value: ThemeMode.dark,
-                        icon: Icon(Icons.dark_mode),
-                      ),
-                    ],
-                    selected: {themeMode},
-                    onSelectionChanged: (selection) {
-                      ref.read(themeModeProvider.notifier).state =
-                          selection.first;
-                    },
-                  ),
-                ),
-              ]),
-              const SizedBox(height: 24),
               _buildSeccion('Información Legal', [
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.zero,
                     border: Border.all(color: Colors.blue.shade200),
                   ),
                   child: Column(
@@ -488,10 +451,10 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.zero,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Colors.black.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -518,9 +481,9 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.1)
+              ? AppColors.primary.withOpacity(0.1)
               : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.zero,
         ),
         child: Icon(icon, color: isSelected ? AppColors.primary : Colors.grey),
       ),
@@ -604,8 +567,8 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.warning.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.warning.withOpacity(0.1),
+                borderRadius: BorderRadius.zero,
               ),
               child: const Row(
                 children: [
@@ -680,17 +643,6 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
         ],
       ),
     );
-  }
-
-  String _getThemeText(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.light:
-        return 'Claro';
-      case ThemeMode.dark:
-        return 'Oscuro';
-      case ThemeMode.system:
-        return 'Sistema';
-    }
   }
 
   void _guardar() {

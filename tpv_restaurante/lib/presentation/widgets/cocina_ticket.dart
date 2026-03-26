@@ -54,10 +54,10 @@ class CocinaTicket extends StatelessWidget {
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.zero,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -70,10 +70,7 @@ class CocinaTicket extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.primary,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(15),
-                topRight: Radius.circular(15),
-              ),
+              borderRadius: BorderRadius.zero,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -103,7 +100,7 @@ class CocinaTicket extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: _colorTimer,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: Row(
                     children: [
@@ -134,8 +131,8 @@ class CocinaTicket extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: _colorBoton.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      color: _colorBoton.withOpacity(0.1),
+                      borderRadius: BorderRadius.zero,
                     ),
                     child: Text(
                       pedido.estado.nombre,
@@ -168,10 +165,10 @@ class CocinaTicket extends StatelessWidget {
                                 width: 32,
                                 height: 32,
                                 decoration: BoxDecoration(
-                                  color: AppColors.secondary.withValues(
-                                    alpha: 0.1,
+                                  color: AppColors.secondary.withOpacity(
+                                    0.1,
                                   ),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.zero,
                                 ),
                                 child: Center(
                                   child: Text(

@@ -70,14 +70,14 @@ class MesaCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.zero,
           border: Border.all(
             color: _colorEstado,
             width: mesa.estado == EstadoMesa.necesitaAtencion ? 3 : 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -93,8 +93,8 @@ class MesaCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: _colorEstado.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
+                      color: _colorEstado.withOpacity(0.15),
+                      shape: BoxShape.rectangle,
                     ),
                     child: Icon(_iconoEstado, color: _colorEstado, size: 36),
                   ),
@@ -122,7 +122,7 @@ class MesaCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: _colorEstado,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.zero,
                     ),
                     child: Text(
                       _textoEstado,
@@ -143,7 +143,7 @@ class MesaCard extends StatelessWidget {
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: Colors.black12,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: const Icon(Icons.edit, size: 16, color: Colors.white),
               ),

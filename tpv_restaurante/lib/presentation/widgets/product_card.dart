@@ -27,10 +27,10 @@ class ProductCard extends ConsumerWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.zero,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -44,19 +44,12 @@ class ProductCard extends ConsumerWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16),
-                    ),
-                    child: _buildProductImage(),
-                  ),
+                  _buildProductImage(),
                   if (!producto.disponible)
                     Container(
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.black54,
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16),
-                        ),
+                        borderRadius: BorderRadius.zero,
                       ),
                       child: const Center(
                         child: Text(
@@ -77,7 +70,7 @@ class ProductCard extends ConsumerWidget {
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
                           color: Colors.black26,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.zero,
                         ),
                         child: const Icon(
                           Icons.edit,
@@ -94,7 +87,7 @@ class ProductCard extends ConsumerWidget {
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
                           color: AppColors.warning,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.zero,
                         ),
                         child: const Icon(
                           Icons.warning_amber,
@@ -181,7 +174,7 @@ class ProductCard extends ConsumerWidget {
 
   Widget _buildPlaceholder() {
     return Container(
-      color: AppColors.primary.withValues(alpha: 0.1),
+      color: AppColors.primary.withOpacity(0.1),
       child: const Center(
         child: Icon(Icons.restaurant, size: 40, color: AppColors.primary),
       ),

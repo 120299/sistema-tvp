@@ -208,7 +208,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               end: Alignment.bottomCenter,
               colors: [
                 AppColors.primary,
-                AppColors.primary.withValues(alpha: 0.7),
+                AppColors.primary.withOpacity(0.7),
               ],
             ),
           ),
@@ -234,7 +234,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 end: Alignment.bottomCenter,
                 colors: [
                   AppColors.primary,
-                  AppColors.primary.withValues(alpha: 0.7),
+                  AppColors.primary.withOpacity(0.7),
                 ],
               ),
             ),
@@ -284,11 +284,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(0.15),
+              shape: BoxShape.rectangle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
+                  color: Colors.black.withOpacity(0.2),
                   blurRadius: 30,
                   spreadRadius: 5,
                 ),
@@ -311,8 +311,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.zero,
             ),
             child: const Text(
               'Sistema de Punto de Venta',
@@ -328,10 +328,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(32),
-          bottomLeft: Radius.circular(32),
-        ),
+        borderRadius: BorderRadius.zero,
       ),
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -362,8 +359,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            shape: BoxShape.circle,
+            color: Colors.white.withOpacity(0.15),
+            shape: BoxShape.rectangle,
           ),
           child: const Icon(Icons.restaurant, size: 48, color: Colors.white),
         ),
@@ -399,15 +396,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.zero,
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
+                    color: AppColors.primary.withOpacity(0.1),
+                    shape: BoxShape.rectangle,
                   ),
                   child: Icon(
                     _cajeroSeleccionado != null
@@ -539,7 +536,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: _bloqueado ? Colors.orange.shade100 : Colors.red.shade100,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.zero,
             ),
             child: Text(
               _error!,
@@ -568,7 +565,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           width: estaLleno ? 20 : 18,
           height: estaLleno ? 20 : 18,
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
+            shape: BoxShape.rectangle,
             color: estaLleno ? AppColors.primary : Colors.transparent,
             border: Border.all(
               color: _error != null ? Colors.red : AppColors.primary,
@@ -639,13 +636,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               : esAccion
               ? Colors.grey.shade100
               : Colors.white,
-          borderRadius: BorderRadius.circular(size / 3),
+          borderRadius: BorderRadius.zero,
           border: Border.all(color: Colors.grey.shade300),
           boxShadow: estaDeshabilitado
               ? null
               : [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: Colors.black.withOpacity(0.1),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -746,7 +743,7 @@ class _UsuarioSelectorSheetState extends State<_UsuarioSelectorSheet> {
       ),
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.zero,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -757,7 +754,7 @@ class _UsuarioSelectorSheetState extends State<_UsuarioSelectorSheet> {
             height: 4,
             decoration: BoxDecoration(
               color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.zero,
             ),
           ),
           Padding(
@@ -776,7 +773,7 @@ class _UsuarioSelectorSheetState extends State<_UsuarioSelectorSheet> {
                     hintText: 'Buscar usuario...',
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.zero,
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -803,9 +800,9 @@ class _UsuarioSelectorSheetState extends State<_UsuarioSelectorSheet> {
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: esSeleccionado
-                          ? AppColors.primary.withValues(alpha: 0.2)
+                          ? AppColors.primary.withOpacity(0.2)
                           : Colors.grey.shade100,
-                      shape: BoxShape.circle,
+                      shape: BoxShape.rectangle,
                     ),
                     child: Icon(
                       cajero.isAdministrador

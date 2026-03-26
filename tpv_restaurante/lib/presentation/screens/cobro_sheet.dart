@@ -72,12 +72,6 @@ class _CobroSheetState extends State<CobroSheet> {
     });
   }
 
-  String _formatearImporte(String valor) {
-    if (valor.isEmpty) return '0,00';
-    final numericValue = double.tryParse(valor.replaceAll(',', '.')) ?? 0;
-    return numericValue.toStringAsFixed(2).replaceAll('.', ',');
-  }
-
   void _mostrarSelectorCliente() {
     showModalBottomSheet(
       context: context,
@@ -100,118 +94,8 @@ class _CobroSheetState extends State<CobroSheet> {
         ? widget.total
         : _importeNumerico;
 
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.check_circle, color: AppColors.success),
-            ),
-            const SizedBox(width: 12),
-            const Text('Confirmar Cobro'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Total:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                Text(
-                  '${widget.total.toStringAsFixed(2)} €',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _metodoSeleccionado == 'Efectivo' ? 'Efectivo:' : 'Tarjeta:',
-                ),
-                Text(
-                  '${(_metodoSeleccionado == 'Tarjeta' ? widget.total : _importeNumerico).toStringAsFixed(2)} €',
-                ),
-              ],
-            ),
-            if (_metodoSeleccionado == 'Efectivo' && _cambio > 0)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Cambio:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.success,
-                    ),
-                  ),
-                  Text(
-                    '${_cambio.toStringAsFixed(2)} €',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.success,
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
-              ),
-            if (_clienteSeleccionado != null) ...[
-              const Divider(),
-              Row(
-                children: [
-                  const Icon(Icons.person, size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Text(
-                    _clienteSeleccionado!.nombre,
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              widget.onCobrar(metodos, cliente: _clienteSeleccionado);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            child: const Text(
-              'COBRAR',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
+    // Acción directa sin diálogo de confirmación adicional (one-click)
+    widget.onCobrar(metodos, cliente: _clienteSeleccionado);
   }
 
   @override
@@ -219,7 +103,7 @@ class _CobroSheetState extends State<CobroSheet> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.zero,
       ),
       child: SafeArea(
         child: Column(
@@ -231,38 +115,37 @@ class _CobroSheetState extends State<CobroSheet> {
               margin: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(3),
+                borderRadius: BorderRadius.zero,
               ),
             ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildHeaderTotal(),
-                    const SizedBox(height: 12),
-                    _buildMetodoPagoSelector(),
-                    const SizedBox(height: 12),
-                    _buildClienteSelector(),
-                    if (_metodoSeleccionado == 'Efectivo') ...[
-                      const SizedBox(height: 12),
-                      _buildImporteEntregado(),
-                      if (_pagoCompleto && _cambio > 0) ...[
-                        const SizedBox(height: 8),
-                        _buildCambioDisplay(),
-                      ],
-                      const SizedBox(height: 12),
-                      _buildKeypad(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildHeaderTotal(),
+                  const SizedBox(height: 8),
+                  _buildMetodoPagoSelector(),
+                  const SizedBox(height: 8),
+                  _buildClienteSelector(),
+                  if (_metodoSeleccionado == 'Efectivo') ...[
+                    const SizedBox(height: 8),
+                    _buildImporteEntregado(),
+                    if (_pagoCompleto && _cambio > 0) ...[
+                      const SizedBox(height: 4),
+                      _buildCambioDisplay(),
                     ],
-                    if (_metodoSeleccionado == 'Tarjeta') ...[
-                      const SizedBox(height: 12),
-                      _buildTarjetaInfo(),
-                    ],
-                    const SizedBox(height: 12),
-                    _buildBotonCobrar(),
+                    const SizedBox(height: 8),
+                    _buildKeypad(),
                   ],
-                ),
+                  if (_metodoSeleccionado == 'Tarjeta') ...[
+                    const SizedBox(height: 8),
+                    _buildTarjetaInfo(),
+                  ],
+                  const SizedBox(height: 12),
+                  _buildBotonCobrar(),
+                ],
               ),
             ),
           ],
@@ -272,27 +155,33 @@ class _CobroSheetState extends State<CobroSheet> {
   }
 
   Widget _buildHeaderTotal() {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isCompact = screenHeight < 700;
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(
+        vertical: isCompact ? 8 : 12,
+        horizontal: 16,
+      ),
       decoration: BoxDecoration(
         color: AppColors.primary,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
       ),
       child: Column(
         children: [
-          const Text(
+          Text(
             'TOTAL A PAGAR',
             style: TextStyle(
-              fontSize: 11,
+              fontSize: isCompact ? 9 : 10,
               color: Colors.white70,
               letterSpacing: 1,
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: isCompact ? 2 : 4),
           Text(
             '${widget.total.toStringAsFixed(2)} €',
-            style: const TextStyle(
-              fontSize: 32,
+            style: TextStyle(
+              fontSize: isCompact ? 24 : 28,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -321,23 +210,23 @@ class _CobroSheetState extends State<CobroSheet> {
     return GestureDetector(
       onTap: () => setState(() => _metodoSeleccionado = metodo),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? color : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.zero,
         ),
         child: Column(
           children: [
             Icon(
               icono,
               color: isSelected ? Colors.white : Colors.grey,
-              size: 24,
+              size: 20,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               metodo,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 color: isSelected ? Colors.white : Colors.grey,
                 fontWeight: FontWeight.bold,
               ),
@@ -355,7 +244,7 @@ class _CobroSheetState extends State<CobroSheet> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.zero,
         ),
         child: Row(
           children: [
@@ -394,7 +283,7 @@ class _CobroSheetState extends State<CobroSheet> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
       ),
       child: Column(
         children: [
@@ -408,7 +297,7 @@ class _CobroSheetState extends State<CobroSheet> {
           ),
           const SizedBox(height: 4),
           Text(
-            '${_formatearImporte(_importe)} €',
+            '${_importe == "0" ? "0,00" : _importe} €',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -424,9 +313,9 @@ class _CobroSheetState extends State<CobroSheet> {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppColors.success.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+        color: AppColors.success.withOpacity(0.1),
+        borderRadius: BorderRadius.zero,
+        border: Border.all(color: AppColors.success.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -479,7 +368,7 @@ class _CobroSheetState extends State<CobroSheet> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
         border: Border.all(color: Colors.blue.shade200),
       ),
       child: Column(
@@ -512,7 +401,7 @@ class _CobroSheetState extends State<CobroSheet> {
         height: 50,
         decoration: BoxDecoration(
           color: canCobrar ? AppColors.success : Colors.grey.shade300,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.zero,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -540,20 +429,26 @@ class _CobroSheetState extends State<CobroSheet> {
   }
 
   Widget _buildTecla(String valor) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final teclaHeight = screenHeight < 700 ? 40.0 : 48.0;
+
     return Expanded(
       child: GestureDetector(
         onTap: () => _agregarDigito(valor),
         child: Container(
-          height: 56,
-          margin: const EdgeInsets.symmetric(horizontal: 3),
+          height: teclaHeight,
+          margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.zero,
           ),
           alignment: Alignment.center,
           child: Text(
             valor == ',' ? ',' : valor,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: screenHeight < 700 ? 16 : 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
@@ -561,19 +456,25 @@ class _CobroSheetState extends State<CobroSheet> {
   }
 
   Widget _buildTeclaAccion() {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final teclaHeight = screenHeight < 700 ? 40.0 : 48.0;
+
     return Expanded(
       child: GestureDetector(
         onTap: () => _agregarDigito('⌫'),
         onLongPress: () => _agregarDigito('C'),
         child: Container(
-          height: 56,
-          margin: const EdgeInsets.symmetric(horizontal: 3),
+          height: teclaHeight,
+          margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
-            color: Colors.grey.shade400,
-            borderRadius: BorderRadius.circular(8),
+            color: Colors.grey.shade300,
+            borderRadius: BorderRadius.zero,
           ),
           alignment: Alignment.center,
-          child: const Icon(Icons.backspace_outlined, size: 22),
+          child: Icon(
+            Icons.backspace_outlined,
+            size: screenHeight < 700 ? 18 : 20,
+          ),
         ),
       ),
     );
@@ -587,8 +488,8 @@ class _CobroSheetState extends State<CobroSheet> {
           height: 44,
           margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.zero,
           ),
           alignment: Alignment.center,
           child: Text(
@@ -644,7 +545,7 @@ class _SelectorClienteSheetState extends ConsumerState<_SelectorClienteSheet> {
       height: MediaQuery.of(context).size.height * 0.7,
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.zero,
       ),
       child: Column(
         children: [
@@ -654,7 +555,7 @@ class _SelectorClienteSheetState extends ConsumerState<_SelectorClienteSheet> {
             margin: const EdgeInsets.only(top: 12),
             decoration: BoxDecoration(
               color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(3),
+              borderRadius: BorderRadius.zero,
             ),
           ),
           Padding(
@@ -672,7 +573,7 @@ class _SelectorClienteSheetState extends ConsumerState<_SelectorClienteSheet> {
                     hintText: 'Buscar por nombre o teléfono...',
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.zero,
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -692,7 +593,7 @@ class _SelectorClienteSheetState extends ConsumerState<_SelectorClienteSheet> {
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -739,7 +640,7 @@ class _SelectorClienteSheetState extends ConsumerState<_SelectorClienteSheet> {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: Colors.grey.shade50,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.zero,
                           ),
                           child: Row(
                             children: [
@@ -747,10 +648,10 @@ class _SelectorClienteSheetState extends ConsumerState<_SelectorClienteSheet> {
                                 width: 40,
                                 height: 40,
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(
-                                    alpha: 0.1,
+                                  color: AppColors.primary.withOpacity(
+                                    0.1,
                                   ),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.zero,
                                 ),
                                 child: const Icon(
                                   Icons.person,

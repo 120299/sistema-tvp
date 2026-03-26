@@ -105,7 +105,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
         gradient: LinearGradient(
           colors: [
             AppColors.secondary,
-            AppColors.secondary.withValues(alpha: 0.8),
+            AppColors.secondary.withOpacity(0.8),
           ],
         ),
       ),
@@ -116,8 +116,8 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.zero,
               ),
               child: const Icon(
                 Icons.table_restaurant,
@@ -149,7 +149,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.zero,
               ),
               child: Row(
                 children: [
@@ -199,7 +199,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                 onSelected: (_) {
                   ref.read(categoriaSeleccionadaProvider.notifier).state = null;
                 },
-                selectedColor: AppColors.primary.withValues(alpha: 0.2),
+                selectedColor: AppColors.primary.withOpacity(0.2),
                 checkmarkColor: AppColors.primary,
               ),
             );
@@ -224,7 +224,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                 ref.read(categoriaSeleccionadaProvider.notifier).state =
                     isSelected ? null : categoria.id;
               },
-              selectedColor: categoria.color.withValues(alpha: 0.2),
+              selectedColor: categoria.color.withOpacity(0.2),
               checkmarkColor: categoria.color,
             ),
           );
@@ -334,7 +334,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.secondary,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.zero,
                           ),
                           child: Text(
                             '${itemEnPedido.cantidad}',
@@ -395,8 +395,8 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            (categoria?.color ?? AppColors.primary).withValues(alpha: 0.2),
-            (categoria?.color ?? AppColors.primary).withValues(alpha: 0.05),
+            (categoria?.color ?? AppColors.primary).withOpacity(0.2),
+            (categoria?.color ?? AppColors.primary).withOpacity(0.05),
           ],
         ),
       ),
@@ -470,8 +470,8 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+                  color: AppColors.primary.withOpacity(0.1),
+                  shape: BoxShape.rectangle,
                 ),
                 child: const Icon(
                   Icons.receipt_long,
@@ -510,7 +510,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               color: AppColors.primary,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
+                  color: AppColors.primary.withOpacity(0.3),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -536,7 +536,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: Text(
                     '${pedidoActual.length} items',
@@ -622,7 +622,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
       elevation: 1,
       child: InkWell(
         onTap: () => _editarItem(item),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -631,8 +631,8 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: Center(
                   child: Text(
@@ -700,12 +700,12 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
   Widget _buildMiniButton(IconData icon, VoidCallback onTap, Color color) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(4),
+      borderRadius: BorderRadius.zero,
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(4),
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.zero,
         ),
         child: Icon(icon, size: 16, color: color),
       ),
@@ -751,7 +751,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.zero,
       ),
       builder: (ctx) => _EditarItemSheet(
         item: item,
@@ -845,7 +845,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.zero,
       ),
       builder: (context) => _CobroSheet(
         total: total,
@@ -961,7 +961,7 @@ class _EditarItemSheetState extends State<_EditarItemSheet> {
               height: 4,
               decoration: BoxDecoration(
                 color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.zero,
               ),
             ),
           ),
@@ -1032,8 +1032,8 @@ class _EditarItemSheetState extends State<_EditarItemSheet> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.secondary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: AppColors.secondary.withOpacity(0.1),
+              borderRadius: BorderRadius.zero,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1141,7 +1141,7 @@ class _CobroSheetState extends State<_CobroSheet> {
               height: 4,
               decoration: BoxDecoration(
                 color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.zero,
               ),
             ),
           ),
@@ -1206,8 +1206,8 @@ class _CobroSheetState extends State<_CobroSheet> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: selected ? color : color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
+          color: selected ? color : color.withOpacity(0.1),
+          borderRadius: BorderRadius.zero,
         ),
         child: Column(
           children: [

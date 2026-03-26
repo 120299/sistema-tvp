@@ -6,6 +6,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/ticket_helper.dart';
 import '../../data/models/models.dart';
 import '../providers/providers.dart';
 
@@ -148,6 +149,8 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                 children: [
                   _buildGraficoTendencia(datosGrafico),
                   const SizedBox(height: 20),
+                  _buildListadoPedidos(pedidosFiltrados),
+                  const SizedBox(height: 20),
                   _buildAccionesExport(pedidosFiltrados, totalVentas),
                 ],
               ),
@@ -191,6 +194,8 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
           ],
         ),
         const SizedBox(height: 20),
+        _buildListadoPedidos(pedidosFiltrados),
+        const SizedBox(height: 20),
         _buildAccionesExport(pedidosFiltrados, totalVentas),
       ],
     );
@@ -207,7 +212,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -244,7 +249,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                     ),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.zero,
                     ),
                     child: Row(
                       children: [
@@ -274,7 +279,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                     ),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.zero,
                     ),
                     child: Row(
                       children: [
@@ -300,7 +305,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
@@ -323,7 +328,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.zero,
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String?>(
@@ -363,7 +368,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
       label: Text(label),
       selected: isSelected,
       onSelected: (_) => _cambiarPeriodo(value),
-      selectedColor: AppColors.primary.withValues(alpha: 0.2),
+      selectedColor: AppColors.primary.withOpacity(0.2),
       labelStyle: TextStyle(
         color: isSelected ? AppColors.primary : Colors.grey.shade700,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -418,10 +423,10 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -435,8 +440,8 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: Icon(icon, color: color, size: 20),
               ),
@@ -469,10 +474,10 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.zero,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
             ),
           ],
@@ -506,10 +511,10 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
           ),
         ],
@@ -527,8 +532,8 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -619,7 +624,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                     dotData: const FlDotData(show: false),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: AppColors.primary.withValues(alpha: 0.1),
+                      color: AppColors.primary.withOpacity(0.1),
                     ),
                   ),
                 ],
@@ -650,35 +655,33 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
     if (ventasPorMetodo.isEmpty ||
         ventasPorMetodo.values.every((v) => v == 0)) {
       return Container(
+        height: 220,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.zero,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
             ),
           ],
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
               'Método de Pago',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 40),
-            Icon(
-              Icons.pie_chart_outline,
-              size: 64,
-              color: Colors.grey.shade300,
-            ),
-            const SizedBox(height: 16),
+            const Spacer(),
+            Icon(Icons.pie_chart_outline, size: 48, color: Colors.grey.shade300),
+            const SizedBox(height: 12),
             Text(
-              'Sin datos de métodos de pago',
+              'Sin datos',
               style: TextStyle(color: Colors.grey.shade500),
             ),
-            const SizedBox(height: 40),
+            const Spacer(),
           ],
         ),
       );
@@ -690,18 +693,13 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
 
     ventasPorMetodo.forEach((metodo, cantidad) {
       if (cantidad > 0) {
-        final porcentaje = (cantidad / total * 100);
         secciones.add(
           PieChartSectionData(
             color: colores[metodo] ?? Colors.grey,
             value: cantidad,
-            title: '${porcentaje.toStringAsFixed(0)}%',
-            radius: 80,
-            titleStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+            title: '',
+            radius: 20,
+            showTitle: false,
           ),
         );
       }
@@ -711,89 +709,88 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             'Método de Pago',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 180,
-            child: PieChart(
-              PieChartData(
-                sections: secciones,
-                centerSpaceRadius: 40,
-                sectionsSpace: 4,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          ...ventasPorMetodo.entries.where((e) => e.value > 0).map((e) {
-            final porcentaje = (e.value / total * 100);
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                children: [
-                  Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: colores[e.key] ?? Colors.grey,
-                      shape: BoxShape.circle,
-                    ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              SizedBox(
+                height: 100,
+                width: 100,
+                child: PieChart(
+                  PieChartData(
+                    sections: secciones,
+                    centerSpaceRadius: 30,
+                    sectionsSpace: 2,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          e.key,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 4),
-                        LinearProgressIndicator(
-                          value: porcentaje / 100,
-                          backgroundColor: Colors.grey.shade200,
-                          valueColor: AlwaysStoppedAnimation(
-                            colores[e.key] ?? Colors.grey,
+                ),
+              ),
+              const SizedBox(width: 24),
+              Expanded(
+                child: Column(
+                  children: ventasPorMetodo.entries
+                      .where((e) => e.value > 0)
+                      .map((e) {
+                    final porcentaje = (e.value / total * 100);
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            color: colores[e.key] ?? Colors.grey,
                           ),
-                          minHeight: 8,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '€${e.value.toStringAsFixed(2)}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              e.key,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '€${e.value.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              Text(
+                                '${porcentaje.toStringAsFixed(1)}%',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      Text(
-                        '${porcentaje.toStringAsFixed(1)}%',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    );
+                  }).toList(),
+                ),
               ),
-            );
-          }),
+            ],
+          ),
         ],
       ),
     );
@@ -806,10 +803,10 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.zero,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
             ),
           ],
@@ -829,10 +826,10 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
           ),
         ],
@@ -877,12 +874,124 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                     backgroundColor: Colors.grey.shade200,
                     valueColor: AlwaysStoppedAnimation(AppColors.primary),
                     minHeight: 6,
-                    borderRadius: BorderRadius.circular(3),
+                    borderRadius: BorderRadius.zero,
                   ),
                 ],
               ),
             );
           }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListadoPedidos(List<Pedido> pedidos) {
+    if (pedidos.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.zero,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(20),
+            child: Text(
+              'Historial de Ventas',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const Divider(height: 1),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: pedidos.length > 10 ? 10 : pedidos.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final p = pedidos[index];
+              return ListTile(
+                dense: true,
+                leading: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      DateFormat('HH:mm').format(p.horaApertura),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      DateFormat('dd/MM').format(p.horaApertura),
+                      style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+                    ),
+                  ],
+                ),
+                title: Text(
+                  p.items.map((i) => '${i.cantidad}x ${i.productoNombre}').join(', '),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 12),
+                ),
+                subtitle: Row(
+                  children: [
+                    Icon(
+                      p.metodoPago == 'Tarjeta' ? Icons.credit_card : Icons.payments,
+                      size: 12,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      p.metodoPago?.toUpperCase() ?? 'N/A',
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '• ${p.cajeroNombre ?? "S/N"}',
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                  ],
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '€${p.total.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.print_outlined, size: 18),
+                      onPressed: () {
+                        final negocio = ref.read(negocioProvider);
+                        TicketHelper.imprimirPedido(negocio, p);
+                      },
+                      tooltip: 'Imprimir Ticket',
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          if (pedidos.length > 10)
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Center(
+                child: Text(
+                  'Mostrando últimos 10 pedidos de ${pedidos.length}',
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                ),
+              ),
+            ),
         ],
       ),
     );

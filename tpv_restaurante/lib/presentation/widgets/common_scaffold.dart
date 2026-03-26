@@ -24,8 +24,6 @@ class CommonScaffold extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -37,8 +35,8 @@ class CommonScaffold extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(6),
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.zero,
               ),
               child: const Icon(Icons.restaurant, size: 20),
             ),
@@ -52,23 +50,6 @@ class CommonScaffold extends ConsumerWidget {
         actions:
             actions ??
             [
-              IconButton(
-                icon: Icon(
-                  themeMode == ThemeMode.dark
-                      ? Icons.light_mode
-                      : Icons.dark_mode,
-                ),
-                tooltip: themeMode == ThemeMode.dark
-                    ? 'Modo Claro'
-                    : 'Modo Oscuro',
-                onPressed: () {
-                  ref
-                      .read(themeModeProvider.notifier)
-                      .state = themeMode == ThemeMode.dark
-                      ? ThemeMode.light
-                      : ThemeMode.dark;
-                },
-              ),
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) {
@@ -151,7 +132,7 @@ class CommonScaffold extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.zero,
       ),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
@@ -197,7 +178,7 @@ class _DataManagerWidget extends ConsumerWidget {
               height: 4,
               decoration: BoxDecoration(
                 color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.zero,
               ),
             ),
           ),
@@ -328,10 +309,10 @@ class _DataManagerWidget extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

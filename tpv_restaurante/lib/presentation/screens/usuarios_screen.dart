@@ -48,7 +48,7 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
+          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
         ),
       ),
       child: SafeArea(
@@ -60,8 +60,8 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: const Icon(
                     Icons.manage_accounts,
@@ -98,8 +98,8 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.zero,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -180,7 +180,7 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () => _mostrarDialogoUsuario(context, cajero: cajero),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -190,9 +190,9 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                 height: 48,
                 decoration: BoxDecoration(
                   color: cajero.isAdministrador
-                      ? AppColors.warning.withValues(alpha: 0.2)
-                      : AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                      ? AppColors.warning.withOpacity(0.2)
+                      : AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.zero,
                 ),
                 alignment: Alignment.center,
                 child: Icon(
@@ -227,9 +227,9 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: cajero.isAdministrador
-                                ? AppColors.warning.withValues(alpha: 0.2)
-                                : AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
+                                ? AppColors.warning.withOpacity(0.2)
+                                : AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.zero,
                           ),
                           child: Text(
                             cajero.isAdministrador ? 'Admin' : 'Cajero',
@@ -275,19 +275,6 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
     final esEdicion = cajero != null;
     final nombreController = TextEditingController(text: cajero?.nombre ?? '');
     final pinController = TextEditingController(text: cajero?.pin ?? '');
-    final telefonoController = TextEditingController(
-      text: cajero?.telefono ?? '',
-    );
-    final direccionController = TextEditingController(
-      text: cajero?.direccion ?? '',
-    );
-    final ciudadController = TextEditingController(text: cajero?.ciudad ?? '');
-    final cpController = TextEditingController(
-      text: cajero?.codigoPostal ?? '',
-    );
-    final provinciaController = TextEditingController(
-      text: cajero?.provincia ?? '',
-    );
     RolCajero rolSeleccionado = cajero?.rol ?? RolCajero.cajero;
     bool activo = cajero?.activo ?? true;
 
@@ -304,10 +291,8 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16),
-                    ),
+                    color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.zero,
                   ),
                   child: Row(
                     children: [
@@ -383,11 +368,11 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     color: rolSeleccionado == RolCajero.cajero
-                                        ? AppColors.primary.withValues(
-                                            alpha: 0.1,
+                                        ? AppColors.primary.withOpacity(
+                                            0.1,
                                           )
                                         : Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.zero,
                                     border: Border.all(
                                       color: rolSeleccionado == RolCajero.cajero
                                           ? AppColors.primary
@@ -434,11 +419,11 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                                     color:
                                         rolSeleccionado ==
                                             RolCajero.administrador
-                                        ? AppColors.warning.withValues(
-                                            alpha: 0.2,
+                                        ? AppColors.warning.withOpacity(
+                                            0.2,
                                           )
                                         : Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.zero,
                                     border: Border.all(
                                       color:
                                           rolSeleccionado ==
@@ -478,82 +463,6 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                           ],
                         ),
                         const SizedBox(height: 20),
-                        const Divider(),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Datos de Contacto',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: telefonoController,
-                          decoration: const InputDecoration(
-                            labelText: 'Teléfono',
-                            prefixIcon: Icon(Icons.phone),
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.phone,
-                        ),
-                        const SizedBox(height: 16),
-                        const Divider(),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Dirección',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: direccionController,
-                          decoration: const InputDecoration(
-                            labelText: 'Dirección',
-                            prefixIcon: Icon(Icons.location_on),
-                            border: OutlineInputBorder(),
-                          ),
-                          textCapitalization: TextCapitalization.words,
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            SizedBox(
-                              width: 100,
-                              child: TextField(
-                                controller: cpController,
-                                decoration: const InputDecoration(
-                                  labelText: 'C.P.',
-                                  border: OutlineInputBorder(),
-                                ),
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: TextField(
-                                controller: ciudadController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Ciudad',
-                                  border: OutlineInputBorder(),
-                                ),
-                                textCapitalization: TextCapitalization.words,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: provinciaController,
-                          decoration: const InputDecoration(
-                            labelText: 'Provincia',
-                            prefixIcon: Icon(Icons.map),
-                            border: OutlineInputBorder(),
-                          ),
-                          textCapitalization: TextCapitalization.words,
-                        ),
                         const SizedBox(height: 16),
                         Row(
                           children: [
@@ -579,9 +488,7 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
-                    borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(16),
-                    ),
+                      borderRadius: BorderRadius.zero,
                   ),
                   child: Row(
                     children: [
@@ -649,23 +556,11 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                                 cajero?.fechaCreacion ?? DateTime.now(),
                             activo: activo,
                             rol: rolSeleccionado,
-                            telefono: telefonoController.text.trim().isNotEmpty
-                                ? telefonoController.text.trim()
-                                : null,
-                            direccion:
-                                direccionController.text.trim().isNotEmpty
-                                ? direccionController.text.trim()
-                                : null,
-                            ciudad: ciudadController.text.trim().isNotEmpty
-                                ? ciudadController.text.trim()
-                                : null,
-                            codigoPostal: cpController.text.trim().isNotEmpty
-                                ? cpController.text.trim()
-                                : null,
-                            provincia:
-                                provinciaController.text.trim().isNotEmpty
-                                ? provinciaController.text.trim()
-                                : null,
+                            telefono: cajero?.telefono,
+                            direccion: cajero?.direccion,
+                            ciudad: cajero?.ciudad,
+                            codigoPostal: cajero?.codigoPostal,
+                            provincia: cajero?.provincia,
                           );
 
                           if (esEdicion) {

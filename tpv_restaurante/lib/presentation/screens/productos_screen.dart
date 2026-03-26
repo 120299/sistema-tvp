@@ -97,7 +97,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
+          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
         ),
       ),
       child: SafeArea(
@@ -110,8 +110,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: const Icon(
                     Icons.inventory_2,
@@ -201,7 +201,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                   vertical: 10,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.zero,
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
@@ -247,7 +247,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
               proxyDecorator: (child, index, animation) {
                 return Material(
                   elevation: 4,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.zero,
                   child: child,
                 );
               },
@@ -341,8 +341,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+              color: AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.rectangle,
             ),
             child: Icon(
               busqueda.isNotEmpty
@@ -428,7 +428,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     return Card(
       clipBehavior: Clip.antiAlias,
       elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       child: InkWell(
         onTap: () => _editarProducto(context, producto),
         child: Column(
@@ -440,18 +440,14 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                 fit: StackFit.expand,
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(12),
-                    ),
+                    borderRadius: BorderRadius.zero,
                     child: _buildProductImage(producto, categoria),
                   ),
                   if (!producto.disponible)
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.black45,
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12),
-                        ),
+                          borderRadius: BorderRadius.zero,
                       ),
                       child: const Center(
                         child: Text(
@@ -471,7 +467,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
                           color: AppColors.warning,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.zero,
                         ),
                         child: const Icon(
                           Icons.warning_amber,
@@ -571,8 +567,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            categoria.color.withValues(alpha: 0.2),
-            categoria.color.withValues(alpha: 0.05),
+            categoria.color.withOpacity(0.2),
+            categoria.color.withOpacity(0.05),
           ],
         ),
       ),
@@ -615,7 +611,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.zero,
       ),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
@@ -677,8 +673,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                             width: 48,
                             height: 48,
                             decoration: BoxDecoration(
-                              color: cat.color.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(12),
+                              color: cat.color.withOpacity(0.2),
+                              borderRadius: BorderRadius.zero,
                             ),
                             child: Center(
                               child: Text(
@@ -702,7 +698,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                                 height: 32,
                                 decoration: BoxDecoration(
                                   color: cat.color,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.zero,
                                 ),
                               ),
                               IconButton(

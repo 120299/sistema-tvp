@@ -82,7 +82,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
         color: estadoData.color,
         boxShadow: [
           BoxShadow(
-            color: estadoData.color.withValues(alpha: 0.3),
+            color: estadoData.color.withOpacity(0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -95,8 +95,8 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.zero,
               ),
               child: Icon(estadoData.icono, color: Colors.white, size: 24),
             ),
@@ -128,7 +128,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.zero,
               ),
               child: Column(
                 children: [
@@ -190,8 +190,8 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.secondary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.secondary.withOpacity(0.15),
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: const Icon(
                     Icons.receipt,
@@ -227,8 +227,8 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.secondary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.secondary.withOpacity(0.15),
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: Text(
                     '${pedido.items.length} items',
@@ -255,8 +255,8 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                           width: 24,
                           height: 24,
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.zero,
                           ),
                           child: Center(
                             child: Text(
@@ -414,11 +414,11 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
     Color color,
   ) {
     return Material(
-      color: color.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(10),
+      color: color.withOpacity(0.1),
+      borderRadius: BorderRadius.zero,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.zero,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
@@ -455,8 +455,8 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
+                color: color.withOpacity(0.15),
+                borderRadius: BorderRadius.zero,
               ),
               child: Icon(Icons.timer, color: color, size: 20),
             ),
@@ -486,8 +486,8 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
+                color: color.withOpacity(0.15),
+                borderRadius: BorderRadius.zero,
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -643,7 +643,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
       margin: const EdgeInsets.only(bottom: 8),
       child: InkWell(
         onTap: () => _verDetalleTicket(pedido, negocio),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -652,8 +652,8 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: (esEfectivo ? AppColors.success : AppColors.primary)
-                      .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                      .withOpacity(0.1),
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: Icon(
                   esEfectivo ? Icons.money : Icons.credit_card,
@@ -870,7 +870,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.zero,
       ),
       builder: (context) => _CobroDialog(
         total: pedido.total,
@@ -930,7 +930,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                   height: 4,
                   decoration: BoxDecoration(
                     color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.zero,
                   ),
                 ),
               ),
@@ -940,8 +940,8 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.zero,
                     ),
                     child: const Icon(Icons.receipt, color: AppColors.primary),
                   ),
@@ -977,8 +977,8 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.zero,
                         ),
                         child: Center(
                           child: Text(
@@ -1046,8 +1046,8 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                       (pedido.metodoPago == 'Efectivo'
                               ? AppColors.success
                               : AppColors.primary)
-                          .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                          .withOpacity(0.1),
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1120,7 +1120,7 @@ class _CobroDialogState extends State<_CobroDialog> {
             height: 4,
             decoration: BoxDecoration(
               color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.zero,
             ),
           ),
           const SizedBox(height: 24),
@@ -1203,11 +1203,11 @@ class _CobroDialogState extends State<_CobroDialog> {
   ) {
     final selected = _metodoPago == valor;
     return Material(
-      color: selected ? color : color.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(12),
+      color: selected ? color : color.withOpacity(0.1),
+      borderRadius: BorderRadius.zero,
       child: InkWell(
         onTap: () => setState(() => _metodoPago = valor),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
         child: Container(
           padding: const EdgeInsets.all(24),
           child: Column(

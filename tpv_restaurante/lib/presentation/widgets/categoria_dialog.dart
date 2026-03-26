@@ -73,8 +73,8 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: _color.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
+                      color: _color.withOpacity(0.2),
+                    borderRadius: BorderRadius.zero,
                     ),
                     child: Text(
                       _iconoController.text,
@@ -149,7 +149,7 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
                       height: 40,
                       decoration: BoxDecoration(
                         color: color,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.zero,
                         border: _color == color
                             ? Border.all(color: Colors.black, width: 3)
                             : null,

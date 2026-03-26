@@ -533,7 +533,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: _esError ? Colors.red.shade50 : Colors.green.shade50,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.zero,
                 border: Border.all(color: _esError ? Colors.red : Colors.green),
               ),
               child: Row(
@@ -674,7 +674,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: _esError ? Colors.red.shade50 : Colors.green.shade50,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.zero,
                 border: Border.all(color: _esError ? Colors.red : Colors.green),
               ),
               child: Row(
@@ -699,7 +699,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.zero,
               ),
               child: Center(
                 child: Column(
@@ -731,8 +731,8 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                     leading: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
+                        color: AppColors.primary.withOpacity(0.1),
+                        shape: BoxShape.rectangle,
                       ),
                       child: Icon(Icons.backup, color: AppColors.primary),
                     ),

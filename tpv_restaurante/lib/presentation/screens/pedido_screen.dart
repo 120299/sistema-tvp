@@ -99,7 +99,7 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
         color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -123,7 +123,7 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
                   color: categoriaSeleccionada == null
                       ? AppColors.secondary
                       : AppColors.surface,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.zero,
                   border: Border.all(
                     color: categoriaSeleccionada == null
                         ? AppColors.secondary
@@ -270,7 +270,7 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
               height: 32,
               decoration: BoxDecoration(
                 color: AppColors.secondary,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.zero,
               ),
               child: Center(
                 child: Text(
@@ -335,7 +335,7 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
         color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -417,7 +417,7 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.zero,
       ),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
@@ -559,7 +559,7 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.zero,
       ),
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => Container(
@@ -620,8 +620,8 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: Column(
                   children: [
@@ -686,8 +686,8 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.primary.withOpacity(0.1),
+          borderRadius: BorderRadius.zero,
           border: Border.all(color: AppColors.primary),
         ),
         child: Column(

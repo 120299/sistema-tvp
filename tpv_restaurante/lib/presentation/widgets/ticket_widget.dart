@@ -284,7 +284,7 @@ class TicketWidget extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade400),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.zero,
       ),
       child: const Column(
         children: [

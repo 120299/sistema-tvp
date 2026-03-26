@@ -77,12 +77,12 @@ class AppShell extends ConsumerWidget {
           end: Alignment.bottomRight,
           colors: [
             AppColors.primary,
-            AppColors.primary.withValues(alpha: 0.85),
+            AppColors.primary.withOpacity(0.85),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
+            color: AppColors.primary.withOpacity(0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -93,8 +93,8 @@ class AppShell extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.zero,
             ),
             child: const Icon(Icons.restaurant, color: Colors.white, size: 28),
           ),
@@ -123,7 +123,7 @@ class AppShell extends ConsumerWidget {
                         color: caja?.estado == EstadoCaja.abierta
                             ? Colors.greenAccent
                             : Colors.red.shade300,
-                        shape: BoxShape.circle,
+                        shape: BoxShape.rectangle,
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -132,7 +132,7 @@ class AppShell extends ConsumerWidget {
                           ? 'Caja abierta'
                           : 'Caja cerrada',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: Colors.white.withOpacity(0.9),
                         fontSize: 12,
                       ),
                     ),
@@ -140,13 +140,13 @@ class AppShell extends ConsumerWidget {
                     Icon(
                       Icons.person,
                       size: 12,
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: Colors.white.withOpacity(0.7),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       cajeroActual?.nombre ?? 'Usuario',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: Colors.white.withOpacity(0.7),
                         fontSize: 12,
                       ),
                     ),
@@ -164,12 +164,12 @@ class AppShell extends ConsumerWidget {
   Widget _buildUserMenu(WidgetRef ref, Cajero? cajeroActual) {
     return PopupMenuButton<String>(
       offset: const Offset(0, 50),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(10),
+          color: Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.zero,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -177,8 +177,8 @@ class AppShell extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.rectangle,
               ),
               child: Icon(
                 cajeroActual?.isAdministrador == true
@@ -230,8 +230,8 @@ class AppShell extends ConsumerWidget {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(4),
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: const Text(
                     'Administrador',
@@ -355,7 +355,7 @@ class AppShell extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.zero,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,

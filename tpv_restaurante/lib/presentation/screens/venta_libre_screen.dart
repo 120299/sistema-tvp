@@ -126,7 +126,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         color: AppColors.primary,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: Colors.black.withOpacity(0.2),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -139,8 +139,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.zero,
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -200,7 +200,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.zero,
       ),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
@@ -228,7 +228,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
+          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
         ),
       ),
       child: Column(
@@ -238,8 +238,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: const Icon(
                   Icons.point_of_sale,
@@ -266,8 +266,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -302,7 +302,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     height: 48,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.zero,
                       border: Border.all(color: AppColors.lightDivider),
                     ),
                     child: DropdownButtonHideUnderline(
@@ -523,7 +523,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         ),
       ),
       backgroundColor: selected
-          ? (color ?? AppColors.primary).withValues(alpha: 0.15)
+          ? (color ?? AppColors.primary).withOpacity(0.15)
           : Colors.grey.shade100,
       side: BorderSide(
         color: selected ? (color ?? AppColors.primary) : Colors.grey.shade300,
@@ -626,7 +626,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     return Card(
       clipBehavior: Clip.antiAlias,
       elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       child: InkWell(
         onTap: producto.disponible ? () => _agregarProducto(producto) : null,
         child: Column(
@@ -638,18 +638,14 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 fit: StackFit.expand,
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(12),
-                    ),
+                    borderRadius: BorderRadius.zero,
                     child: _buildProductImage(producto, categoria),
                   ),
                   if (!producto.disponible)
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.black45,
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12),
-                        ),
+                        borderRadius: BorderRadius.zero,
                       ),
                       child: const Center(
                         child: Text(
@@ -672,7 +668,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.zero,
                         ),
                         child: Text(
                           '${itemEnCarrito.cantidad}',
@@ -758,8 +754,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            (categoria?.color ?? AppColors.primary).withValues(alpha: 0.2),
-            (categoria?.color ?? AppColors.primary).withValues(alpha: 0.05),
+            (categoria?.color ?? AppColors.primary).withOpacity(0.2),
+            (categoria?.color ?? AppColors.primary).withOpacity(0.05),
           ],
         ),
       ),
@@ -836,8 +832,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.zero,
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -862,8 +858,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 if (caja != null && caja.estado == EstadoCaja.abierta)
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.zero,
                     ),
                     child: IconButton(
                       icon: const Icon(
@@ -1028,8 +1024,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.zero,
               ),
               alignment: Alignment.center,
               child: Text(
@@ -1084,8 +1080,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
+                      color: AppColors.error.withOpacity(0.1),
+                      borderRadius: BorderRadius.zero,
                     ),
                     alignment: Alignment.center,
                     child: const Icon(
@@ -1104,8 +1100,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: AppColors.success.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
+                      color: AppColors.success.withOpacity(0.1),
+                      borderRadius: BorderRadius.zero,
                     ),
                     alignment: Alignment.center,
                     child: const Icon(
@@ -1271,8 +1267,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.warning.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.warning.withOpacity(0.1),
+                borderRadius: BorderRadius.zero,
               ),
               child: const Icon(Icons.warning_amber, color: AppColors.warning),
             ),
@@ -1348,10 +1344,10 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       message: tooltip,
       child: Material(
         color: color,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.zero,
           child: Container(
             width: 48,
             height: 48,
@@ -1378,7 +1374,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.zero,
       ),
       builder: (ctx) => CobroSheet(
         total: total,
