@@ -438,30 +438,228 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         color: Colors.white,
         border: Border(bottom: BorderSide(color: AppColors.lightDivider)),
       ),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
+      child: Row(
         children: [
-          _buildCategoriaChip(
-            'Todos',
-            null,
-            categoriaSeleccionada == null,
-            Icons.apps,
+          Expanded(
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                _buildCategoriaChip(
+                  'Todos',
+                  null,
+                  categoriaSeleccionada == null,
+                  Icons.apps,
+                ),
+                const SizedBox(width: 8),
+                ...categorias.map(
+                  (cat) => Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: _buildCategoriaChip(
+                      cat.nombre,
+                      cat.id,
+                      categoriaSeleccionada == cat.id,
+                      Icons.category,
+                      cat.icono,
+                      cat.color,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(width: 8),
-          ...categorias.map(
-            (cat) => Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: _buildCategoriaChip(
-                cat.nombre,
-                cat.id,
-                categoriaSeleccionada == cat.id,
-                Icons.category,
-                cat.icono,
-                cat.color,
+          const SizedBox(width: 4),
+          GestureDetector(
+            onTap: () => _mostrarModalCategorias(
+              context,
+              categoriaSeleccionada,
+              categorias,
+            ),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.grid_view,
+                size: 18,
+                color: AppColors.primary,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _mostrarModalCategorias(
+    BuildContext context,
+    String? categoriaSeleccionada,
+    List<CategoriaProducto> categorias,
+  ) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.85,
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.category, color: AppColors.primary),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Categorías',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                    childAspectRatio: 1.3,
+                  ),
+                  itemCount: categorias.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      final isSelected = categoriaSeleccionada == null;
+                      return GestureDetector(
+                        onTap: () {
+                          ref
+                                  .read(categoriaSeleccionadaProvider.notifier)
+                                  .state =
+                              null;
+                          Navigator.pop(ctx);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppColors.primary.withOpacity(0.15)
+                                : Colors.grey.shade50,
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : Colors.grey.shade300,
+                              width: isSelected ? 2 : 1,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.apps,
+                                size: 28,
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : Colors.grey,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Todos',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : Colors.grey.shade700,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+
+                    final cat = categorias[index - 1];
+                    final isSelected = categoriaSeleccionada == cat.id;
+                    return GestureDetector(
+                      onTap: () {
+                        ref.read(categoriaSeleccionadaProvider.notifier).state =
+                            cat.id;
+                        Navigator.pop(ctx);
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? (cat.color ?? AppColors.primary).withOpacity(
+                                  0.15,
+                                )
+                              : Colors.grey.shade50,
+                          border: Border.all(
+                            color: isSelected
+                                ? (cat.color ?? AppColors.primary)
+                                : Colors.grey.shade300,
+                            width: isSelected ? 2 : 1,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (cat.icono != null)
+                              Text(
+                                cat.icono!,
+                                style: const TextStyle(fontSize: 28),
+                              )
+                            else
+                              Icon(
+                                Icons.category,
+                                size: 28,
+                                color: isSelected
+                                    ? (cat.color ?? AppColors.primary)
+                                    : Colors.grey,
+                              ),
+                            const SizedBox(height: 6),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
+                              child: Text(
+                                cat.nombre,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  color: isSelected
+                                      ? (cat.color ?? AppColors.primary)
+                                      : Colors.grey.shade700,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

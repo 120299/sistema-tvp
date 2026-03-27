@@ -142,7 +142,7 @@ class _CobroSheetState extends State<CobroSheet> {
                     ],
                     SizedBox(height: compact ? 4 : 6),
                     // Quick amounts
-                    _buildQuickAmounts(),
+                    _buildQuickAmounts(compact),
                     SizedBox(height: compact ? 4 : 6),
                     // Numeric keypad
                     _buildKeypad(compact),
@@ -312,8 +312,11 @@ class _CobroSheetState extends State<CobroSheet> {
   }
 
   Widget _buildCambioDisplay() {
+    final compact = MediaQuery.of(context).size.width < 500;
+    final teclaHeight = compact ? 34.0 : 40.0;
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+      height: teclaHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: AppColors.primary.withOpacity(0.08),
         borderRadius: BorderRadius.zero,
@@ -338,15 +341,16 @@ class _CobroSheetState extends State<CobroSheet> {
     );
   }
 
-  Widget _buildQuickAmounts() {
+  Widget _buildQuickAmounts(bool compact) {
     final amounts = [5.0, 10.0, 20.0, 50.0];
+    final teclaHeight = compact ? 34.0 : 40.0;
     return Row(
       children: amounts.map((amount) {
         return Expanded(
           child: GestureDetector(
             onTap: () => _setImporte(amount),
             child: Container(
-              height: 30,
+              height: teclaHeight,
               margin: const EdgeInsets.symmetric(horizontal: 2),
               decoration: BoxDecoration(
                 color: Colors.indigo.withOpacity(0.07),
