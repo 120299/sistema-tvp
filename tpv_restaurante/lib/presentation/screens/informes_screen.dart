@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/ticket_helper.dart';
 import '../../data/models/models.dart';
@@ -1214,8 +1214,6 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
       buffer.writeln('');
       buffer.writeln('Total,,,${total.toStringAsFixed(2)}');
 
-      final directory = await getTemporaryDirectory();
-
       String nombreArchivo =
           'informe_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}';
       if (_fechaInicio != null && _fechaFin != null) {
@@ -1229,11 +1227,27 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         );
         nombreArchivo += '_${cajero.nombre.replaceAll(' ', '_')}';
       }
+      nombreArchivo += '.csv';
 
-      final file = File('${directory.path}/$nombreArchivo.csv');
-      await file.writeAsString(buffer.toString());
+      final result = await FilePicker.platform.saveFile(
+        dialogTitle: 'Guardar informe CSV',
+        fileName: nombreArchivo,
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+      );
 
-      await Share.shareXFiles([XFile(file.path)], text: 'Informe de ventas');
+      if (result != null) {
+        final file = File(result);
+        await file.writeAsString(buffer.toString());
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Informe guardado en: $result'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -1269,8 +1283,6 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         );
       }
 
-      final directory = await getTemporaryDirectory();
-
       String nombreArchivo =
           'informe_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}';
       if (_fechaInicio != null && _fechaFin != null) {
@@ -1284,11 +1296,27 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         );
         nombreArchivo += '_${cajero.nombre.replaceAll(' ', '_')}';
       }
+      nombreArchivo += '.txt';
 
-      final file = File('${directory.path}/$nombreArchivo.txt');
-      await file.writeAsString(buffer.toString());
+      final result = await FilePicker.platform.saveFile(
+        dialogTitle: 'Guardar informe TXT',
+        fileName: nombreArchivo,
+        type: FileType.custom,
+        allowedExtensions: ['txt'],
+      );
 
-      await Share.shareXFiles([XFile(file.path)], text: 'Informe de ventas');
+      if (result != null) {
+        final file = File(result);
+        await file.writeAsString(buffer.toString());
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Informe guardado en: $result'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
