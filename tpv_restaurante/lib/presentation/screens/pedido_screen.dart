@@ -53,7 +53,9 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
 
     final productos = ref.watch(productosFiltradosProvider);
     final categoriaSeleccionada = ref.watch(categoriaSeleccionadaProvider);
-    final categorias = ref.watch(categoriasProvider);
+    final categoriasRaw = ref.watch(categoriasProvider);
+    final categorias = List<CategoriaProducto>.from(categoriasRaw)
+      ..sort((a, b) => a.orden.compareTo(b.orden));
     final pedido = ref.watch(pedidosProvider.notifier).getPorId(_pedidoId);
 
     return Scaffold(

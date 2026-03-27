@@ -74,7 +74,7 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: _color.withOpacity(0.2),
-                    borderRadius: BorderRadius.zero,
+                      borderRadius: BorderRadius.zero,
                     ),
                     child: Text(
                       _iconoController.text,
@@ -204,6 +204,7 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
         nombre: _nombreController.text.trim(),
         icono: _iconoController.text,
         color: _color,
+        orden: widget.categoria?.orden ?? 0,
       );
 
       if (widget.categoria != null) {

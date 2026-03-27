@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
@@ -80,6 +81,9 @@ class _TPVRestauranteAppState extends ConsumerState<TPVRestauranteApp> {
         themeMode: ThemeMode.light,
         home: const _AppWithAuth(),
         debugShowCheckedModeBanner: false,
+        scrollBehavior: const MaterialScrollBehavior().copyWith(
+          dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
+        ),
       ),
     );
   }
