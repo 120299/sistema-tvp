@@ -337,7 +337,6 @@ class AppShell extends ConsumerWidget {
             onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 7,
             mostrarTexto: mostrarTexto,
           ),
-          const Spacer(),
           _buildMenuVerticalItem(
             icon: Icons.exit_to_app,
             label: 'Salir',

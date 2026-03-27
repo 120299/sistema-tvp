@@ -1059,12 +1059,9 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                     const SizedBox(width: 8),
                     IconButton(
                       icon: const Icon(Icons.print_outlined, size: 18),
-                      onPressed: () async {
+                      onPressed: () {
                         final negocio = ref.read(negocioProvider);
-                        final numeroTicket = await ref
-                            .read(negocioProvider.notifier)
-                            .obtenerSiguienteNumeroTicket();
-                        await PrintService.imprimirTicketAutomatico(
+                        PrintService.imprimirTicketAutomatico(
                           items: p.items,
                           subtotal: p.total / (1 + negocio.ivaPorcentaje / 100),
                           ivaPorcentaje: negocio.ivaPorcentaje,
@@ -1074,7 +1071,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                           cajeroNombre: p.cajeroNombre,
                           porcentajePropina: p.porcentajePropina,
                           clienteNombre: p.clienteNombre,
-                          numeroTicket: numeroTicket,
+                          numeroTicket: p.numeroTicket,
                         );
                       },
                       tooltip: 'Imprimir Ticket',

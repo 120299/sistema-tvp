@@ -781,51 +781,35 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     String? categoriaSeleccionada,
     List<CategoriaProducto> categorias,
   ) {
-    final sortedCategorias = List<CategoriaProducto>.from(categorias)
-      ..sort((a, b) => a.orden.compareTo(b.orden));
-
     return Container(
-      height: 48,
+      height: 50,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(bottom: BorderSide(color: AppColors.lightDivider)),
       ),
-      child: Row(
+      child: ListView(
+        scrollDirection: Axis.horizontal,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 8, right: 4),
-            child: _buildCategoriaChip(
-              'Todos',
-              null,
-              categoriaSeleccionada == null,
-              Icons.apps,
-            ),
+          _buildCategoriaChip(
+            'Todos',
+            null,
+            categoriaSeleccionada == null,
+            Icons.apps,
           ),
-          Expanded(
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: sortedCategorias.length,
-              itemBuilder: (context, index) {
-                final cat = sortedCategorias[index];
-                return Padding(
-                  key: ValueKey(cat.id),
-                  padding: const EdgeInsets.only(right: 4, top: 6, bottom: 6),
-                  child: _buildCategoriaChip(
-                    cat.nombre,
-                    cat.id,
-                    categoriaSeleccionada == cat.id,
-                    null,
-                    cat.icono,
-                    cat.color,
-                  ),
-                );
-              },
+          const SizedBox(width: 8),
+          ...categorias.map(
+            (cat) => Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: _buildCategoriaChip(
+                cat.nombre,
+                cat.id,
+                categoriaSeleccionada == cat.id,
+                Icons.category,
+                cat.icono,
+                cat.color,
+              ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings, size: 20),
-            tooltip: 'Gestionar categorías',
-            onPressed: () => _gestionarCategorias(context),
           ),
         ],
       ),
@@ -836,33 +820,31 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     String label,
     String? id,
     bool selected,
-    IconData? icon, [
+    IconData icon, [
     String? icono,
     Color? color,
   ]) {
     return ActionChip(
       avatar: icono != null
           ? Text(icono, style: const TextStyle(fontSize: 14))
-          : (icon != null
-                ? Icon(
-                    icon,
-                    size: 16,
-                    color: selected
-                        ? (color ?? AppColors.primary)
-                        : Colors.grey,
-                  )
-                : null),
+          : Icon(
+              selected ? Icons.check : icon,
+              size: 16,
+              color: selected ? (color ?? AppColors.primary) : Colors.grey,
+            ),
       label: Text(
         label,
         style: TextStyle(
-          fontSize: 12,
-          color: selected ? Colors.white : Colors.grey.shade700,
+          color: selected ? (color ?? AppColors.primary) : Colors.grey.shade700,
           fontWeight: selected ? FontWeight.bold : FontWeight.normal,
         ),
       ),
       backgroundColor: selected
-          ? (color ?? AppColors.primary)
-          : Colors.grey.shade200,
+          ? (color ?? AppColors.primary).withOpacity(0.15)
+          : Colors.grey.shade100,
+      side: BorderSide(
+        color: selected ? (color ?? AppColors.primary) : Colors.grey.shade300,
+      ),
       onPressed: () {
         ref.read(categoriaSeleccionadaProvider.notifier).state = selected
             ? null

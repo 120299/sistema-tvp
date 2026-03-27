@@ -108,6 +108,7 @@ class Pedido {
   final String? cajeroNombre;
   final String? clienteId;
   final String? clienteNombre;
+  int? numeroTicket;
 
   Pedido({
     required this.id,
@@ -125,6 +126,7 @@ class Pedido {
     this.cajeroNombre,
     this.clienteId,
     this.clienteNombre,
+    this.numeroTicket,
   }) : items = items ?? [],
        horaApertura = horaApertura ?? DateTime.now();
 
@@ -156,6 +158,7 @@ class Pedido {
     String? cajeroNombre,
     String? clienteId,
     String? clienteNombre,
+    int? numeroTicket,
   }) {
     return Pedido(
       id: id ?? this.id,
@@ -173,6 +176,7 @@ class Pedido {
       cajeroNombre: cajeroNombre ?? this.cajeroNombre,
       clienteId: clienteId ?? this.clienteId,
       clienteNombre: clienteNombre ?? this.clienteNombre,
+      numeroTicket: numeroTicket ?? this.numeroTicket,
     );
   }
 
@@ -193,6 +197,7 @@ class Pedido {
       'cajeroNombre': cajeroNombre,
       'clienteId': clienteId,
       'clienteNombre': clienteNombre,
+      'numeroTicket': numeroTicket,
     };
   }
 
@@ -217,6 +222,7 @@ class Pedido {
       cajeroNombre: json['cajeroNombre'] as String?,
       clienteId: json['clienteId'] as String?,
       clienteNombre: json['clienteNombre'] as String?,
+      numeroTicket: json['numeroTicket'] as int?,
     );
   }
 }

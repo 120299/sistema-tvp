@@ -209,11 +209,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     Caja? caja,
     bool isWide = true,
   }) {
-    final totalItems = _carrito.fold<int>(
-      0,
-      (sum, item) => sum + item.cantidad,
-    );
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -249,36 +244,50 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (isWide) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.zero,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.shopping_cart,
-                        color: Colors.white,
-                        size: 18,
+              IconButton(
+                onPressed: () async {
+                  final caja = ref.read(cajaProvider);
+                  if (caja != null && caja.estado == EstadoCaja.abierta) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('La caja ya está abierta'),
+                        backgroundColor: AppColors.warning,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '$totalItems items',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                    );
+                    return;
+                  }
+                  final confirmar = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Abrir Caja'),
+                      content: const Text('¿Abrir la caja?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('Cancelar'),
                         ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: const Text('Abrir'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmar == true) {
+                    await ref
+                        .read(cajaProvider.notifier)
+                        .abrirCaja(fondoInicial: 0);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Caja abierta'),
+                        backgroundColor: AppColors.success,
                       ),
-                    ],
-                  ),
-                ),
-              ],
+                    );
+                  }
+                },
+                icon: const Icon(Icons.lock_open, color: Colors.white),
+                tooltip: 'Abrir Caja',
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -1018,6 +1027,59 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final caja = ref.read(cajaProvider);
+                      if (caja != null && caja.estado == EstadoCaja.abierta) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('La caja ya está abierta'),
+                            backgroundColor: AppColors.warning,
+                          ),
+                        );
+                        return;
+                      }
+                      final confirmar = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Abrir Caja'),
+                          content: const Text('¿Abrir la caja?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Cancelar'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              child: const Text('Abrir'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirmar == true) {
+                        await ref
+                            .read(cajaProvider.notifier)
+                            .abrirCaja(fondoInicial: 0);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Caja abierta'),
+                            backgroundColor: AppColors.success,
+                          ),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.lock_open, size: 20),
+                    label: const Text(
+                      'Abrir Caja',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -1120,11 +1182,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               ),
             ),
             const SizedBox(width: 10),
-            Text(
-              '${item.subtotal.toStringAsFixed(2)} €',
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(width: 10),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1151,11 +1208,15 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    '${item.cantidad}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
                 GestureDetector(
-                  onTap: () {
-                    _actualizarCantidad(item, item.cantidad + 1);
-                  },
+                  onTap: () => _actualizarCantidad(item, item.cantidad + 1),
                   child: Container(
                     width: 28,
                     height: 28,
@@ -1172,6 +1233,24 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(width: 10),
+            GestureDetector(
+              onTap: () => _eliminarProductoPorId(item.id),
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: AppColors.error.withOpacity(0.1),
+                  borderRadius: BorderRadius.zero,
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.error,
+                  size: 18,
+                ),
+              ),
             ),
           ],
         ),
@@ -1567,11 +1646,15 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                   );
             }
 
+            final numeroTicket = await ref
+                .read(negocioProvider.notifier)
+                .obtenerSiguienteNumeroTicket();
+
             final metodoPrincipal = metodosPago.keys.first;
 
             await ref
                 .read(pedidosProvider.notifier)
-                .cerrar(pedidoId, metodoPrincipal);
+                .cerrar(pedidoId, metodoPrincipal, numeroTicket: numeroTicket);
 
             await ref
                 .read(cajaProvider.notifier)
@@ -1599,10 +1682,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             final metodoTexto = metodosPago.entries
                 .map((e) => '${e.key}: ${e.value.toStringAsFixed(2)}€')
                 .join(' + ');
-
-            final numeroTicket = await ref
-                .read(negocioProvider.notifier)
-                .obtenerSiguienteNumeroTicket();
 
             await PrintService.imprimirTicketAutomatico(
               items: List.from(_carrito),

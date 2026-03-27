@@ -892,15 +892,16 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
         onCobrar: (metodoPago) async {
           final negocio = ref.read(negocioProvider);
           final pedidoActual = _getPedidoActual();
-
-          await ref
-              .read(pedidosProvider.notifier)
-              .cerrar(mesaActual.pedidoActualId!, metodoPago);
-          await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
+          final pedidoId = mesaActual.pedidoActualId!;
 
           final numeroTicket = await ref
               .read(negocioProvider.notifier)
               .obtenerSiguienteNumeroTicket();
+
+          await ref
+              .read(pedidosProvider.notifier)
+              .cerrar(pedidoId, metodoPago, numeroTicket: numeroTicket);
+          await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
 
           await PrintService.imprimirTicketAutomatico(
             items: pedidoActual,

@@ -346,6 +346,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               ),
             ),
           ),
+          SizedBox(height: isCompact ? 24 : 32),
+          SizedBox(
+            width: isCompact ? 120 : 160,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                final confirmar = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Salir'),
+                    content: const Text('¿Salir de la aplicación?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancelar'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Salir'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmar == true) {
+                  exit(0);
+                }
+              },
+              icon: const Icon(Icons.exit_to_app, color: Colors.white70),
+              label: const Text(
+                'Salir',
+                style: TextStyle(color: Colors.white70),
+              ),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                side: const BorderSide(color: Colors.white30),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -905,39 +942,6 @@ class _UsuarioSelectorSheetState extends State<_UsuarioSelectorSheet> {
               ),
             ),
           SizedBox(height: MediaQuery.of(context).padding.bottom),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            child: OutlinedButton.icon(
-              onPressed: () async {
-                final confirmar = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Salir'),
-                    content: const Text('¿Salir de la aplicación?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancelar'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Salir'),
-                      ),
-                    ],
-                  ),
-                );
-                if (confirmar == true) {
-                  exit(0);
-                }
-              },
-              icon: const Icon(Icons.exit_to_app),
-              label: const Text('Salir'),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-          ),
         ],
       ),
     );

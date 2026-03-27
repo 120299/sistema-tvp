@@ -782,6 +782,7 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
     String pedidoId,
     String metodoPago, {
     double descuento = 0,
+    int? numeroTicket,
   }) async {
     final pedidoIndex = state.indexWhere((p) => p.id == pedidoId);
     if (pedidoIndex < 0) return;
@@ -792,6 +793,7 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
       horaCierre: DateTime.now(),
       metodoPago: metodoPago,
       descuento: descuento,
+      numeroTicket: numeroTicket,
     );
     await _db.pedidosBox.putAt(pedidoIndex, actualizado);
     _refresh();

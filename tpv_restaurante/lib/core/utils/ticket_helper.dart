@@ -7,8 +7,10 @@ import '../../data/models/models.dart';
 class TicketHelper {
   static Future<void> imprimirPedido(
     DatosNegocio negocio,
-    Pedido pedido,
-  ) async {
+    Pedido pedido, [
+    int? numeroTicket,
+  ]) async {
+    final numero = numeroTicket ?? pedido.numeroTicket;
     final doc = pw.Document();
 
     doc.addPage(
@@ -62,6 +64,14 @@ class TicketHelper {
               pw.SizedBox(height: 10),
               pw.Divider(thickness: 1),
               pw.SizedBox(height: 5),
+              if (numero != null)
+                pw.Text(
+                  'TICKET: T-${_formatFechaShort(pedido.horaApertura)}-${numero.toString().padLeft(4, '0')}',
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 10,
+                  ),
+                ),
               pw.Text(
                 'PEDIDO: ${pedido.id.substring(0, 8).toUpperCase()}',
                 style: pw.TextStyle(
@@ -306,5 +316,9 @@ class TicketHelper {
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => doc.save(),
     );
+  }
+
+  static String _formatFechaShort(DateTime d) {
+    return '${d.year}${d.month.toString().padLeft(2, '0')}${d.day.toString().padLeft(2, '0')}';
   }
 }
