@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,30 @@ import 'init/desktop_init.dart' if (dart.library.html) 'init/web_init.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Verificar instancia única solo en Windows
+  if (Platform.isWindows) {
+    final mutexName = 'TPV_Restaurante_SingleInstance';
+    try {
+      final result = await Process.run('tasklist', [
+        '/FI',
+        'IMAGENAME eq tpv_restaurante.exe',
+        '/NH',
+      ]);
+      final lines = result.stdout.toString().split('\n');
+      int count = 0;
+      for (final line in lines) {
+        if (line.trim().toLowerCase().contains('tpv_restaurante.exe')) {
+          count++;
+        }
+      }
+      if (count > 1) {
+        exit(0);
+      }
+    } catch (e) {
+      // Si falla la verificación, continuar normalmente
+    }
+  }
 
   // Inicializar window_manager solo en plataformas de escritorio
   await initializeDesktop();
