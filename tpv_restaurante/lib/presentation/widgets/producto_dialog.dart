@@ -54,8 +54,9 @@ class _VarianteDialogState extends State<_VarianteDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final esEdicion = widget.variante != null;
     return AlertDialog(
-      title: const Text('Nueva Variante'),
+      title: Text(esEdicion ? 'Editar Variante' : 'Nueva Variante'),
       content: Form(
         key: _formKey,
         child: Column(
@@ -248,6 +249,21 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
     setState(() {
       _variantes.removeAt(index);
     });
+  }
+
+  void _editarVariante(int index) {
+    final variante = _variantes[index];
+    showDialog(
+      context: context,
+      builder: (ctx) => _VarianteDialog(
+        variante: variante,
+        onGuardar: (varianteEditada) {
+          setState(() {
+            _variantes[index] = varianteEditada;
+          });
+        },
+      ),
+    );
   }
 
   @override
@@ -847,12 +863,24 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
                             subtitle: Text(
                               '${variante.precio.toStringAsFixed(2)} €',
                             ),
-                            trailing: IconButton(
-                              icon: const Icon(
-                                Icons.delete_outline,
-                                color: AppColors.error,
-                              ),
-                              onPressed: () => _eliminarVariante(index),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.edit_outlined,
+                                    color: AppColors.primary,
+                                  ),
+                                  onPressed: () => _editarVariante(index),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: AppColors.error,
+                                  ),
+                                  onPressed: () => _eliminarVariante(index),
+                                ),
+                              ],
                             ),
                           ),
                         );

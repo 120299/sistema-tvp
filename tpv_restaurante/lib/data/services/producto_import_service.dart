@@ -103,6 +103,34 @@ class ProductoImportService {
             final bool disponible = prodJson['disponible'] as bool? ?? true;
             final bool esAlergenico =
                 prodJson['esAlergenico'] as bool? ?? false;
+            final bool esVariable = prodJson['esVariable'] as bool? ?? false;
+
+            List<VarianteProducto>? variantes;
+            if (esVariable && prodJson['variantes'] != null) {
+              final variantesJson = prodJson['variantes'] as List<dynamic>;
+              variantes = [];
+              for (final varJson in variantesJson) {
+                try {
+                  final nombreVar = varJson['nombre']?.toString() ?? '';
+                  if (nombreVar.isEmpty) continue;
+
+                  final precioVar =
+                      (varJson['precio'] as num?)?.toDouble() ?? 0;
+
+                  variantes.add(
+                    VarianteProducto(
+                      id: 'var_${_uuid.v4().substring(0, 8)}',
+                      nombre: nombreVar,
+                      precio: precio,
+                      precioExtra: precioVar,
+                    ),
+                  );
+                } catch (e) {
+                  errores++;
+                  mensajesError.add('Error al importar variante: $e');
+                }
+              }
+            }
 
             final producto = Producto(
               id: 'prod_${_uuid.v4().substring(0, 12)}',
@@ -114,6 +142,8 @@ class ProductoImportService {
               esAlergenico: esAlergenico,
               imagenUrl: prodJson['imagenUrl']?.toString(),
               codigoBarras: prodJson['codigoBarras']?.toString(),
+              esVariable: esVariable,
+              variantes: esVariable ? variantes : null,
             );
 
             await db.productoRepositorio.add(producto);

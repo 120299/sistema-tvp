@@ -45,7 +45,9 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
     ref.watch(imageRefreshTriggerProvider);
     ref.watch(mesasProvider);
     ref.watch(pedidosProvider);
-    final categorias = ref.watch(categoriasProvider);
+    final categoriasRaw = ref.watch(categoriasProvider);
+    final categoriasOrdenadas = List<CategoriaProducto>.from(categoriasRaw)
+      ..sort((a, b) => a.orden.compareTo(b.orden));
     final productos = ref.watch(productosProvider);
     final categoriaSeleccionada = ref.watch(categoriaSeleccionadaProvider);
 
@@ -74,10 +76,13 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
             child: Column(
               children: [
                 _buildHeader(),
-                _buildCategorias(categoriaSeleccionada, categorias),
+                _buildCategorias(categoriaSeleccionada, categoriasOrdenadas),
                 _buildBuscador(),
                 Expanded(
-                  child: _buildGridProductos(productosAMostrar, categorias),
+                  child: _buildGridProductos(
+                    productosAMostrar,
+                    categoriasOrdenadas,
+                  ),
                 ),
               ],
             ),

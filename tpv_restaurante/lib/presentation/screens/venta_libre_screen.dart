@@ -57,7 +57,9 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     ref.watch(imageRefreshTriggerProvider);
     final caja = ref.watch(cajaProvider);
     final productosFiltrados = ref.watch(productosFiltradosProvider);
-    final categorias = ref.watch(categoriasProvider);
+    final categoriasRaw = ref.watch(categoriasProvider);
+    final categoriasOrdenadas = List<CategoriaProducto>.from(categoriasRaw)
+      ..sort((a, b) => a.orden.compareTo(b.orden));
     final categoriaSeleccionada = ref.watch(categoriaSeleccionadaProvider);
     final todasMesas = ref.watch(mesasProvider);
     final busquedaCompartida = ref.watch(busquedaCompartidaProvider);
@@ -82,7 +84,10 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                   child: Column(
                     children: [
                       _buildHeader(mesasDisponibles, caja: caja, isWide: true),
-                      _buildCategorias(categoriaSeleccionada, categorias),
+                      _buildCategorias(
+                        categoriaSeleccionada,
+                        categoriasOrdenadas,
+                      ),
                       _buildBuscador(),
                       Expanded(child: _buildGridProductos(productosAMostrar)),
                     ],
@@ -96,7 +101,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             return Column(
               children: [
                 _buildHeader(mesasDisponibles, caja: caja, isWide: false),
-                _buildCategorias(categoriaSeleccionada, categorias),
+                _buildCategorias(categoriaSeleccionada, categoriasOrdenadas),
                 _buildBuscador(),
                 Expanded(child: _buildGridProductos(productosAMostrar)),
                 _buildCarritoBarra(),

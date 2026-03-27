@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../../data/services/database_service.dart';
+import '../../data/services/producto_import_service.dart';
 import '../providers/providers.dart';
 
 class ConfiguracionScreen extends ConsumerStatefulWidget {
@@ -285,6 +287,53 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                   ),
                 ),
               ]),
+              const SizedBox(height: 24),
+              _buildSeccion('Gestión de Productos', [
+                const Text(
+                  'Importa o exporta productos desde un archivo JSON.',
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'El archivo debe tener formato JSON con la estructura: {"categorias": [...], "productos": [...]}',
+                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _importarProductos,
+                        icon: const Icon(Icons.upload_file),
+                        label: const Text('Importar'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _exportarProductos,
+                        icon: const Icon(Icons.download),
+                        label: const Text('Exportar'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: _descargarPlantilla,
+                  icon: const Icon(Icons.description_outlined),
+                  label: const Text('Descargar plantilla de ejemplo'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ]),
               const SizedBox(height: 32),
             ],
           ),
@@ -323,6 +372,322 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
         ),
       ],
     );
+  }
+
+  Future<void> _importarProductos() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        dialogTitle: 'Seleccionar archivo de productos',
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final file = result.files.single;
+        final content = await _leerArchivo(file.path!);
+
+        if (content.isEmpty) {
+          _mostrarMensajeError('El archivo está vacío');
+          return;
+        }
+
+        final db = ref.read(databaseServiceProvider);
+        final importResult = await ProductoImportService.importarDesdeJson(
+          content,
+          db,
+        );
+
+        if (!mounted) return;
+
+        final confirmar = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Confirmar Importación'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Se importarán los siguientes elementos:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildResumenImportacion(
+                    icon: Icons.folder,
+                    titulo: 'Categorías',
+                    cantidad: importResult.categoriasImportadas,
+                    color: Colors.blue,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildResumenImportacion(
+                    icon: Icons.shopping_bag,
+                    titulo: 'Productos',
+                    cantidad: importResult.productosImportados,
+                    color: Colors.green,
+                  ),
+                  if (importResult.errores > 0) ...[
+                    const SizedBox(height: 8),
+                    _buildResumenImportacion(
+                      icon: Icons.warning,
+                      titulo: 'Errores',
+                      cantidad: importResult.errores,
+                      color: Colors.red,
+                    ),
+                  ],
+                  if (importResult.mensajesError.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Detalles de errores:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      constraints: const BoxConstraints(maxHeight: 100),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: importResult.mensajesError
+                              .take(5)
+                              .map(
+                                (e) => Text(
+                                  '- $e',
+                                  style: const TextStyle(fontSize: 11),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Confirmar'),
+              ),
+            ],
+          ),
+        );
+
+        if (confirmar == true) {
+          if (importResult.categoriasImportadas > 0 ||
+              importResult.productosImportados > 0) {
+            ref.invalidate(productosProvider);
+            ref.invalidate(categoriasProvider);
+          }
+          _mostrarMensaje(
+            'Importación completada:\n'
+            '- Categorías: ${importResult.categoriasImportadas}\n'
+            '- Productos: ${importResult.productosImportados}\n'
+            '- Errores: ${importResult.errores}',
+          );
+        }
+      }
+    } catch (e) {
+      _mostrarMensajeError('Error al importar: $e');
+    }
+  }
+
+  Widget _buildResumenImportacion({
+    required IconData icon,
+    required String titulo,
+    required int cantidad,
+    required Color color,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: 8),
+        Text(titulo),
+        const Spacer(),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color),
+          ),
+          child: Text(
+            cantidad.toString(),
+            style: TextStyle(fontWeight: FontWeight.bold, color: color),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _exportarProductos() async {
+    try {
+      final productos = ref.read(productosProvider);
+      final categorias = ref.read(categoriasProvider);
+
+      final jsonContent = await ProductoImportService.exportarProductosJson(
+        productos,
+        categorias,
+      );
+
+      if (jsonContent == null) {
+        _mostrarMensajeError('Error al generar el archivo');
+        return;
+      }
+
+      final result = await FilePicker.platform.saveFile(
+        dialogTitle: 'Guardar productos',
+        fileName: 'productos_exportacion.json',
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+
+      if (result != null) {
+        await File(result).writeAsString(jsonContent);
+        _mostrarMensaje('Productos exportados a:\n$result');
+      }
+    } catch (e) {
+      _mostrarMensajeError('Error al exportar: $e');
+    }
+  }
+
+  Future<void> _descargarPlantilla() async {
+    const plantilla = '''
+{
+  "version": "1.0",
+  "descripcion": "Plantilla de importacion de productos para TPV",
+  "categorias": [
+    {
+      "nombre": "Bebidas",
+      "icono": "🥤",
+      "color": "#2196F3"
+    },
+    {
+      "nombre": "Comidas",
+      "icono": "🍽️",
+      "color": "#4CAF50"
+    },
+    {
+      "nombre": "Postres",
+      "icono": "🍰",
+      "color": "#E91E63"
+    }
+  ],
+  "productos": [
+    {
+      "nombre": "Cafe",
+      "precio": 1.50,
+      "categoriaId": "Bebidas",
+      "descripcion": "Cafe solo",
+      "disponible": true,
+      "esAlergenico": false
+    },
+    {
+      "nombre": "Refresco de Cola",
+      "precio": 2.00,
+      "categoriaId": "Bebidas",
+      "descripcion": "Refresco de cola 33cl",
+      "disponible": true,
+      "codigoBarras": "1234567890123"
+    },
+    {
+      "nombre": "Cerveza",
+      "precio": 3.00,
+      "categoriaId": "Bebidas",
+      "descripcion": "Cerveza nacional",
+      "disponible": true,
+      "esVariable": true,
+      "variantes": [
+        {"nombre": "Caña", "precio": 0, "disponible": true},
+        {"nombre": "Jarra", "precio": 2.00, "disponible": true},
+        {"nombre": "Botella", "precio": 1.00, "disponible": true}
+      ]
+    },
+    {
+      "nombre": "Camiseta",
+      "precio": 15.00,
+      "categoriaId": "Comidas",
+      "descripcion": "Camiseta de marca",
+      "disponible": true,
+      "esVariable": true,
+      "variantes": [
+        {"nombre": "S", "precio": 0, "disponible": true},
+        {"nombre": "M", "precio": 0, "disponible": true},
+        {"nombre": "L", "precio": 0, "disponible": true},
+        {"nombre": "XL", "precio": 1.00, "disponible": true}
+      ]
+    },
+    {
+      "nombre": "Paella",
+      "precio": 12.00,
+      "categoriaId": "Comidas",
+      "descripcion": "Paella Valenciana",
+      "disponible": true,
+      "esAlergenico": true
+    },
+    {
+      "nombre": "Tarta de Queso",
+      "precio": 4.50,
+      "categoriaId": "Postres",
+      "descripcion": "Tarta de queso casera",
+      "disponible": true,
+      "imagenUrl": ""
+    }
+  ]
+}
+''';
+
+    try {
+      final result = await FilePicker.platform.saveFile(
+        dialogTitle: 'Guardar plantilla',
+        fileName: 'plantilla_productos.json',
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+
+      if (result != null) {
+        await File(result).writeAsString(plantilla);
+        _mostrarMensaje('Plantilla guardada en:\n$result');
+      }
+    } catch (e) {
+      _mostrarMensajeError('Error al guardar plantilla: $e');
+    }
+  }
+
+  Future<String> _leerArchivo(String path) async {
+    final file = File(path);
+    return await file.readAsString();
+  }
+
+  void _mostrarMensaje(String mensaje) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(mensaje),
+          backgroundColor: AppColors.success,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
+  void _mostrarMensajeError(String mensaje) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(mensaje), backgroundColor: AppColors.error),
+      );
+    }
   }
 
   Future<void> _guardar() async {
