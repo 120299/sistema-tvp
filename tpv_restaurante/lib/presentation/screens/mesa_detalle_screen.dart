@@ -56,19 +56,22 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
           ],
         ),
       ),
-      body: Column(
-        children: [
-          _buildEstadoHeader(mesaActual, estadoData),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildInfoTab(mesaActual),
-                _buildHistorialTab(mesaActual),
-              ],
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Column(
+          children: [
+            _buildEstadoHeader(mesaActual, estadoData),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildInfoTab(mesaActual),
+                  _buildHistorialTab(mesaActual),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       bottomNavigationBar: _buildBottomBar(mesaActual),
     );

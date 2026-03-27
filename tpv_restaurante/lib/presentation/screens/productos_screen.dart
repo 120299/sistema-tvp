@@ -53,17 +53,20 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     productosFiltrados = _ordenarProductos(productosFiltrados, ordenProducto);
 
     return Scaffold(
-      body: Column(
-        children: [
-          _buildHeader(),
-          _buildCategoriasToolbar(categoriaSeleccionada, categorias),
-          _buildToolbar(busqueda, categoriaSeleccionada, categorias),
-          Expanded(
-            child: productosFiltrados.isEmpty
-                ? _buildEmptyState()
-                : _buildProductGrid(productosFiltrados, categorias),
-          ),
-        ],
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Column(
+          children: [
+            _buildHeader(),
+            _buildCategoriasToolbar(categoriaSeleccionada, categorias),
+            _buildToolbar(busqueda, categoriaSeleccionada, categorias),
+            Expanded(
+              child: productosFiltrados.isEmpty
+                  ? _buildEmptyState()
+                  : _buildProductGrid(productosFiltrados, categorias),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,

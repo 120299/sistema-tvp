@@ -72,270 +72,273 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
           IconButton(icon: const Icon(Icons.save), onPressed: _guardar),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSeccion('Datos Fiscales (Ley Española)', [
-                TextFormField(
-                  controller: _nombreController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre comercial *',
-                    prefixIcon: Icon(Icons.store),
-                  ),
-                  validator: (v) => v?.isEmpty == true ? 'Obligatorio' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _razonSocialController,
-                  decoration: const InputDecoration(
-                    labelText: 'Razón Social',
-                    prefixIcon: Icon(Icons.business),
-                    helperText: 'Nombre legal de la empresa',
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _cifController,
-                  decoration: const InputDecoration(
-                    labelText: 'CIF/NIF *',
-                    prefixIcon: Icon(Icons.badge),
-                    helperText: 'Ej: B12345678 o 12345678A',
-                  ),
-                  validator: (v) => v?.isEmpty == true ? 'Obligatorio' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _actividadController,
-                  decoration: const InputDecoration(
-                    labelText: 'Actividad económica',
-                    prefixIcon: Icon(Icons.category),
-                    helperText: 'Ej: Hostelería, Restauración',
-                  ),
-                ),
-              ]),
-              const SizedBox(height: 24),
-              _buildSeccion('Datos del Negocio y Dirección', [
-                TextFormField(
-                  controller: _direccionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Dirección',
-                    prefixIcon: Icon(Icons.location_on),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _ciudadController,
-                  decoration: const InputDecoration(
-                    labelText: 'Ciudad',
-                    prefixIcon: Icon(Icons.location_city),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _telefonoController,
-                        decoration: const InputDecoration(
-                          labelText: 'Teléfono',
-                          prefixIcon: Icon(Icons.phone),
-                        ),
-                      ),
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSeccion('Datos Fiscales (Ley Española)', [
+                  TextFormField(
+                    controller: _nombreController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nombre comercial *',
+                      prefixIcon: Icon(Icons.store),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _emailController,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: Icon(Icons.email),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ]),
-              const SizedBox(height: 24),
-              _buildSeccion('Configuración de IVA (España)', [
-                TextFormField(
-                  controller: _ivaController,
-                  decoration: const InputDecoration(
-                    labelText: 'IVA (%)',
-                    prefixIcon: Icon(Icons.percent),
-                    helperText:
-                        'IVA General: 21% | IVA Reducido: 10% | IVA Superreducido: 4%',
+                    validator: (v) => v?.isEmpty == true ? 'Obligatorio' : null,
                   ),
-                  keyboardType: TextInputType.number,
-                  validator: (v) {
-                    if (v?.isEmpty == true) return 'Obligatorio';
-                    final iva = double.tryParse(v!);
-                    if (iva == null || iva < 0 || iva > 100) {
-                      return 'Introduce un porcentaje válido (0-100)';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () =>
-                            setState(() => _ivaController.text = '4'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _ivaController.text == '4'
-                              ? AppColors.primary
-                              : Colors.grey.shade200,
-                          foregroundColor: _ivaController.text == '4'
-                              ? Colors.white
-                              : Colors.black87,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: const Text(
-                          '4%',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _razonSocialController,
+                    decoration: const InputDecoration(
+                      labelText: 'Razón Social',
+                      prefixIcon: Icon(Icons.business),
+                      helperText: 'Nombre legal de la empresa',
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () =>
-                            setState(() => _ivaController.text = '10'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _ivaController.text == '10'
-                              ? AppColors.primary
-                              : Colors.grey.shade200,
-                          foregroundColor: _ivaController.text == '10'
-                              ? Colors.white
-                              : Colors.black87,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: const Text(
-                          '10%',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () =>
-                            setState(() => _ivaController.text = '21'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _ivaController.text == '21'
-                              ? AppColors.primary
-                              : Colors.grey.shade200,
-                          foregroundColor: _ivaController.text == '21'
-                              ? Colors.white
-                              : Colors.black87,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: const Text(
-                          '21%',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ]),
-              const SizedBox(height: 24),
-              _buildSeccion('Información Legal', [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.zero,
-                    border: Border.all(color: Colors.blue.shade200),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _cifController,
+                    decoration: const InputDecoration(
+                      labelText: 'CIF/NIF *',
+                      prefixIcon: Icon(Icons.badge),
+                      helperText: 'Ej: B12345678 o 12345678A',
+                    ),
+                    validator: (v) => v?.isEmpty == true ? 'Obligatorio' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _actividadController,
+                    decoration: const InputDecoration(
+                      labelText: 'Actividad económica',
+                      prefixIcon: Icon(Icons.category),
+                      helperText: 'Ej: Hostelería, Restauración',
+                    ),
+                  ),
+                ]),
+                const SizedBox(height: 24),
+                _buildSeccion('Datos del Negocio y Dirección', [
+                  TextFormField(
+                    controller: _direccionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Dirección',
+                      prefixIcon: Icon(Icons.location_on),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _ciudadController,
+                    decoration: const InputDecoration(
+                      labelText: 'Ciudad',
+                      prefixIcon: Icon(Icons.location_city),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: Colors.blue.shade700,
-                            size: 20,
+                      Expanded(
+                        child: TextFormField(
+                          controller: _telefonoController,
+                          decoration: const InputDecoration(
+                            labelText: 'Teléfono',
+                            prefixIcon: Icon(Icons.phone),
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Cumplimiento Legal',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue.shade700,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Este sistema cumple con el Real Decreto 1496/2003 sobre facturación. '
-                        'Los tickets emitidos son facturas simplificadas válidas para el consumidor. '
-                        'Para requisitos fiscales adicionales, consulte con su asesor contable.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.blue.shade700,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _emailController,
+                          decoration: const InputDecoration(
+                            labelText: 'Email',
+                            prefixIcon: Icon(Icons.email),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ]),
-              const SizedBox(height: 24),
-              _buildSeccion('Gestión de Productos', [
-                const Text(
-                  'Importa o exporta productos desde un archivo JSON.',
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'El archivo debe tener formato JSON con la estructura: {"categorias": [...], "productos": [...]}',
-                  style: TextStyle(fontSize: 11, color: Colors.grey),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _importarProductos,
-                        icon: const Icon(Icons.upload_file),
-                        label: const Text('Importar'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                      ),
+                ]),
+                const SizedBox(height: 24),
+                _buildSeccion('Configuración de IVA (España)', [
+                  TextFormField(
+                    controller: _ivaController,
+                    decoration: const InputDecoration(
+                      labelText: 'IVA (%)',
+                      prefixIcon: Icon(Icons.percent),
+                      helperText:
+                          'IVA General: 21% | IVA Reducido: 10% | IVA Superreducido: 4%',
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _exportarProductos,
-                        icon: const Icon(Icons.download),
-                        label: const Text('Exportar'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: _descargarPlantilla,
-                  icon: const Icon(Icons.description_outlined),
-                  label: const Text('Descargar plantilla de ejemplo'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    keyboardType: TextInputType.number,
+                    validator: (v) {
+                      if (v?.isEmpty == true) return 'Obligatorio';
+                      final iva = double.tryParse(v!);
+                      if (iva == null || iva < 0 || iva > 100) {
+                        return 'Introduce un porcentaje válido (0-100)';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-              ]),
-              const SizedBox(height: 32),
-            ],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () =>
+                              setState(() => _ivaController.text = '4'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _ivaController.text == '4'
+                                ? AppColors.primary
+                                : Colors.grey.shade200,
+                            foregroundColor: _ivaController.text == '4'
+                                ? Colors.white
+                                : Colors.black87,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: const Text(
+                            '4%',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () =>
+                              setState(() => _ivaController.text = '10'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _ivaController.text == '10'
+                                ? AppColors.primary
+                                : Colors.grey.shade200,
+                            foregroundColor: _ivaController.text == '10'
+                                ? Colors.white
+                                : Colors.black87,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: const Text(
+                            '10%',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () =>
+                              setState(() => _ivaController.text = '21'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _ivaController.text == '21'
+                                ? AppColors.primary
+                                : Colors.grey.shade200,
+                            foregroundColor: _ivaController.text == '21'
+                                ? Colors.white
+                                : Colors.black87,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: const Text(
+                            '21%',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ]),
+                const SizedBox(height: 24),
+                _buildSeccion('Información Legal', [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.zero,
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: Colors.blue.shade700,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Cumplimiento Legal',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Este sistema cumple con el Real Decreto 1496/2003 sobre facturación. '
+                          'Los tickets emitidos son facturas simplificadas válidas para el consumidor. '
+                          'Para requisitos fiscales adicionales, consulte con su asesor contable.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ]),
+                const SizedBox(height: 24),
+                _buildSeccion('Gestión de Productos', [
+                  const Text(
+                    'Importa o exporta productos desde un archivo JSON.',
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'El archivo debe tener formato JSON con la estructura: {"categorias": [...], "productos": [...]}',
+                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _importarProductos,
+                          icon: const Icon(Icons.upload_file),
+                          label: const Text('Importar'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _exportarProductos,
+                          icon: const Icon(Icons.download),
+                          label: const Text('Exportar'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: _descargarPlantilla,
+                    icon: const Icon(Icons.description_outlined),
+                    label: const Text('Descargar plantilla de ejemplo'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ]),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),

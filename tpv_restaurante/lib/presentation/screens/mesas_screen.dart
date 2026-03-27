@@ -49,12 +49,15 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
 
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
-      body: Column(
-        children: [
-          _buildHeader(mesas),
-          _buildTabBar(),
-          Expanded(child: _buildMesasGrid(_getMesasFiltradas(mesas))),
-        ],
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Column(
+          children: [
+            _buildHeader(mesas),
+            _buildTabBar(),
+            Expanded(child: _buildMesasGrid(_getMesasFiltradas(mesas))),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'agregar_mesa',

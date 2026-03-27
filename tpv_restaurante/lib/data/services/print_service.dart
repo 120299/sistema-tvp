@@ -28,7 +28,6 @@ class PrintService {
       debugPrint('Comando abrir cajón enviado');
     } catch (e) {
       debugPrint('Error al abrir cajón: $e');
-      rethrow;
     }
   }
 
@@ -86,6 +85,42 @@ class PrintService {
       );
     } catch (e) {
       debugPrint('Error al imprimir ticket automáticamente: $e');
+    }
+  }
+
+  static Future<void> mostrarTicketPreview({
+    required BuildContext context,
+    required List<PedidoItem> items,
+    required double subtotal,
+    required double ivaPorcentaje,
+    required String metodoPago,
+    required DatosNegocio negocio,
+    String? mesaNumero,
+    String? cajeroNombre,
+    double porcentajePropina = 0,
+    String? clienteNombre,
+    String? clienteNif,
+    int? numeroTicket,
+    DateTime? fechaVenta,
+  }) async {
+    try {
+      final pdf = await _buildTicketPdf(
+        items: items,
+        subtotal: subtotal,
+        ivaPorcentaje: ivaPorcentaje,
+        metodoPago: metodoPago,
+        negocio: negocio,
+        mesaNumero: mesaNumero,
+        cajeroNombre: cajeroNombre,
+        porcentajePropina: porcentajePropina,
+        clienteNombre: clienteNombre,
+        clienteNif: clienteNif,
+        numeroTicket: numeroTicket,
+        fechaVenta: fechaVenta,
+      );
+      await _showPdfPreview(context, pdf, 'Ticket');
+    } catch (e) {
+      debugPrint('Error al mostrar ticket: $e');
     }
   }
 
@@ -265,73 +300,145 @@ class PrintService {
     final screenH = MediaQuery.of(context).size.height;
     final screenW = MediaQuery.of(context).size.width;
     final isCompact = screenH < 600 || screenW < 400;
+    bool impresionEnviada = false;
 
     await showDialog(
       context: context,
-      builder: (ctx) => Dialog(
-        insetPadding: EdgeInsets.all(isCompact ? 8 : 16),
-        child: Container(
-          constraints: BoxConstraints(
-            maxWidth: isCompact ? screenW - 32 : 400,
-            maxHeight: isCompact ? screenH * 0.7 : 600,
-          ),
-          child: Column(
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isCompact ? 12 : 16,
-                  vertical: isCompact ? 8 : 12,
-                ),
-                color: Colors.blueGrey.shade800,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.print,
-                      color: Colors.white,
-                      size: isCompact ? 16 : 20,
-                    ),
-                    SizedBox(width: isCompact ? 8 : 12),
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: isCompact ? 14 : 16,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => Dialog(
+          insetPadding: EdgeInsets.all(isCompact ? 8 : 16),
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: isCompact ? screenW - 32 : 400,
+              maxHeight: isCompact ? screenH * 0.7 : 600,
+            ),
+            child: Column(
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isCompact ? 12 : 16,
+                    vertical: isCompact ? 8 : 12,
+                  ),
+                  color: Colors.blueGrey.shade800,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.print,
+                        color: Colors.white,
+                        size: isCompact ? 16 : 20,
+                      ),
+                      SizedBox(width: isCompact ? 8 : 12),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: isCompact ? 14 : 16,
+                          ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      icon: Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: isCompact ? 18 : 20,
+                      if (!impresionEnviada)
+                        TextButton.icon(
+                          onPressed: () async {
+                            try {
+                              final printers = await Printing.listPrinters();
+                              final defaultPrinter = printers
+                                  .where((p) => p.isDefault)
+                                  .firstOrNull;
+
+                              if (defaultPrinter != null) {
+                                await Printing.directPrintPdf(
+                                  printer: defaultPrinter,
+                                  onLayout: (PdfPageFormat format) async =>
+                                      pdf.save(),
+                                );
+                                setState(() => impresionEnviada = true);
+                              } else {
+                                if (ctx.mounted) {
+                                  ScaffoldMessenger.of(ctx).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'No hay impresora configurada',
+                                      ),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              }
+                            } catch (e) {
+                              if (ctx.mounted) {
+                                ScaffoldMessenger.of(ctx).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error al imprimir: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          icon: const Icon(
+                            Icons.print,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                          label: const Text(
+                            'Imprimir',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isCompact ? 8 : 12,
+                            ),
+                          ),
+                        )
+                      else
+                        const Icon(
+                          Icons.check_circle,
+                          color: Colors.greenAccent,
+                          size: 20,
+                        ),
+                      SizedBox(width: isCompact ? 4 : 8),
+                      IconButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        icon: Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: isCompact ? 18 : 20,
+                        ),
+                        tooltip: 'Cerrar',
+                        padding: EdgeInsets.zero,
+                        constraints: BoxConstraints(),
                       ),
-                      tooltip: 'Cerrar',
-                      padding: EdgeInsets.zero,
-                      constraints: BoxConstraints(),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Expanded(
-                child: PdfPreview(
-                  build: (format) => pdf.save(),
-                  allowPrinting: true,
-                  allowSharing: false,
-                  canChangePageFormat: false,
-                  canChangeOrientation: false,
-                  canDebug: false,
-                  pdfFileName: 'ticket.pdf',
-                  actions: [],
+                Expanded(
+                  child: PdfPreview(
+                    build: (format) => pdf.save(),
+                    allowPrinting: false,
+                    allowSharing: false,
+                    canChangePageFormat: false,
+                    canChangeOrientation: false,
+                    canDebug: false,
+                    pdfFileName: 'ticket.pdf',
+                    actions: [],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  static Future<void> mostrarPdfPreview({
+    required BuildContext context,
+    required pw.Document pdf,
+    required String titulo,
+  }) async {
+    await _showPdfPreview(context, pdf, titulo);
   }
 
   static Future<void> previewCierreCaja({
@@ -345,28 +452,32 @@ class PrintService {
     required DatosNegocio negocio,
     required dynamic caja,
   }) async {
-    final pdf = await buildCierreCajaPdf(negocio, caja);
-
-    // Intentar impresión directa con impresora por defecto
     try {
-      final printers = await Printing.listPrinters();
-      final defaultPrinter = printers.where((p) => p.isDefault).firstOrNull;
+      final pdf = await buildCierreCajaPdf(negocio, caja);
 
-      if (defaultPrinter != null) {
-        await Printing.directPrintPdf(
-          printer: defaultPrinter,
-          onLayout: (PdfPageFormat format) async => pdf.save(),
-        );
-        return;
+      // Intentar impresión directa con impresora por defecto
+      try {
+        final printers = await Printing.listPrinters();
+        final defaultPrinter = printers.where((p) => p.isDefault).firstOrNull;
+
+        if (defaultPrinter != null) {
+          await Printing.directPrintPdf(
+            printer: defaultPrinter,
+            onLayout: (PdfPageFormat format) async => pdf.save(),
+          );
+          return;
+        }
+      } catch (e) {
+        debugPrint('Impresión directa falló: $e');
       }
-    } catch (e) {
-      debugPrint('Impresión directa falló: $e');
-    }
 
-    // Fallback: usar layoutPdf
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-    );
+      // Fallback: usar layoutPdf
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+      );
+    } catch (e) {
+      debugPrint('Error al imprimir cierre de caja: $e');
+    }
   }
 
   static Future<pw.Document> buildCierreCajaPdf(
@@ -595,8 +706,12 @@ class PrintService {
     required DatosNegocio negocio,
     required List<MovimientoCaja> movimientos,
   }) async {
-    final pdf = await buildMovimientosCajaPdf(negocio, movimientos);
-    await _showPdfPreview(context, pdf, 'Vista Previa - Movimientos');
+    try {
+      final pdf = await buildMovimientosCajaPdf(negocio, movimientos);
+      await _showPdfPreview(context, pdf, 'Vista Previa - Movimientos');
+    } catch (e) {
+      debugPrint('Error al previsualizar movimientos: $e');
+    }
   }
 
   static Future<void> imprimirMovimientosAutomatico({
@@ -604,10 +719,14 @@ class PrintService {
     required List<MovimientoCaja> movimientos,
   }) async {
     for (final mov in movimientos) {
-      final pdf = await _buildMovimientoTicketPdf(negocio, mov);
-      await Printing.layoutPdf(
-        onLayout: (PdfPageFormat format) async => pdf.save(),
-      );
+      try {
+        final pdf = await _buildMovimientoTicketPdf(negocio, mov);
+        await Printing.layoutPdf(
+          onLayout: (PdfPageFormat format) async => pdf.save(),
+        );
+      } catch (e) {
+        debugPrint('Error al imprimir movimiento: $e');
+      }
     }
   }
 
@@ -697,105 +816,108 @@ class PrintService {
       '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
 
   static Future<void> printCocinaTicket({
+    required BuildContext context,
     required List<PedidoItem> items,
     required String mesaNumero,
   }) async {
-    final pdf = pw.Document();
+    try {
+      final pdf = pw.Document();
 
-    pdf.addPage(
-      pw.Page(
-        pageFormat: const PdfPageFormat(
-          72 * PdfPageFormat.mm,
-          double.infinity,
-          marginAll: 5 * PdfPageFormat.mm,
-        ),
-        build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
-            mainAxisSize: pw.MainAxisSize.min,
-            children: [
-              pw.Container(
-                padding: const pw.EdgeInsets.all(8),
-                decoration: pw.BoxDecoration(border: pw.Border.all(width: 2)),
-                child: pw.Column(
-                  children: [
-                    pw.Text(
-                      'COCINA',
-                      style: pw.TextStyle(
-                        fontSize: 16,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
-                    pw.SizedBox(height: 4),
-                    pw.Text(
-                      'MESA $mesaNumero',
-                      style: pw.TextStyle(
-                        fontSize: 20,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
-                    pw.SizedBox(height: 4),
-                    pw.Text(
-                      '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}',
-                      style: const pw.TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-              pw.SizedBox(height: 10),
-              ...items.map(
-                (item) => pw.Container(
-                  margin: const pw.EdgeInsets.only(bottom: 6),
-                  padding: const pw.EdgeInsets.all(6),
-                  decoration: pw.BoxDecoration(border: pw.Border.all()),
-                  child: pw.Row(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+      pdf.addPage(
+        pw.Page(
+          pageFormat: const PdfPageFormat(
+            72 * PdfPageFormat.mm,
+            double.infinity,
+            marginAll: 5 * PdfPageFormat.mm,
+          ),
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.center,
+              mainAxisSize: pw.MainAxisSize.min,
+              children: [
+                pw.Container(
+                  padding: const pw.EdgeInsets.all(8),
+                  decoration: pw.BoxDecoration(border: pw.Border.all(width: 2)),
+                  child: pw.Column(
                     children: [
-                      pw.Container(
-                        width: 20,
-                        child: pw.Text(
-                          '${item.cantidad}x',
-                          style: pw.TextStyle(
-                            fontSize: 12,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
+                      pw.Text(
+                        'COCINA',
+                        style: pw.TextStyle(
+                          fontSize: 16,
+                          fontWeight: pw.FontWeight.bold,
                         ),
                       ),
-                      pw.Expanded(
-                        child: pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: [
-                            pw.Text(
-                              item.productoNombre,
-                              style: pw.TextStyle(
-                                fontSize: 12,
-                                fontWeight: pw.FontWeight.bold,
-                              ),
-                            ),
-                            if (item.notas != null && item.notas!.isNotEmpty)
-                              pw.Text(
-                                item.notas!,
-                                style: const pw.TextStyle(
-                                  fontSize: 10,
-                                  color: PdfColors.orange,
-                                ),
-                              ),
-                          ],
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                        'MESA $mesaNumero',
+                        style: pw.TextStyle(
+                          fontSize: 20,
+                          fontWeight: pw.FontWeight.bold,
                         ),
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                        '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}',
+                        style: const pw.TextStyle(fontSize: 12),
                       ),
                     ],
                   ),
                 ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
+                pw.SizedBox(height: 10),
+                ...items.map(
+                  (item) => pw.Container(
+                    margin: const pw.EdgeInsets.only(bottom: 6),
+                    padding: const pw.EdgeInsets.all(6),
+                    decoration: pw.BoxDecoration(border: pw.Border.all()),
+                    child: pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Container(
+                          width: 20,
+                          child: pw.Text(
+                            '${item.cantidad}x',
+                            style: pw.TextStyle(
+                              fontSize: 12,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        pw.Expanded(
+                          child: pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.Text(
+                                item.productoNombre,
+                                style: pw.TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: pw.FontWeight.bold,
+                                ),
+                              ),
+                              if (item.notas != null && item.notas!.isNotEmpty)
+                                pw.Text(
+                                  item.notas!,
+                                  style: const pw.TextStyle(
+                                    fontSize: 10,
+                                    color: PdfColors.orange,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
 
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-    );
+      await _showPdfPreview(context, pdf, 'Ticket Cocina - Mesa $mesaNumero');
+    } catch (e) {
+      debugPrint('Error al imprimir ticket de cocina: $e');
+    }
   }
 
   static pw.Widget _buildHeader(DatosNegocio negocio) {

@@ -67,29 +67,32 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               .toList()
         : productosFiltrados;
 
-    return Container(
-      color: AppColors.lightBackground,
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Column(
-              children: [
-                _buildHeader(),
-                _buildCategorias(categoriaSeleccionada, categoriasOrdenadas),
-                _buildBuscador(),
-                Expanded(
-                  child: _buildGridProductos(
-                    productosAMostrar,
-                    categoriasOrdenadas,
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Container(
+        color: AppColors.lightBackground,
+        child: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  _buildCategorias(categoriaSeleccionada, categoriasOrdenadas),
+                  _buildBuscador(),
+                  Expanded(
+                    child: _buildGridProductos(
+                      productosAMostrar,
+                      categoriasOrdenadas,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Container(width: 1, color: AppColors.lightDivider),
-          SizedBox(width: 380, child: _buildPanelPedido()),
-        ],
+            Container(width: 1, color: AppColors.lightDivider),
+            SizedBox(width: 380, child: _buildPanelPedido()),
+          ],
+        ),
       ),
     );
   }
@@ -886,10 +889,22 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
         .read(pedidosProvider.notifier)
         .enviarACocina(mesaActual.pedidoActualId!);
 
-    await PrintService.printCocinaTicket(
-      items: pedidoActual,
-      mesaNumero: widget.mesa.numero.toString(),
-    );
+    try {
+      await PrintService.printCocinaTicket(
+        context: context,
+        items: pedidoActual,
+        mesaNumero: widget.mesa.numero.toString(),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No se pudo imprimir cocina: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
 
     _mostrarMensaje('Enviado a cocina');
   }
@@ -921,19 +936,31 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
           final pedidoCompleto = _getPedidoCompleto();
           await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
 
-          await PrintService.imprimirTicketAutomatico(
-            items: pedidoActual,
-            subtotal: pedidoActual.fold<double>(
-              0,
-              (sum, item) => sum + item.subtotal,
-            ),
-            ivaPorcentaje: negocio.ivaPorcentaje,
-            metodoPago: metodoPago,
-            negocio: negocio,
-            mesaNumero: widget.mesa.numero.toString(),
-            numeroTicket: numeroTicket,
-            fechaVenta: pedidoCompleto?.horaApertura,
-          );
+          try {
+            await PrintService.mostrarTicketPreview(
+              context: context,
+              items: pedidoActual,
+              subtotal: pedidoActual.fold<double>(
+                0,
+                (sum, item) => sum + item.subtotal,
+              ),
+              ivaPorcentaje: negocio.ivaPorcentaje,
+              metodoPago: metodoPago,
+              negocio: negocio,
+              mesaNumero: widget.mesa.numero.toString(),
+              numeroTicket: numeroTicket,
+              fechaVenta: pedidoCompleto?.horaApertura,
+            );
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('No se pudo imprimir: $e'),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+            }
+          }
 
           if (mounted) {
             Navigator.pop(context);

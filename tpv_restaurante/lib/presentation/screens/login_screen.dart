@@ -224,26 +224,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     final isWide = screenW > 600;
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: isWide
-              ? _buildLayoutHorizontal(
-                  negocio,
-                  cajerosActivos,
-                  isCompact: isCompact,
-                )
-              : _buildLayoutVertical(
-                  negocio,
-                  cajerosActivos,
-                  isCompact: isCompact,
-                ),
+          child: SafeArea(
+            child: isWide
+                ? _buildLayoutHorizontal(
+                    negocio,
+                    cajerosActivos,
+                    isCompact: isCompact,
+                  )
+                : _buildLayoutVertical(
+                    negocio,
+                    cajerosActivos,
+                    isCompact: isCompact,
+                  ),
+          ),
         ),
       ),
     );

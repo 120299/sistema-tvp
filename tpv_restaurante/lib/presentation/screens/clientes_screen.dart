@@ -44,16 +44,19 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
               .toList();
 
     return Scaffold(
-      body: Column(
-        children: [
-          _buildHeader(),
-          _buildBuscador(),
-          Expanded(
-            child: clientesFiltrados.isEmpty
-                ? _buildEmptyState()
-                : _buildClienteList(clientesFiltrados),
-          ),
-        ],
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Column(
+          children: [
+            _buildHeader(),
+            _buildBuscador(),
+            Expanded(
+              child: clientesFiltrados.isEmpty
+                  ? _buildEmptyState()
+                  : _buildClienteList(clientesFiltrados),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'nuevo_cliente',
@@ -989,9 +992,24 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                   // Botón imprimir
                   IconButton(
                     icon: const Icon(Icons.print_outlined, size: 20),
-                    onPressed: () {
+                    onPressed: () async {
                       final negocio = ref.read(negocioProvider);
-                      TicketHelper.imprimirPedido(negocio, pedido);
+                      try {
+                        await TicketHelper.previewPedido(
+                          context,
+                          negocio,
+                          pedido,
+                        );
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('No se pudo imprimir: $e'),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                        }
+                      }
                     },
                   ),
                 ],

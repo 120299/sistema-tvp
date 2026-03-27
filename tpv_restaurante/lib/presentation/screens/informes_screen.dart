@@ -1066,21 +1066,34 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                     const SizedBox(width: 8),
                     IconButton(
                       icon: const Icon(Icons.print_outlined, size: 18),
-                      onPressed: () {
+                      onPressed: () async {
                         final negocio = ref.read(negocioProvider);
-                        PrintService.imprimirTicketAutomatico(
-                          items: p.items,
-                          subtotal: p.total / (1 + negocio.ivaPorcentaje / 100),
-                          ivaPorcentaje: negocio.ivaPorcentaje,
-                          metodoPago: p.metodoPago ?? 'Efectivo',
-                          negocio: negocio,
-                          mesaNumero: p.mesaId,
-                          cajeroNombre: p.cajeroNombre,
-                          porcentajePropina: p.porcentajePropina,
-                          clienteNombre: p.clienteNombre,
-                          numeroTicket: p.numeroTicket,
-                          fechaVenta: p.horaApertura,
-                        );
+                        try {
+                          await PrintService.mostrarTicketPreview(
+                            context: context,
+                            items: p.items,
+                            subtotal:
+                                p.total / (1 + negocio.ivaPorcentaje / 100),
+                            ivaPorcentaje: negocio.ivaPorcentaje,
+                            metodoPago: p.metodoPago ?? 'Efectivo',
+                            negocio: negocio,
+                            mesaNumero: p.mesaId,
+                            cajeroNombre: p.cajeroNombre,
+                            porcentajePropina: p.porcentajePropina,
+                            clienteNombre: p.clienteNombre,
+                            numeroTicket: p.numeroTicket,
+                            fechaVenta: p.horaApertura,
+                          );
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('No se pudo imprimir: $e'),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                          }
+                        }
                       },
                       tooltip: 'Imprimir Ticket',
                     ),

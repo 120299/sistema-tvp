@@ -422,20 +422,31 @@ class _TicketPrintDialog extends StatefulWidget {
 
 class _TicketPrintDialogState extends State<_TicketPrintDialog> {
   void _abrirPrevisualizacionPdf() async {
-    await PrintService.previewTicket(
-      context: context,
-      items: widget.items,
-      subtotal: widget.subtotal,
-      ivaPorcentaje: widget.ivaPorcentaje,
-      metodoPago: widget.metodoPago,
-      negocio: widget.negocio,
-      mesaNumero: widget.mesaNumero,
-      porcentajePropina: widget.porcentajePropina,
-      numeroTicket: widget.fechaVenta != null
-          ? DateTime.now().millisecondsSinceEpoch % 10000
-          : null,
-      fechaVenta: widget.fechaVenta,
-    );
+    try {
+      await PrintService.previewTicket(
+        context: context,
+        items: widget.items,
+        subtotal: widget.subtotal,
+        ivaPorcentaje: widget.ivaPorcentaje,
+        metodoPago: widget.metodoPago,
+        negocio: widget.negocio,
+        mesaNumero: widget.mesaNumero,
+        porcentajePropina: widget.porcentajePropina,
+        numeroTicket: widget.fechaVenta != null
+            ? DateTime.now().millisecondsSinceEpoch % 10000
+            : null,
+        fechaVenta: widget.fechaVenta,
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No se pudo previsualizar: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -561,20 +572,25 @@ class _TicketPrintDialogState extends State<_TicketPrintDialog> {
                   Expanded(
                     child: _buildButton(
                       onPressed: () async {
-                        Navigator.pop(context);
-                        await PrintService.printTicket(
-                          items: widget.items,
-                          subtotal: widget.subtotal,
-                          ivaPorcentaje: widget.ivaPorcentaje,
-                          metodoPago: widget.metodoPago,
-                          negocio: widget.negocio,
-                          mesaNumero: widget.mesaNumero,
-                          porcentajePropina: widget.porcentajePropina,
-                          numeroTicket: widget.fechaVenta != null
-                              ? DateTime.now().millisecondsSinceEpoch % 10000
-                              : null,
-                          fechaVenta: widget.fechaVenta,
-                        );
+                        try {
+                          await PrintService.previewTicket(
+                            context: context,
+                            items: widget.items,
+                            subtotal: widget.subtotal,
+                            ivaPorcentaje: widget.ivaPorcentaje,
+                            metodoPago: widget.metodoPago,
+                            negocio: widget.negocio,
+                            mesaNumero: widget.mesaNumero,
+                            porcentajePropina: widget.porcentajePropina,
+                            numeroTicket: widget.fechaVenta != null
+                                ? DateTime.now().millisecondsSinceEpoch % 10000
+                                : null,
+                            fechaVenta: widget.fechaVenta,
+                          );
+                        } catch (e) {
+                          debugPrint('Error al previsualizar ticket: $e');
+                        }
+                        if (context.mounted) Navigator.pop(context);
                         widget.onImprimir?.call();
                       },
                       icon: Icons.print,

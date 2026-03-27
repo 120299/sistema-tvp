@@ -29,15 +29,18 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
     final cajeros = ref.watch(cajerosProvider);
 
     return Scaffold(
-      body: Column(
-        children: [
-          _buildHeader(cajeros),
-          Expanded(
-            child: cajeros.isEmpty
-                ? _buildEmptyState()
-                : _buildUsuarioList(cajeros),
-          ),
-        ],
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Column(
+          children: [
+            _buildHeader(cajeros),
+            Expanded(
+              child: cajeros.isEmpty
+                  ? _buildEmptyState()
+                  : _buildUsuarioList(cajeros),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'nuevo_usuario',

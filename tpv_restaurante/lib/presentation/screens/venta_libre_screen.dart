@@ -72,43 +72,50 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     final productosAMostrar = productosFiltrados;
 
     return Scaffold(
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth > 800;
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth > 800;
 
-          if (isWide) {
-            return Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    children: [
-                      _buildHeader(mesasDisponibles, caja: caja, isWide: true),
-                      _buildCategorias(
-                        categoriaSeleccionada,
-                        categoriasOrdenadas,
-                      ),
-                      _buildBuscador(),
-                      Expanded(child: _buildGridProductos(productosAMostrar)),
-                    ],
+            if (isWide) {
+              return Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      children: [
+                        _buildHeader(
+                          mesasDisponibles,
+                          caja: caja,
+                          isWide: true,
+                        ),
+                        _buildCategorias(
+                          categoriaSeleccionada,
+                          categoriasOrdenadas,
+                        ),
+                        _buildBuscador(),
+                        Expanded(child: _buildGridProductos(productosAMostrar)),
+                      ],
+                    ),
                   ),
-                ),
-                Container(width: 1, color: AppColors.lightDivider),
-                SizedBox(width: 380, child: _buildPanelCarrito()),
-              ],
-            );
-          } else {
-            return Column(
-              children: [
-                _buildHeader(mesasDisponibles, caja: caja, isWide: false),
-                _buildCategorias(categoriaSeleccionada, categoriasOrdenadas),
-                _buildBuscador(),
-                Expanded(child: _buildGridProductos(productosAMostrar)),
-                _buildCarritoBarra(),
-              ],
-            );
-          }
-        },
+                  Container(width: 1, color: AppColors.lightDivider),
+                  SizedBox(width: 380, child: _buildPanelCarrito()),
+                ],
+              );
+            } else {
+              return Column(
+                children: [
+                  _buildHeader(mesasDisponibles, caja: caja, isWide: false),
+                  _buildCategorias(categoriaSeleccionada, categoriasOrdenadas),
+                  _buildBuscador(),
+                  Expanded(child: _buildGridProductos(productosAMostrar)),
+                  _buildCarritoBarra(),
+                ],
+              );
+            }
+          },
+        ),
       ),
     );
   }
@@ -1648,19 +1655,31 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 .map((e) => '${e.key}: ${e.value.toStringAsFixed(2)}€')
                 .join(' + ');
 
-            await PrintService.imprimirTicketAutomatico(
-              items: List.from(_carrito),
-              subtotal: subtotal,
-              ivaPorcentaje: negocio.ivaPorcentaje,
-              metodoPago: metodoTexto,
-              negocio: negocio,
-              mesaNumero: mesaNumero,
-              cajeroNombre: caja?.cajeroNombre,
-              clienteNombre: cliente?.nombre,
-              clienteNif: cliente?.nif,
-              numeroTicket: numeroTicket,
-              fechaVenta: pedido.horaApertura,
-            );
+            try {
+              await PrintService.mostrarTicketPreview(
+                context: context,
+                items: List.from(_carrito),
+                subtotal: subtotal,
+                ivaPorcentaje: negocio.ivaPorcentaje,
+                metodoPago: metodoTexto,
+                negocio: negocio,
+                mesaNumero: mesaNumero,
+                cajeroNombre: caja?.cajeroNombre,
+                clienteNombre: cliente?.nombre,
+                clienteNif: cliente?.nif,
+                numeroTicket: numeroTicket,
+                fechaVenta: pedido.horaApertura,
+              );
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('No se pudo imprimir: $e'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+              }
+            }
 
             if (mounted) {
               setState(() {

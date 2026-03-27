@@ -34,25 +34,28 @@ class AppShell extends ConsumerWidget {
             constraints.maxWidth > 600 && constraints.maxWidth <= 900;
 
         return Scaffold(
-          body: Row(
-            children: [
-              _buildMenuVertical(
-                context,
-                ref,
-                indiceActual,
-                cajeroActual,
-                isWide: isWide,
-                isMedium: isMedium,
-              ),
-              Expanded(
-                child: Column(
-                  children: [
-                    _buildHeader(context, ref, negocio, caja, cajeroActual),
-                    Expanded(child: _buildContenido(indiceActual)),
-                  ],
+          body: GestureDetector(
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: Row(
+              children: [
+                _buildMenuVertical(
+                  context,
+                  ref,
+                  indiceActual,
+                  cajeroActual,
+                  isWide: isWide,
+                  isMedium: isMedium,
                 ),
-              ),
-            ],
+                Expanded(
+                  child: Column(
+                    children: [
+                      _buildHeader(context, ref, negocio, caja, cajeroActual),
+                      Expanded(child: _buildContenido(indiceActual)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },

@@ -84,14 +84,17 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
     final cajeroActual = ref.watch(cajeroActualProvider);
     final esAdmin = cajeroActual?.isAdministrador ?? false;
 
-    return Container(
-      color: AppColors.lightBackground,
-      child: SafeArea(
-        child: _mostrarHistorial
-            ? _buildHistorial(esAdmin, cajeroActual)
-            : (caja == null || caja.estado == EstadoCaja.cerrada
-                  ? _buildCajaCerrada(cajeroActual)
-                  : _buildCajaAbierta(caja, esAdmin)),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Container(
+        color: AppColors.lightBackground,
+        child: SafeArea(
+          child: _mostrarHistorial
+              ? _buildHistorial(esAdmin, cajeroActual)
+              : (caja == null || caja.estado == EstadoCaja.cerrada
+                    ? _buildCajaCerrada(cajeroActual)
+                    : _buildCajaAbierta(caja, esAdmin)),
+        ),
       ),
     );
   }
@@ -1119,16 +1122,31 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                                   TextButton.icon(
                                     onPressed: () async {
                                       final negocio = ref.read(negocioProvider);
-                                      final pdf =
-                                          await PrintService.buildCierreCajaPdf(
-                                            negocio,
-                                            cajaHist,
+                                      try {
+                                        final pdf =
+                                            await PrintService.buildCierreCajaPdf(
+                                              negocio,
+                                              cajaHist,
+                                            );
+                                        if (context.mounted) {
+                                          await PrintService.previewCierreCaja(
+                                            context: context,
+                                            pdf: pdf,
                                           );
-                                      if (context.mounted) {
-                                        await PrintService.previewCierreCaja(
-                                          context: context,
-                                          pdf: pdf,
-                                        );
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'No se pudo previsualizar: $e',
+                                              ),
+                                              backgroundColor: AppColors.error,
+                                            ),
+                                          );
+                                        }
                                       }
                                     },
                                     icon: const Icon(Icons.print, size: 18),
@@ -1255,7 +1273,6 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          autofocus: true,
           decoration: const InputDecoration(
             labelText: 'Cantidad',
             prefixText: '€ ',
@@ -1296,7 +1313,6 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
             TextField(
               controller: controller,
               keyboardType: TextInputType.number,
-              autofocus: true,
               decoration: const InputDecoration(
                 labelText: 'Cantidad',
                 prefixText: '€ ',
@@ -1365,10 +1381,27 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
           TextButton.icon(
             onPressed: () async {
               final negocio = ref.read(negocioProvider);
-              await PrintService.imprimirCierreCajaAutomatico(
-                negocio: negocio,
-                caja: caja,
-              );
+              try {
+                final pdf = await PrintService.buildCierreCajaPdf(
+                  negocio,
+                  caja,
+                );
+                if (context.mounted) {
+                  await PrintService.previewCierreCaja(
+                    context: context,
+                    pdf: pdf,
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('No se pudo imprimir: $e'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
+              }
               if (context.mounted) Navigator.pop(ctx, true);
             },
             icon: const Icon(Icons.print, size: 18),
@@ -1377,7 +1410,27 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
           TextButton.icon(
             onPressed: () async {
               final negocio = ref.read(negocioProvider);
-              await TicketHelper.imprimirCierreCaja(negocio, caja);
+              try {
+                final pdf = await PrintService.buildCierreCajaPdf(
+                  negocio,
+                  caja,
+                );
+                if (context.mounted) {
+                  await PrintService.previewCierreCaja(
+                    context: context,
+                    pdf: pdf,
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('No se pudo previsualizar: $e'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
+              }
               if (context.mounted) Navigator.pop(ctx, true);
             },
             icon: const Icon(Icons.print_disabled, size: 18),
