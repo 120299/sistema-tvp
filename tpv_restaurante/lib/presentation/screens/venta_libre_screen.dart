@@ -244,50 +244,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              IconButton(
-                onPressed: () async {
-                  final caja = ref.read(cajaProvider);
-                  if (caja != null && caja.estado == EstadoCaja.abierta) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('La caja ya está abierta'),
-                        backgroundColor: AppColors.warning,
-                      ),
-                    );
-                    return;
-                  }
-                  final confirmar = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Abrir Caja'),
-                      content: const Text('¿Abrir la caja?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, false),
-                          child: const Text('Cancelar'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, true),
-                          child: const Text('Abrir'),
-                        ),
-                      ],
-                    ),
-                  );
-                  if (confirmar == true) {
-                    await ref
-                        .read(cajaProvider.notifier)
-                        .abrirCaja(fondoInicial: 0);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Caja abierta'),
-                        backgroundColor: AppColors.success,
-                      ),
-                    );
-                  }
-                },
-                icon: const Icon(Icons.lock_open, color: Colors.white),
-                tooltip: 'Abrir Caja',
-              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -1072,7 +1028,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     },
                     icon: const Icon(Icons.lock_open, size: 20),
                     label: const Text(
-                      'Abrir Caja',
+                      'ABRIR CAJA',
                       style: TextStyle(fontSize: 14),
                     ),
                     style: OutlinedButton.styleFrom(

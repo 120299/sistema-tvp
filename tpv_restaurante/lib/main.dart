@@ -5,6 +5,7 @@ import 'core/theme/app_theme.dart';
 import 'data/services/database_service.dart';
 import 'presentation/screens/app_shell.dart';
 import 'presentation/screens/login_screen.dart';
+import 'presentation/screens/setup_screen.dart';
 import 'presentation/providers/providers.dart';
 import 'init/desktop_init.dart' if (dart.library.html) 'init/web_init.dart';
 
@@ -87,6 +88,12 @@ class _AppWithAuthState extends ConsumerState<_AppWithAuth> {
   @override
   Widget build(BuildContext context) {
     final isLoggedIn = ref.watch(isLoggedInProvider);
+    final negocio = ref.watch(negocioProvider);
+    final necesitaSetup = !negocio.estaConfigurado;
+
+    if (necesitaSetup) {
+      return const SetupScreen();
+    }
 
     if (!isLoggedIn) {
       return LoginScreen(onLoginSuccess: _onLoginSuccess);

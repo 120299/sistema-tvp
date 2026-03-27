@@ -178,10 +178,12 @@ class NegocioNotifier extends StateNotifier<DatosNegocio> {
   final DatabaseService _db;
 
   NegocioNotifier(this._db)
-    : super(_db.negocioBox.getAt(0) ?? DatosNegocio.ejemplo);
+    : super(_db.negocioBox.get('negocio_1') ?? const DatosNegocio());
+
+  bool get estaConfigurado => state.estaConfigurado;
 
   Future<void> actualizar(DatosNegocio datos) async {
-    await _db.negocioBox.putAt(0, datos);
+    await _db.negocioBox.put('negocio_1', datos);
     state = datos;
   }
 

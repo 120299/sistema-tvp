@@ -16,13 +16,14 @@ class DatosNegocio {
   final String? actividad;
   final int contadorTicketsDiario;
   final DateTime? ultimaFechaContador;
+  final bool configuracionCompletada;
 
   const DatosNegocio({
-    required this.nombre,
+    this.nombre = '',
     this.slogan,
-    required this.direccion,
-    required this.ciudad,
-    required this.telefono,
+    this.direccion = '',
+    this.ciudad = '',
+    this.telefono = '',
     this.email,
     this.cifNif,
     this.website,
@@ -35,7 +36,10 @@ class DatosNegocio {
     this.actividad,
     this.contadorTicketsDiario = 0,
     this.ultimaFechaContador,
+    this.configuracionCompletada = false,
   });
+
+  bool get estaConfigurado => configuracionCompletada;
 
   DatosNegocio copyWith({
     String? nombre,
@@ -55,6 +59,7 @@ class DatosNegocio {
     String? actividad,
     int? contadorTicketsDiario,
     DateTime? ultimaFechaContador,
+    bool? configuracionCompletada,
   }) {
     return DatosNegocio(
       nombre: nombre ?? this.nombre,
@@ -75,6 +80,8 @@ class DatosNegocio {
       contadorTicketsDiario:
           contadorTicketsDiario ?? this.contadorTicketsDiario,
       ultimaFechaContador: ultimaFechaContador ?? this.ultimaFechaContador,
+      configuracionCompletada:
+          configuracionCompletada ?? this.configuracionCompletada,
     );
   }
 
@@ -97,12 +104,13 @@ class DatosNegocio {
       'actividad': actividad,
       'contadorTicketsDiario': contadorTicketsDiario,
       'ultimaFechaContador': ultimaFechaContador?.toIso8601String(),
+      'configuracionCompletada': configuracionCompletada,
     };
   }
 
   factory DatosNegocio.fromJson(Map<String, dynamic> json) {
     return DatosNegocio(
-      nombre: json['nombre'] as String? ?? 'Mi Restaurante',
+      nombre: json['nombre'] as String? ?? '',
       slogan: json['slogan'] as String?,
       direccion: json['direccion'] as String? ?? '',
       ciudad: json['ciudad'] as String? ?? '',
@@ -121,20 +129,8 @@ class DatosNegocio {
       ultimaFechaContador: json['ultimaFechaContador'] != null
           ? DateTime.parse(json['ultimaFechaContador'] as String)
           : null,
+      configuracionCompletada:
+          json['configuracionCompletada'] as bool? ?? false,
     );
   }
-
-  static const DatosNegocio ejemplo = DatosNegocio(
-    nombre: 'Casa Paco',
-    slogan: 'Sabores de siempre',
-    direccion: 'Calle Mayor, 42',
-    ciudad: '28001 Madrid',
-    telefono: '+34 912 345 678',
-    email: 'info@casapaco.es',
-    cifNif: 'B-12345678',
-    website: 'www.casapaco.es',
-    ivaPorcentaje: 10.0,
-    razonSocial: 'Casa Paco, S.L.',
-    actividad: 'Restauración',
-  );
 }

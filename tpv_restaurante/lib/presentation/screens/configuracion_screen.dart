@@ -335,9 +335,11 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
     );
   }
 
-  void _guardar() {
+  Future<void> _guardar() async {
     if (_formKey.currentState!.validate()) {
       try {
+        final negocioActual = ref.read(negocioProvider);
+
         final negocio = DatosNegocio(
           nombre: _nombreController.text.trim(),
           razonSocial: _razonSocialController.text.isEmpty
@@ -357,22 +359,28 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
           actividad: _actividadController.text.isEmpty
               ? null
               : _actividadController.text.trim(),
+          configuracionCompletada: negocioActual.configuracionCompletada,
         );
-        ref.read(negocioProvider.notifier).actualizar(negocio);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Configuración guardada correctamente'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-        Navigator.pop(context);
+
+        await ref.read(negocioProvider.notifier).actualizar(negocio);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Configuración guardada correctamente'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al guardar configuración: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al guardar configuración: $e'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
       }
     }
   }

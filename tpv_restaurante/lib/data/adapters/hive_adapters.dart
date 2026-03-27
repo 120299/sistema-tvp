@@ -262,7 +262,7 @@ class DatosNegocioAdapter extends TypeAdapter<DatosNegocio> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return DatosNegocio(
-      nombre: fields[0] as String? ?? 'Mi Restaurante',
+      nombre: fields[0] as String? ?? '',
       slogan: fields[1] as String?,
       direccion: fields[2] as String? ?? '',
       ciudad: fields[3] as String? ?? '',
@@ -277,13 +277,14 @@ class DatosNegocioAdapter extends TypeAdapter<DatosNegocio> {
       numeroSerie: fields[12] as String?,
       numeroLicencia: fields[13] as String?,
       actividad: fields[14] as String?,
+      configuracionCompletada: fields[15] as bool? ?? false,
     );
   }
 
   @override
   void write(BinaryWriter writer, DatosNegocio obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(16)
       ..writeByte(0)
       ..write(obj.nombre)
       ..writeByte(1)
@@ -313,7 +314,9 @@ class DatosNegocioAdapter extends TypeAdapter<DatosNegocio> {
       ..writeByte(13)
       ..write(obj.numeroLicencia)
       ..writeByte(14)
-      ..write(obj.actividad);
+      ..write(obj.actividad)
+      ..writeByte(15)
+      ..write(obj.configuracionCompletada);
   }
 }
 

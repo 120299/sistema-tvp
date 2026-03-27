@@ -94,21 +94,28 @@ class DatabaseService {
     movimientoRepositorio = MovimientoRepositorio(movimientosBox);
 
     _initialized = true;
-
-    await _seedData();
   }
+
+  bool get isFirstRun => negocioBox.isEmpty;
 
   Future<Directory> _getDataDirectory() async {
     String basePath;
 
     if (kIsWeb) {
       basePath = (await getApplicationDocumentsDirectory()).path;
-    } else if (Platform.isWindows ||
-        Platform.isMacOS ||
-        Platform.isLinux ||
-        Platform.isIOS ||
-        Platform.isAndroid) {
-      basePath = Directory.current.path;
+    } else if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      final exePath = Platform.resolvedExecutable;
+      final exeDir = exePath.substring(
+        0,
+        exePath.lastIndexOf(Platform.pathSeparator),
+      );
+      final exeName = exePath.split(Platform.pathSeparator).last;
+
+      if (exeName.contains('tpv_restaurante')) {
+        basePath = exeDir;
+      } else {
+        basePath = Directory.current.path;
+      }
     } else {
       basePath = (await getApplicationDocumentsDirectory()).path;
     }
@@ -130,45 +137,6 @@ class DatabaseService {
     negocioBox.listenable().addListener(() => notifyChange('negocio'));
     cajaBox.listenable().addListener(() => notifyChange('caja'));
     movimientosBox.listenable().addListener(() => notifyChange('movimientos'));
-  }
-
-  Future<void> _seedData() async {
-    if (categoriasBox.isEmpty) {
-      for (final cat in CategoriaProducto.defaultCategories) {
-        await categoriasBox.add(cat);
-      }
-    }
-
-    if (productosBox.isEmpty) {
-      for (final prod in Producto.getEjemplos()) {
-        await productosBox.add(prod);
-      }
-    }
-
-    if (mesasBox.isEmpty) {
-      for (final mesa in _getMesasIniciales()) {
-        await mesasBox.add(mesa);
-      }
-    }
-
-    if (negocioBox.isEmpty) {
-      await negocioBox.add(DatosNegocio.ejemplo);
-    }
-  }
-
-  List<Mesa> _getMesasIniciales() {
-    return [
-      Mesa(id: 'mesa_1', numero: 1, capacidad: 4),
-      Mesa(id: 'mesa_2', numero: 2, capacidad: 4),
-      Mesa(id: 'mesa_3', numero: 3, capacidad: 6),
-      Mesa(id: 'mesa_4', numero: 4, capacidad: 2),
-      Mesa(id: 'mesa_5', numero: 5, capacidad: 4),
-      Mesa(id: 'mesa_6', numero: 6, capacidad: 8),
-      Mesa(id: 'mesa_7', numero: 7, capacidad: 2),
-      Mesa(id: 'mesa_8', numero: 8, capacidad: 4),
-      Mesa(id: 'mesa_9', numero: 9, capacidad: 6),
-      Mesa(id: 'mesa_10', numero: 10, capacidad: 4),
-    ];
   }
 
   Future<void> close() async {
@@ -217,18 +185,14 @@ class DatabaseService {
           contadorTicketsDiario: 0,
           ultimaFechaContador: null,
         ) ??
-        DatosNegocio(
-          nombre: 'Mi Restaurante',
-          direccion: '',
-          ciudad: '',
-          telefono: '',
-        );
+        const DatosNegocio();
 
-    // Volver a sembrar datos iniciales
-    await _seedData();
-
-    // Actualizar negocio con configuración fiscal preserved
-    await negocioBox.putAt(0, negocioDefault);
+    // Actualizar negocio con configuración fiscal preservada
+    if (negocioBox.isEmpty) {
+      await negocioBox.add(negocioDefault);
+    } else {
+      await negocioBox.putAt(0, negocioDefault);
+    }
 
     // Notify listeners about a global reset
     notifyChange('reset');
