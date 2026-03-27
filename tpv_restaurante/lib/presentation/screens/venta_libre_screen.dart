@@ -1612,6 +1612,10 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 .read(pedidosProvider.notifier)
                 .cerrar(pedidoId, metodoPrincipal, numeroTicket: numeroTicket);
 
+            final pedido = ref
+                .read(pedidosProvider)
+                .firstWhere((p) => p.id == pedidoId);
+
             await ref
                 .read(cajaProvider.notifier)
                 .registrarVenta(total, metodoPrincipal, pedidoId: pedidoId);
@@ -1650,6 +1654,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               clienteNombre: cliente?.nombre,
               clienteNif: cliente?.nif,
               numeroTicket: numeroTicket,
+              fechaVenta: pedido.horaApertura,
             );
 
             if (mounted) {

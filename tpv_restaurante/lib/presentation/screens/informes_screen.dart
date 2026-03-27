@@ -95,6 +95,13 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
             return Column(
               children: [
                 _buildFiltros(context, cajeros, isAdmin, cajeroActual),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  child: _buildAccionesExport(pedidosFiltrados, totalVentas),
+                ),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(20),
@@ -1072,6 +1079,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                           porcentajePropina: p.porcentajePropina,
                           clienteNombre: p.clienteNombre,
                           numeroTicket: p.numeroTicket,
+                          fechaVenta: p.horaApertura,
                         );
                       },
                       tooltip: 'Imprimir Ticket',
@@ -1113,8 +1121,8 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         Expanded(
           child: OutlinedButton.icon(
             onPressed: () => _exportarPDF(pedidos, total),
-            icon: const Icon(Icons.print),
-            label: const Text('Imprimir'),
+            icon: const Icon(Icons.description),
+            label: const Text('Exportar TXT'),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
@@ -1187,6 +1195,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
 
   void _exportarCSV(List<Pedido> pedidos, double total) async {
     try {
+      final cajeros = ref.read(cajerosProvider);
       final buffer = StringBuffer();
       buffer.writeln('Fecha,Hora,Productos,Total,Método,Cajero');
       for (final p in pedidos) {
@@ -1206,9 +1215,22 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
       buffer.writeln('Total,,,${total.toStringAsFixed(2)}');
 
       final directory = await getTemporaryDirectory();
-      final file = File(
-        '${directory.path}/informe_${DateFormat('yyyyMMdd').format(DateTime.now())}.csv',
-      );
+
+      String nombreArchivo =
+          'informe_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}';
+      if (_fechaInicio != null && _fechaFin != null) {
+        nombreArchivo +=
+            '_desde_${DateFormat('yyyyMMdd').format(_fechaInicio!)}_hasta_${DateFormat('yyyyMMdd').format(_fechaFin!)}';
+      }
+      if (_filtroCajero != null) {
+        final cajero = cajeros.firstWhere(
+          (c) => c.id == _filtroCajero,
+          orElse: () => cajeros.first,
+        );
+        nombreArchivo += '_${cajero.nombre.replaceAll(' ', '_')}';
+      }
+
+      final file = File('${directory.path}/$nombreArchivo.csv');
       await file.writeAsString(buffer.toString());
 
       await Share.shareXFiles([XFile(file.path)], text: 'Informe de ventas');
@@ -1224,6 +1246,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
   void _exportarPDF(List<Pedido> pedidos, double total) async {
     try {
       final negocio = ref.read(negocioProvider);
+      final cajeros = ref.read(cajerosProvider);
       final buffer = StringBuffer();
       buffer.writeln('=================================');
       buffer.writeln('  ${negocio.nombre}');
@@ -1247,9 +1270,22 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
       }
 
       final directory = await getTemporaryDirectory();
-      final file = File(
-        '${directory.path}/informe_${DateFormat('yyyyMMdd').format(DateTime.now())}.txt',
-      );
+
+      String nombreArchivo =
+          'informe_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}';
+      if (_fechaInicio != null && _fechaFin != null) {
+        nombreArchivo +=
+            '_desde_${DateFormat('yyyyMMdd').format(_fechaInicio!)}_hasta_${DateFormat('yyyyMMdd').format(_fechaFin!)}';
+      }
+      if (_filtroCajero != null) {
+        final cajero = cajeros.firstWhere(
+          (c) => c.id == _filtroCajero,
+          orElse: () => cajeros.first,
+        );
+        nombreArchivo += '_${cajero.nombre.replaceAll(' ', '_')}';
+      }
+
+      final file = File('${directory.path}/$nombreArchivo.txt');
       await file.writeAsString(buffer.toString());
 
       await Share.shareXFiles([XFile(file.path)], text: 'Informe de ventas');

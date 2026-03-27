@@ -46,6 +46,7 @@ class PrintService {
     String? clienteNombre,
     String? clienteNif,
     int? numeroTicket,
+    DateTime? fechaVenta,
   }) async {
     try {
       final pdf = await _buildTicketPdf(
@@ -60,6 +61,7 @@ class PrintService {
         clienteNombre: clienteNombre,
         clienteNif: clienteNif,
         numeroTicket: numeroTicket,
+        fechaVenta: fechaVenta,
       );
 
       // Intentar impresión directa con impresora por defecto
@@ -99,6 +101,7 @@ class PrintService {
     String? clienteNombre,
     String? clienteNif,
     int? numeroTicket,
+    DateTime? fechaVenta,
   }) async {
     try {
       final pdf = await _buildTicketPdf(
@@ -113,6 +116,7 @@ class PrintService {
         clienteNombre: clienteNombre,
         clienteNif: clienteNif,
         numeroTicket: numeroTicket,
+        fechaVenta: fechaVenta,
       );
       await Printing.layoutPdf(
         onLayout: (PdfPageFormat format) async => pdf.save(),
@@ -134,6 +138,7 @@ class PrintService {
     String? clienteNombre,
     String? clienteNif,
     int? numeroTicket,
+    DateTime? fechaVenta,
   }) async {
     try {
       final pdf = await _buildTicketPdf(
@@ -148,6 +153,7 @@ class PrintService {
         clienteNombre: clienteNombre,
         clienteNif: clienteNif,
         numeroTicket: numeroTicket,
+        fechaVenta: fechaVenta,
       );
 
       // Intentar impresión directa con impresora por defecto
@@ -187,8 +193,10 @@ class PrintService {
     String? clienteNombre,
     String? clienteNif,
     int? numeroTicket,
+    DateTime? fechaVenta,
   }) async {
     final pdf = pw.Document();
+    final fechaActual = fechaVenta ?? DateTime.now();
     final baseImponible = subtotal / (1 + ivaPorcentaje / 100);
     final importeIva = subtotal - baseImponible;
     final totalConIva = subtotal;
@@ -209,7 +217,7 @@ class PrintService {
             children: [
               _buildHeader(negocio),
               pw.SizedBox(height: 5),
-              _buildFechaHora(numeroTicket),
+              _buildFechaHora(numeroTicket, fechaVenta),
               if (mesaNumero != null)
                 pw.Text(
                   'MESA: $mesaNumero',
@@ -818,8 +826,8 @@ class PrintService {
     return '${d.year}${d.month.toString().padLeft(2, '0')}${d.day.toString().padLeft(2, '0')}';
   }
 
-  static pw.Widget _buildFechaHora([int? numeroTicket]) {
-    final now = DateTime.now();
+  static pw.Widget _buildFechaHora([int? numeroTicket, DateTime? fechaVenta]) {
+    final now = fechaVenta ?? DateTime.now();
     String numero;
     if (numeroTicket != null) {
       numero =

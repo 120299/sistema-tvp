@@ -156,16 +156,6 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Imprimir logo en tickets'),
-                  subtitle: const Text(
-                    'Incluye el logo del negocio en los tickets',
-                  ),
-                  value: _imprimeLogo,
-                  onChanged: (value) => setState(() => _imprimeLogo = value),
-                ),
               ]),
               const SizedBox(height: 24),
               _buildSeccion('Configuración de IVA (España)', [

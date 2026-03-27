@@ -11,6 +11,7 @@ class TicketWidget extends StatelessWidget {
   final String metodoPago;
   final DatosNegocio negocio;
   final String? mesaNumero;
+  final DateTime? fechaVenta;
 
   const TicketWidget({
     super.key,
@@ -21,6 +22,7 @@ class TicketWidget extends StatelessWidget {
     required this.metodoPago,
     required this.negocio,
     this.mesaNumero,
+    this.fechaVenta,
   });
 
   String generateTicketHtml() {
@@ -339,6 +341,7 @@ class TicketPrintHelper {
     required String metodoPago,
     required DatosNegocio negocio,
     String? mesaNumero,
+    DateTime? fechaVenta,
     VoidCallback? onImprimir,
     VoidCallback? onCerrar,
   }) {
@@ -355,6 +358,7 @@ class TicketPrintHelper {
           metodoPago: metodoPago,
           negocio: negocio,
           mesaNumero: mesaNumero,
+          fechaVenta: fechaVenta,
         );
 
         return _TicketPrintDialog(
@@ -366,6 +370,7 @@ class TicketPrintHelper {
           negocio: negocio,
           mesaNumero: mesaNumero,
           porcentajePropina: porcentajePropina,
+          fechaVenta: fechaVenta,
           onImprimir: onImprimir,
           onCerrar: onCerrar,
         );
@@ -393,6 +398,7 @@ class _TicketPrintDialog extends StatefulWidget {
   final DatosNegocio negocio;
   final String? mesaNumero;
   final double porcentajePropina;
+  final DateTime? fechaVenta;
   final VoidCallback? onImprimir;
   final VoidCallback? onCerrar;
 
@@ -405,6 +411,7 @@ class _TicketPrintDialog extends StatefulWidget {
     required this.negocio,
     this.mesaNumero,
     required this.porcentajePropina,
+    this.fechaVenta,
     this.onImprimir,
     this.onCerrar,
   });
@@ -424,6 +431,10 @@ class _TicketPrintDialogState extends State<_TicketPrintDialog> {
       negocio: widget.negocio,
       mesaNumero: widget.mesaNumero,
       porcentajePropina: widget.porcentajePropina,
+      numeroTicket: widget.fechaVenta != null
+          ? DateTime.now().millisecondsSinceEpoch % 10000
+          : null,
+      fechaVenta: widget.fechaVenta,
     );
   }
 
@@ -559,6 +570,10 @@ class _TicketPrintDialogState extends State<_TicketPrintDialog> {
                           negocio: widget.negocio,
                           mesaNumero: widget.mesaNumero,
                           porcentajePropina: widget.porcentajePropina,
+                          numeroTicket: widget.fechaVenta != null
+                              ? DateTime.now().millisecondsSinceEpoch % 10000
+                              : null,
+                          fechaVenta: widget.fechaVenta,
                         );
                         widget.onImprimir?.call();
                       },

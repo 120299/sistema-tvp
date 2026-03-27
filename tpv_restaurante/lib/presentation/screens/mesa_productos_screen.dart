@@ -457,6 +457,17 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
     return pedido?.items ?? [];
   }
 
+  Pedido? _getPedidoCompleto() {
+    final mesas = ref.read(mesasProvider);
+    final mesaActual = mesas.firstWhere(
+      (m) => m.id == widget.mesa.id,
+      orElse: () => widget.mesa,
+    );
+    if (mesaActual.pedidoActualId == null) return null;
+    final pedidos = ref.read(pedidosProvider);
+    return pedidos.where((p) => p.id == mesaActual.pedidoActualId).firstOrNull;
+  }
+
   Widget _buildPanelPedido() {
     final pedidoActual = _getPedidoActual();
 
@@ -901,6 +912,8 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
           await ref
               .read(pedidosProvider.notifier)
               .cerrar(pedidoId, metodoPago, numeroTicket: numeroTicket);
+
+          final pedidoCompleto = _getPedidoCompleto();
           await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
 
           await PrintService.imprimirTicketAutomatico(
@@ -914,6 +927,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
             negocio: negocio,
             mesaNumero: widget.mesa.numero.toString(),
             numeroTicket: numeroTicket,
+            fechaVenta: pedidoCompleto?.horaApertura,
           );
 
           if (mounted) {
