@@ -15,6 +15,11 @@ import 'clientes_screen.dart';
 import 'usuarios_screen.dart';
 import 'package:window_manager/window_manager.dart';
 
+void unfocusKeyboard() {
+  FocusManager.instance.primaryFocus?.unfocus();
+  FocusManager.instance.primaryFocus?.dispose();
+}
+
 class AppShell extends ConsumerWidget {
   final VoidCallback? onLogout;
 
@@ -50,8 +55,7 @@ class AppShell extends ConsumerWidget {
                     _buildHeader(context, ref, negocio, caja, cajeroActual),
                     Expanded(
                       child: GestureDetector(
-                        onTap: () =>
-                            FocusManager.instance.primaryFocus?.unfocus(),
+                        onTap: unfocusKeyboard,
                         behavior: HitTestBehavior.translucent,
                         child: _buildContenido(indiceActual),
                       ),
@@ -290,7 +294,7 @@ class AppShell extends ConsumerWidget {
             label: 'Venta',
             isSelected: indiceActual == 0,
             onTap: () {
-              FocusManager.instance.primaryFocus?.unfocus();
+              unfocusKeyboard();
               ref.read(indiceNavegacionProvider.notifier).state = 0;
             },
             mostrarTexto: mostrarTexto,
@@ -300,7 +304,7 @@ class AppShell extends ConsumerWidget {
             label: 'Productos',
             isSelected: indiceActual == 1,
             onTap: () {
-              FocusManager.instance.primaryFocus?.unfocus();
+              unfocusKeyboard();
               ref.read(indiceNavegacionProvider.notifier).state = 1;
             },
             mostrarTexto: mostrarTexto,
@@ -310,7 +314,7 @@ class AppShell extends ConsumerWidget {
             label: 'Mesas',
             isSelected: indiceActual == 2,
             onTap: () {
-              FocusManager.instance.primaryFocus?.unfocus();
+              unfocusKeyboard();
               ref.read(indiceNavegacionProvider.notifier).state = 2;
             },
             mostrarTexto: mostrarTexto,
@@ -320,7 +324,7 @@ class AppShell extends ConsumerWidget {
             label: 'Clientes',
             isSelected: indiceActual == 3,
             onTap: () {
-              FocusManager.instance.primaryFocus?.unfocus();
+              unfocusKeyboard();
               ref.read(indiceNavegacionProvider.notifier).state = 3;
             },
             mostrarTexto: mostrarTexto,
@@ -331,7 +335,7 @@ class AppShell extends ConsumerWidget {
             label: 'Caja',
             isSelected: indiceActual == 4,
             onTap: () {
-              FocusManager.instance.primaryFocus?.unfocus();
+              unfocusKeyboard();
               ref.read(indiceNavegacionProvider.notifier).state = 4;
             },
             mostrarTexto: mostrarTexto,
@@ -342,7 +346,7 @@ class AppShell extends ConsumerWidget {
               label: 'Usuarios',
               isSelected: indiceActual == 5,
               onTap: () {
-                FocusManager.instance.primaryFocus?.unfocus();
+                unfocusKeyboard();
                 ref.read(indiceNavegacionProvider.notifier).state = 5;
               },
               mostrarTexto: mostrarTexto,
@@ -352,7 +356,7 @@ class AppShell extends ConsumerWidget {
             label: 'Informes',
             isSelected: indiceActual == 6,
             onTap: () {
-              FocusManager.instance.primaryFocus?.unfocus();
+              unfocusKeyboard();
               ref.read(indiceNavegacionProvider.notifier).state = 6;
             },
             mostrarTexto: mostrarTexto,
@@ -362,7 +366,7 @@ class AppShell extends ConsumerWidget {
             label: 'Config',
             isSelected: indiceActual == 7,
             onTap: () {
-              FocusManager.instance.primaryFocus?.unfocus();
+              unfocusKeyboard();
               ref.read(indiceNavegacionProvider.notifier).state = 7;
             },
             mostrarTexto: mostrarTexto,

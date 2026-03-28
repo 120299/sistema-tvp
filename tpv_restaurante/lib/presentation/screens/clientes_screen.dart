@@ -6,6 +6,7 @@ import '../../core/utils/ticket_helper.dart';
 import '../../data/models/models.dart';
 import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
+import 'app_shell.dart';
 
 class ClientesScreen extends ConsumerStatefulWidget {
   const ClientesScreen({super.key});
@@ -523,7 +524,10 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                       ),
                     const Spacer(),
                     TextButton(
-                      onPressed: () => Navigator.pop(ctx),
+                      onPressed: () {
+                        unfocusKeyboard();
+                        Navigator.pop(ctx);
+                      },
                       child: const Text('Cancelar'),
                     ),
                     const SizedBox(width: 8),
@@ -584,6 +588,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                               .read(clientesProvider.notifier)
                               .agregar(nuevoCliente);
                         }
+                        unfocusKeyboard();
                         Navigator.pop(ctx);
                       },
                       child: Text(esEdicion ? 'Guardar' : 'Añadir'),
