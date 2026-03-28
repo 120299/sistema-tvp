@@ -254,7 +254,7 @@ class PrintService {
     final totalConIva = subtotal;
     final baseImponible = totalConIva / (1 + ivaPorcentaje / 100);
     final importeIva = totalConIva - baseImponible;
-    final montoPropina = baseImponible * (porcentajePropina / 100);
+    final montoPropina = totalConIva * (porcentajePropina / 100);
     final totalFinal = totalConIva + montoPropina;
 
     pdf.addPage(
@@ -546,9 +546,14 @@ class PrintService {
                   style: const pw.TextStyle(fontSize: 9),
                 ),
               pw.Text(
-                'CAJERO: ${caja.cajeroNombre ?? "Sistema"}',
+                'ABRIÓ: ${caja.cajeroNombre ?? "Sistema"}',
                 style: const pw.TextStyle(fontSize: 9),
               ),
+              if (fechaCierre != null && caja.cajeroNombre != null)
+                pw.Text(
+                  'CERRÓ: ${caja.cajeroNombre}',
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
               pw.SizedBox(height: 10),
               // Fondo Inicial
               pw.Row(
@@ -1027,7 +1032,18 @@ class PrintService {
             pw.SizedBox(
               width: 45,
               child: pw.Text(
-                'IMP.',
+                'PRECIO',
+                style: pw.TextStyle(
+                  fontSize: 8,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+                textAlign: pw.TextAlign.right,
+              ),
+            ),
+            pw.SizedBox(
+              width: 45,
+              child: pw.Text(
+                'TOTAL',
                 style: pw.TextStyle(
                   fontSize: 8,
                   fontWeight: pw.FontWeight.bold,
@@ -1068,8 +1084,7 @@ class PrintService {
                 pw.SizedBox(
                   width: 45,
                   child: pw.Text(
-                    // Calculamos el total de la línea (Cantidad * Precio)
-                    '${(item.cantidad * item.precioUnitario).toStringAsFixed(2)} EUR',
+                    '${(item.cantidad * item.precioUnitario).toStringAsFixed(2)} €',
                     style: pw.TextStyle(
                       fontSize: 9,
                       fontWeight: pw.FontWeight.bold,
@@ -1101,7 +1116,7 @@ class PrintService {
           children: [
             pw.Text('Base imponible: ', style: const pw.TextStyle(fontSize: 9)),
             pw.Text(
-              '${baseImponible.toStringAsFixed(2)} EUR',
+              '${baseImponible.toStringAsFixed(2)} €',
               style: const pw.TextStyle(fontSize: 9),
             ),
           ],
@@ -1110,11 +1125,11 @@ class PrintService {
           mainAxisAlignment: pw.MainAxisAlignment.end,
           children: [
             pw.Text(
-              'IVA ${ivaPorcentaje.toStringAsFixed(0)}% (incl.): ',
+              'IVA (${ivaPorcentaje.toStringAsFixed(0)}%):',
               style: const pw.TextStyle(fontSize: 9),
             ),
             pw.Text(
-              '${importeIva.toStringAsFixed(2)} EUR',
+              '${importeIva.toStringAsFixed(2)} €',
               style: const pw.TextStyle(fontSize: 9),
             ),
           ],
@@ -1125,7 +1140,7 @@ class PrintService {
             children: [
               pw.Text('Propina: ', style: const pw.TextStyle(fontSize: 9)),
               pw.Text(
-                '${montoPropina.toStringAsFixed(2)} EUR',
+                '${montoPropina.toStringAsFixed(2)} €',
                 style: const pw.TextStyle(fontSize: 9),
               ),
             ],
@@ -1145,7 +1160,7 @@ class PrintService {
                 ),
               ),
               pw.Text(
-                '${totalFinal.toStringAsFixed(2)} EUR',
+                '${totalFinal.toStringAsFixed(2)} €',
                 style: pw.TextStyle(
                   fontSize: 12,
                   fontWeight: pw.FontWeight.bold,

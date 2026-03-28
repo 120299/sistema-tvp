@@ -40,6 +40,7 @@ class TicketWidget extends StatelessWidget {
               '''
       <div class="row">
         <span>${item.cantidad}x ${item.productoNombre}</span>
+        <span>${item.precioUnitario.toStringAsFixed(2)} €</span>
         <span>${item.subtotal.toStringAsFixed(2)} €</span>
       </div>
     ''',
@@ -267,6 +268,14 @@ class TicketWidget extends StatelessWidget {
                     item.productoNombre,
                     style: TextStyle(fontSize: fontSize),
                     overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                SizedBox(
+                  width: isCompact ? 40 : 45,
+                  child: Text(
+                    '${item.precioUnitario.toStringAsFixed(2)} €',
+                    style: TextStyle(fontSize: fontSize),
+                    textAlign: TextAlign.right,
                   ),
                 ),
                 SizedBox(
