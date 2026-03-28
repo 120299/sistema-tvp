@@ -7,6 +7,7 @@ import '../../data/services/image_storage_service.dart';
 import '../../data/services/print_service.dart';
 import '../widgets/producto_dialog.dart';
 import '../widgets/seleccion_variante_dialog.dart';
+import '../widgets/categoria_dialog.dart';
 import '../providers/providers.dart';
 import 'cobro_sheet.dart';
 
@@ -498,156 +499,322 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     String? categoriaSeleccionada,
     List<CategoriaProducto> categorias,
   ) {
+    bool modoGestion = false;
+
     showDialog(
       context: context,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.85,
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.7,
-          ),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            final cats = ref.watch(categoriasProvider);
+            final sorted = List<CategoriaProducto>.from(cats)
+              ..sort((a, b) => a.orden.compareTo(b.orden));
+            final productos = ref.watch(productosProvider);
+
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.85,
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.7,
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.category, color: AppColors.primary),
+                        const SizedBox(width: 8),
+                        Text(
+                          modoGestion ? 'Gestionar Categorías' : 'Categorías',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        if (!modoGestion)
+                          TextButton.icon(
+                            onPressed: () =>
+                                setModalState(() => modoGestion = true),
+                            icon: const Icon(Icons.settings, size: 18),
+                            label: const Text('Gestionar'),
+                          )
+                        else
+                          TextButton.icon(
+                            onPressed: () =>
+                                setModalState(() => modoGestion = false),
+                            icon: const Icon(Icons.grid_view, size: 18),
+                            label: const Text('Seleccionar'),
+                          ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: modoGestion
+                          ? _buildGestionCategorias(
+                              ctx,
+                              sorted,
+                              productos,
+                              setModalState,
+                            )
+                          : _buildGridCategorias(
+                              ctx,
+                              categoriaSeleccionada,
+                              sorted,
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildGridCategorias(
+    BuildContext ctx,
+    String? categoriaSeleccionada,
+    List<CategoriaProducto> categorias,
+  ) {
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 6,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 1.3,
+      ),
+      itemCount: categorias.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          final isSelected = categoriaSeleccionada == null;
+          return GestureDetector(
+            onTap: () {
+              ref.read(categoriaSeleccionadaProvider.notifier).state = null;
+              Navigator.pop(ctx);
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.primary.withOpacity(0.15)
+                    : Colors.grey.shade50,
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : Colors.grey.shade300,
+                  width: isSelected ? 2 : 1,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.category, color: AppColors.primary),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Categorías',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Icon(
+                    Icons.apps,
+                    size: 28,
+                    color: isSelected ? AppColors.primary : Colors.grey,
                   ),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    icon: const Icon(Icons.close),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Todos',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: isSelected
+                          ? AppColors.primary
+                          : Colors.grey.shade700,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 6,
-                    mainAxisSpacing: 8,
-                    crossAxisSpacing: 8,
-                    childAspectRatio: 1.3,
+            ),
+          );
+        }
+        final cat = categorias[index - 1];
+        final isSelected = categoriaSeleccionada == cat.id;
+        return GestureDetector(
+          onTap: () {
+            ref.read(categoriaSeleccionadaProvider.notifier).state = cat.id;
+            Navigator.pop(ctx);
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? (cat.color ?? AppColors.primary).withOpacity(0.15)
+                  : Colors.grey.shade50,
+              border: Border.all(
+                color: isSelected
+                    ? (cat.color ?? AppColors.primary)
+                    : Colors.grey.shade300,
+                width: isSelected ? 2 : 1,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (cat.icono != null)
+                  Text(cat.icono!, style: const TextStyle(fontSize: 28))
+                else
+                  Icon(
+                    Icons.category,
+                    size: 28,
+                    color: isSelected
+                        ? (cat.color ?? AppColors.primary)
+                        : Colors.grey,
                   ),
-                  itemCount: categorias.length + 1,
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      final isSelected = categoriaSeleccionada == null;
-                      return GestureDetector(
-                        onTap: () {
-                          ref
-                                  .read(categoriaSeleccionadaProvider.notifier)
-                                  .state =
-                              null;
-                          Navigator.pop(ctx);
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? AppColors.primary.withOpacity(0.15)
-                                : Colors.grey.shade50,
-                            border: Border.all(
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : Colors.grey.shade300,
-                              width: isSelected ? 2 : 1,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.apps,
-                                size: 28,
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : Colors.grey,
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'Todos',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                  color: isSelected
-                                      ? AppColors.primary
-                                      : Colors.grey.shade700,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
+                const SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    cat.nombre,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: isSelected
+                          ? (cat.color ?? AppColors.primary)
+                          : Colors.grey.shade700,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
-                    final cat = categorias[index - 1];
-                    final isSelected = categoriaSeleccionada == cat.id;
-                    return GestureDetector(
-                      onTap: () {
-                        ref.read(categoriaSeleccionadaProvider.notifier).state =
-                            cat.id;
-                        Navigator.pop(ctx);
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? (cat.color ?? AppColors.primary).withOpacity(
-                                  0.15,
-                                )
-                              : Colors.grey.shade50,
-                          border: Border.all(
-                            color: isSelected
-                                ? (cat.color ?? AppColors.primary)
-                                : Colors.grey.shade300,
-                            width: isSelected ? 2 : 1,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildGestionCategorias(
+    BuildContext ctx,
+    List<CategoriaProducto> categorias,
+    List<Producto> productos,
+    StateSetter setModalState,
+  ) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Arrastra para reordenar',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: () => showDialog(
+                context: ctx,
+                builder: (context) => const CategoriaDialog(),
+              ),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Nueva'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: categorias.isEmpty
+              ? const Center(
+                  child: Text(
+                    'No hay categorías',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                )
+              : ReorderableListView.builder(
+                  buildDefaultDragHandles: false,
+                  onReorder: (oldIndex, newIndex) {
+                    ref
+                        .read(categoriasProvider.notifier)
+                        .reorderFromList(categorias, oldIndex, newIndex);
+                  },
+                  itemCount: categorias.length,
+                  itemBuilder: (context, index) {
+                    final cat = categorias[index];
+                    final count = productos
+                        .where((p) => p.categoriaId == cat.id)
+                        .length;
+                    return Card(
+                      key: ValueKey(cat.id),
+                      margin: const EdgeInsets.only(bottom: 6),
+                      child: ListTile(
+                        leading: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (cat.icono != null)
-                              Text(
-                                cat.icono!,
-                                style: const TextStyle(fontSize: 28),
-                              )
-                            else
-                              Icon(
-                                Icons.category,
-                                size: 28,
-                                color: isSelected
-                                    ? (cat.color ?? AppColors.primary)
-                                    : Colors.grey,
+                            ReorderableDragStartListener(
+                              index: index,
+                              child: Icon(
+                                Icons.drag_handle,
+                                color: Colors.grey.shade400,
                               ),
-                            const SizedBox(height: 6),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                              ),
-                              child: Text(
-                                cat.nombre,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                  color: isSelected
-                                      ? (cat.color ?? AppColors.primary)
-                                      : Colors.grey.shade700,
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: (cat.color ?? Colors.grey).withOpacity(
+                                  0.2,
                                 ),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  cat.icono ?? '🍽️',
+                                  style: const TextStyle(fontSize: 20),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        title: Text(
+                          cat.nombre,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                        subtitle: Text(
+                          '$count productos',
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: cat.color ?? Colors.grey,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.edit, size: 18),
+                              onPressed: () => showDialog(
+                                context: ctx,
+                                builder: (context) =>
+                                    CategoriaDialog(categoria: cat),
                               ),
                             ),
                           ],
@@ -656,11 +823,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     );
                   },
                 ),
-              ),
-            ],
-          ),
         ),
-      ),
+      ],
     );
   }
 

@@ -386,6 +386,41 @@ class CategoriasNotifier extends StateNotifier<List<CategoriaProducto>> {
     }
   }
 
+  Future<void> reorderFromList(
+    List<CategoriaProducto> sortedList,
+    int oldIndex,
+    int newIndex,
+  ) async {
+    final categorias = List<CategoriaProducto>.from(sortedList);
+    if (newIndex > oldIndex) newIndex--;
+    final item = categorias.removeAt(oldIndex);
+    categorias.insert(newIndex, item);
+
+    final updatedCategorias = <CategoriaProducto>[];
+    for (int i = 0; i < categorias.length; i++) {
+      updatedCategorias.add(categorias[i].copyWith(orden: i));
+    }
+
+    state = updatedCategorias;
+
+    for (final updated in updatedCategorias) {
+      final box = _db.categoriasBox;
+      dynamic keyEncontrado;
+
+      for (int j = 0; j < box.length; j++) {
+        final cat = box.getAt(j);
+        if (cat != null && cat.id == updated.id) {
+          keyEncontrado = box.keyAt(j);
+          break;
+        }
+      }
+
+      if (keyEncontrado != null) {
+        await box.put(keyEncontrado, updated);
+      }
+    }
+  }
+
   void actualizarLista() {
     _refresh();
   }
