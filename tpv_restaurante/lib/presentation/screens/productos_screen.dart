@@ -212,6 +212,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
               Expanded(
                 child: TextField(
                   controller: _busquedaController,
+                  autofocus: false,
                   decoration: InputDecoration(
                     hintText: 'Buscar producto...',
                     prefixIcon: const Icon(Icons.search, size: 20),

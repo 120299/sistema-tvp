@@ -123,6 +123,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
       color: Colors.white,
       child: TextField(
         controller: _buscadorController,
+        autofocus: false,
         decoration: InputDecoration(
           hintText: 'Buscar por nombre, teléfono o email...',
           prefixIcon: const Icon(Icons.search),

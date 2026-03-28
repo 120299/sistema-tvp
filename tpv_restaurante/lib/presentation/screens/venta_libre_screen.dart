@@ -721,6 +721,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           Expanded(
             child: TextField(
               controller: _buscadorController,
+              autofocus: false,
               decoration: InputDecoration(
                 hintText: 'Buscar producto...',
                 prefixIcon: const Icon(Icons.search),

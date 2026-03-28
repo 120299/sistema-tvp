@@ -48,7 +48,14 @@ class AppShell extends ConsumerWidget {
                 child: Column(
                   children: [
                     _buildHeader(context, ref, negocio, caja, cajeroActual),
-                    Expanded(child: _buildContenido(indiceActual)),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
+                        behavior: HitTestBehavior.translucent,
+                        child: _buildContenido(indiceActual),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -282,28 +289,40 @@ class AppShell extends ConsumerWidget {
             icon: Icons.point_of_sale,
             label: 'Venta',
             isSelected: indiceActual == 0,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 0,
+            onTap: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+              ref.read(indiceNavegacionProvider.notifier).state = 0;
+            },
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
             icon: Icons.inventory_2,
             label: 'Productos',
             isSelected: indiceActual == 1,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 1,
+            onTap: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+              ref.read(indiceNavegacionProvider.notifier).state = 1;
+            },
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
             icon: Icons.table_restaurant,
             label: 'Mesas',
             isSelected: indiceActual == 2,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 2,
+            onTap: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+              ref.read(indiceNavegacionProvider.notifier).state = 2;
+            },
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
             icon: Icons.people,
             label: 'Clientes',
             isSelected: indiceActual == 3,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 3,
+            onTap: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+              ref.read(indiceNavegacionProvider.notifier).state = 3;
+            },
             mostrarTexto: mostrarTexto,
           ),
           const Divider(color: Colors.white24, height: 24),
@@ -311,7 +330,10 @@ class AppShell extends ConsumerWidget {
             icon: Icons.account_balance_wallet,
             label: 'Caja',
             isSelected: indiceActual == 4,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 4,
+            onTap: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+              ref.read(indiceNavegacionProvider.notifier).state = 4;
+            },
             mostrarTexto: mostrarTexto,
           ),
           if (cajeroActual?.isAdministrador == true)
@@ -319,22 +341,30 @@ class AppShell extends ConsumerWidget {
               icon: Icons.people_alt,
               label: 'Usuarios',
               isSelected: indiceActual == 5,
-              onTap: () =>
-                  ref.read(indiceNavegacionProvider.notifier).state = 5,
+              onTap: () {
+                FocusManager.instance.primaryFocus?.unfocus();
+                ref.read(indiceNavegacionProvider.notifier).state = 5;
+              },
               mostrarTexto: mostrarTexto,
             ),
           _buildMenuVerticalItem(
             icon: Icons.analytics,
             label: 'Informes',
             isSelected: indiceActual == 6,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 6,
+            onTap: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+              ref.read(indiceNavegacionProvider.notifier).state = 6;
+            },
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
             icon: Icons.settings,
             label: 'Config',
             isSelected: indiceActual == 7,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 7,
+            onTap: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+              ref.read(indiceNavegacionProvider.notifier).state = 7;
+            },
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
