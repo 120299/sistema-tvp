@@ -7,7 +7,6 @@ import '../../data/services/image_storage_service.dart';
 import '../../data/services/print_service.dart';
 import '../widgets/producto_dialog.dart';
 import '../widgets/seleccion_variante_dialog.dart';
-import '../widgets/categoria_dialog.dart';
 import '../providers/providers.dart';
 import 'cobro_sheet.dart';
 
@@ -399,15 +398,17 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           ElevatedButton(
             onPressed: () async {
               if (_mesaAsignada != null) {
-                await ref.read(mesasProvider.notifier).liberar(_mesaAsignada!);
                 final mesa = ref
                     .read(mesasProvider)
-                    .firstWhere((m) => m.id == _mesaAsignada);
-                if (mesa.pedidoActualId != null) {
-                  await ref
-                      .read(pedidosProvider.notifier)
-                      .cancelar(mesa.pedidoActualId!);
+                    .where((m) => m.id == _mesaAsignada)
+                    .firstOrNull;
+                final pedidoId = mesa?.pedidoActualId;
+                await ref.read(mesasProvider.notifier).liberar(_mesaAsignada!);
+                if (pedidoId != null) {
+                  await ref.read(pedidosProvider.notifier).eliminar(pedidoId);
                 }
+                ref.read(pedidosProvider.notifier).actualizarLista();
+                ref.read(mesasProvider.notifier).actualizarLista();
               }
               setState(() {
                 _mesaAsignada = null;
@@ -499,8 +500,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     String? categoriaSeleccionada,
     List<CategoriaProducto> categorias,
   ) {
-    bool modoGestion = false;
-
     showDialog(
       context: context,
       builder: (ctx) {
@@ -509,7 +508,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             final cats = ref.watch(categoriasProvider);
             final sorted = List<CategoriaProducto>.from(cats)
               ..sort((a, b) => a.orden.compareTo(b.orden));
-            final productos = ref.watch(productosProvider);
 
             return Dialog(
               shape: RoundedRectangleBorder(
@@ -528,28 +526,14 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                       children: [
                         const Icon(Icons.category, color: AppColors.primary),
                         const SizedBox(width: 8),
-                        Text(
-                          modoGestion ? 'Gestionar Categorías' : 'Categorías',
-                          style: const TextStyle(
+                        const Text(
+                          'Categorías',
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const Spacer(),
-                        if (!modoGestion)
-                          TextButton.icon(
-                            onPressed: () =>
-                                setModalState(() => modoGestion = true),
-                            icon: const Icon(Icons.settings, size: 18),
-                            label: const Text('Gestionar'),
-                          )
-                        else
-                          TextButton.icon(
-                            onPressed: () =>
-                                setModalState(() => modoGestion = false),
-                            icon: const Icon(Icons.grid_view, size: 18),
-                            label: const Text('Seleccionar'),
-                          ),
                         IconButton(
                           onPressed: () => Navigator.pop(ctx),
                           icon: const Icon(Icons.close),
@@ -558,18 +542,11 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     ),
                     const SizedBox(height: 12),
                     Expanded(
-                      child: modoGestion
-                          ? _buildGestionCategorias(
-                              ctx,
-                              sorted,
-                              productos,
-                              setModalState,
-                            )
-                          : _buildGridCategorias(
-                              ctx,
-                              categoriaSeleccionada,
-                              sorted,
-                            ),
+                      child: _buildGridCategorias(
+                        ctx,
+                        categoriaSeleccionada,
+                        sorted,
+                      ),
                     ),
                   ],
                 ),
@@ -697,134 +674,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildGestionCategorias(
-    BuildContext ctx,
-    List<CategoriaProducto> categorias,
-    List<Producto> productos,
-    StateSetter setModalState,
-  ) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Arrastra para reordenar',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-              ),
-            ),
-            ElevatedButton.icon(
-              onPressed: () => showDialog(
-                context: ctx,
-                builder: (context) => const CategoriaDialog(),
-              ),
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Nueva'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: categorias.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No hay categorías',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                )
-              : ReorderableListView.builder(
-                  buildDefaultDragHandles: false,
-                  onReorder: (oldIndex, newIndex) {
-                    ref
-                        .read(categoriasProvider.notifier)
-                        .reorderFromList(categorias, oldIndex, newIndex);
-                  },
-                  itemCount: categorias.length,
-                  itemBuilder: (context, index) {
-                    final cat = categorias[index];
-                    final count = productos
-                        .where((p) => p.categoriaId == cat.id)
-                        .length;
-                    return Card(
-                      key: ValueKey(cat.id),
-                      margin: const EdgeInsets.only(bottom: 6),
-                      child: ListTile(
-                        leading: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ReorderableDragStartListener(
-                              index: index,
-                              child: Icon(
-                                Icons.drag_handle,
-                                color: Colors.grey.shade400,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: (cat.color ?? Colors.grey).withOpacity(
-                                  0.2,
-                                ),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  cat.icono ?? '🍽️',
-                                  style: const TextStyle(fontSize: 20),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        title: Text(
-                          cat.nombre,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                        subtitle: Text(
-                          '$count productos',
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: cat.color ?? Colors.grey,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.edit, size: 18),
-                              onPressed: () => showDialog(
-                                context: ctx,
-                                builder: (context) =>
-                                    CategoriaDialog(categoria: cat),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-        ),
-      ],
     );
   }
 
@@ -1451,16 +1300,32 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             ) ??
             false;
       },
-      onDismissed: (_) {
+      onDismissed: (_) async {
         if (_mesaAsignada != null) {
-          final mesaActual = ref
+          final pedidoId = ref
               .read(mesasProvider)
               .where((m) => m.id == _mesaAsignada)
-              .firstOrNull;
-          if (mesaActual?.pedidoActualId != null) {
-            ref
+              .firstOrNull
+              ?.pedidoActualId;
+          if (pedidoId != null) {
+            await ref
                 .read(pedidosProvider.notifier)
-                .eliminarItem(mesaActual!.pedidoActualId!, item.id);
+                .eliminarItem(pedidoId, item.id);
+
+            ref.read(pedidosProvider.notifier).actualizarLista();
+            final pedidoActualizado = ref
+                .read(pedidosProvider)
+                .where((p) => p.id == pedidoId)
+                .firstOrNull;
+            if (pedidoActualizado != null && pedidoActualizado.items.isEmpty) {
+              await ref
+                  .read(pedidosProvider.notifier)
+                  .eliminar(pedidoActualizado.id);
+              await ref.read(mesasProvider.notifier).liberar(_mesaAsignada!);
+              setState(() {
+                _mesaAsignada = null;
+              });
+            }
           }
         }
         onRemove();
@@ -1685,8 +1550,22 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
 
     final mesaActual = ref
         .read(mesasProvider)
-        .firstWhere((m) => m.id == _mesaAsignada);
+        .where((m) => m.id == _mesaAsignada)
+        .firstOrNull;
+    if (mesaActual == null) return;
+
     String pedidoId = mesaActual.pedidoActualId ?? '';
+
+    // Verificar si el pedido existe en Hive
+    if (pedidoId.isNotEmpty) {
+      final pedidoExiste = ref
+          .read(pedidosProvider)
+          .any((p) => p.id == pedidoId);
+      if (!pedidoExiste) {
+        await ref.read(mesasProvider.notifier).liberar(_mesaAsignada!);
+        pedidoId = '';
+      }
+    }
 
     if (pedidoId.isEmpty) {
       final cajeroActual = ref.read(cajeroActualProvider);
@@ -1720,8 +1599,23 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
 
     final mesaActual = ref
         .read(mesasProvider)
-        .firstWhere((m) => m.id == _mesaAsignada);
+        .where((m) => m.id == _mesaAsignada)
+        .firstOrNull;
+    if (mesaActual == null) return;
+
     String pedidoId = mesaActual.pedidoActualId ?? '';
+
+    // Verificar si el pedido existe en Hive
+    if (pedidoId.isNotEmpty) {
+      final pedidoExiste = ref
+          .read(pedidosProvider)
+          .any((p) => p.id == pedidoId);
+      if (!pedidoExiste) {
+        // Pedido huérfano: limpiar y crear nuevo
+        await ref.read(mesasProvider.notifier).liberar(_mesaAsignada!);
+        pedidoId = '';
+      }
+    }
 
     if (pedidoId.isEmpty) {
       final cajeroActual = ref.read(cajeroActualProvider);
@@ -1756,8 +1650,9 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
 
     final mesaActual = ref
         .read(mesasProvider)
-        .firstWhere((m) => m.id == _mesaAsignada);
-    if (mesaActual.pedidoActualId == null) return;
+        .where((m) => m.id == _mesaAsignada)
+        .firstOrNull;
+    if (mesaActual == null || mesaActual.pedidoActualId == null) return;
 
     final pedido = ref
         .read(pedidosProvider)
@@ -1789,14 +1684,30 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     });
 
     if (_mesaAsignada != null) {
-      final mesaActual = ref
+      final pedidoId = ref
           .read(mesasProvider)
           .where((m) => m.id == _mesaAsignada)
-          .firstOrNull;
-      if (mesaActual?.pedidoActualId != null) {
+          .firstOrNull
+          ?.pedidoActualId;
+      if (pedidoId != null) {
         await ref
             .read(pedidosProvider.notifier)
-            .eliminarItem(mesaActual!.pedidoActualId!, item.id);
+            .eliminarItem(pedidoId, item.id);
+
+        ref.read(pedidosProvider.notifier).actualizarLista();
+        final pedidoActualizado = ref
+            .read(pedidosProvider)
+            .where((p) => p.id == pedidoId)
+            .firstOrNull;
+        if (pedidoActualizado != null && pedidoActualizado.items.isEmpty) {
+          await ref
+              .read(pedidosProvider.notifier)
+              .eliminar(pedidoActualizado.id);
+          await ref.read(mesasProvider.notifier).liberar(_mesaAsignada!);
+          setState(() {
+            _mesaAsignada = null;
+          });
+        }
       }
     }
   }
@@ -1808,7 +1719,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     }
   }
 
-  void _actualizarCantidad(PedidoItem item, int nuevaCantidad) {
+  void _actualizarCantidad(PedidoItem item, int nuevaCantidad) async {
     final index = _carrito.indexWhere((i) => i.id == item.id);
     if (index == -1) return;
 
@@ -1821,7 +1732,24 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     });
 
     if (_mesaAsignada != null) {
-      _actualizarItemBD(item, nuevaCantidad);
+      await _actualizarItemBD(item, nuevaCantidad);
+
+      if (_carrito.isEmpty) {
+        ref.read(pedidosProvider.notifier).actualizarLista();
+        ref.read(mesasProvider.notifier).actualizarLista();
+        final pedidoId = ref
+            .read(mesasProvider)
+            .where((m) => m.id == _mesaAsignada)
+            .firstOrNull
+            ?.pedidoActualId;
+        if (pedidoId != null) {
+          await ref.read(pedidosProvider.notifier).eliminar(pedidoId);
+          await ref.read(mesasProvider.notifier).liberar(_mesaAsignada!);
+          setState(() {
+            _mesaAsignada = null;
+          });
+        }
+      }
     }
   }
 
@@ -1885,12 +1813,24 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           .where((p) => p.id == mesa.pedidoActualId)
           .firstOrNull;
 
+      // Si el pedido no existe en Hive o está cerrado, limpiar la mesa
+      if (pedido == null || pedido.estado == EstadoPedido.cerrado) {
+        await ref.read(mesasProvider.notifier).liberar(mesaId);
+        if (pedido != null) {
+          await ref.read(pedidosProvider.notifier).eliminar(pedido.id);
+        }
+        ref.read(pedidosProvider.notifier).actualizarLista();
+        ref.read(mesasProvider.notifier).actualizarLista();
+        if (mounted) {
+          setState(() => _carrito.clear());
+        }
+        return;
+      }
+
       if (mounted) {
         setState(() {
           _carrito.clear();
-          if (pedido != null && pedido.estado != EstadoPedido.cerrado) {
-            _carrito.addAll(pedido.items);
-          }
+          _carrito.addAll(pedido.items);
         });
       }
     } catch (e) {
@@ -1988,7 +1928,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
 
             final pedido = ref
                 .read(pedidosProvider)
-                .firstWhere((p) => p.id == pedidoId);
+                .where((p) => p.id == pedidoId)
+                .firstOrNull;
 
             await ref
                 .read(cajaProvider.notifier)
@@ -2030,7 +1971,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 clienteNombre: cliente?.nombre,
                 clienteNif: cliente?.nif,
                 numeroTicket: numeroTicket,
-                fechaVenta: pedido.horaApertura,
+                fechaVenta: pedido?.horaApertura,
               );
             } catch (e) {
               if (mounted) {

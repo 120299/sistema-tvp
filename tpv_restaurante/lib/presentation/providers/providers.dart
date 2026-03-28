@@ -802,10 +802,15 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
   }
 
   Future<void> eliminar(String pedidoId) async {
-    final pedidoIndex = state.indexWhere((p) => p.id == pedidoId);
-    if (pedidoIndex < 0) return;
-    await _db.pedidosBox.deleteAt(pedidoIndex);
-    _refresh();
+    final box = _db.pedidosBox;
+    for (int i = 0; i < box.length; i++) {
+      final pedido = box.getAt(i);
+      if (pedido != null && pedido.id == pedidoId) {
+        await box.deleteAt(i);
+        _refresh();
+        return;
+      }
+    }
   }
 
   Future<void> actualizar(Pedido pedido) async {
