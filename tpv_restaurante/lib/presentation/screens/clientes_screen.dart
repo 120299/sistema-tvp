@@ -45,19 +45,16 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
               .toList();
 
     return Scaffold(
-      body: GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildBuscador(),
-            Expanded(
-              child: clientesFiltrados.isEmpty
-                  ? _buildEmptyState()
-                  : _buildClienteList(clientesFiltrados),
-            ),
-          ],
-        ),
+      body: Column(
+        children: [
+          _buildHeader(),
+          _buildBuscador(),
+          Expanded(
+            child: clientesFiltrados.isEmpty
+                ? _buildEmptyState()
+                : _buildClienteList(clientesFiltrados),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'nuevo_cliente',
