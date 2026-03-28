@@ -1084,7 +1084,7 @@ class PrintService {
                 pw.SizedBox(
                   width: 45,
                   child: pw.Text(
-                    '${(item.cantidad * item.precioUnitario).toStringAsFixed(2)} €',
+                    '${(item.cantidad * item.precioUnitario).toStringAsFixed(2)} EUR',
                     style: pw.TextStyle(
                       fontSize: 9,
                       fontWeight: pw.FontWeight.bold,
@@ -1116,7 +1116,7 @@ class PrintService {
           children: [
             pw.Text('Base imponible: ', style: const pw.TextStyle(fontSize: 9)),
             pw.Text(
-              '${baseImponible.toStringAsFixed(2)} €',
+              '${baseImponible.toStringAsFixed(2)} EUR',
               style: const pw.TextStyle(fontSize: 9),
             ),
           ],
@@ -1129,7 +1129,7 @@ class PrintService {
               style: const pw.TextStyle(fontSize: 9),
             ),
             pw.Text(
-              '${importeIva.toStringAsFixed(2)} €',
+              '${importeIva.toStringAsFixed(2)} EUR',
               style: const pw.TextStyle(fontSize: 9),
             ),
           ],
@@ -1140,7 +1140,7 @@ class PrintService {
             children: [
               pw.Text('Propina: ', style: const pw.TextStyle(fontSize: 9)),
               pw.Text(
-                '${montoPropina.toStringAsFixed(2)} €',
+                '${montoPropina.toStringAsFixed(2)} EUR',
                 style: const pw.TextStyle(fontSize: 9),
               ),
             ],
@@ -1160,7 +1160,7 @@ class PrintService {
                 ),
               ),
               pw.Text(
-                '${totalFinal.toStringAsFixed(2)} €',
+                '${totalFinal.toStringAsFixed(2)} EUR',
                 style: pw.TextStyle(
                   fontSize: 12,
                   fontWeight: pw.FontWeight.bold,

@@ -40,8 +40,8 @@ class TicketWidget extends StatelessWidget {
               '''
       <div class="row">
         <span>${item.cantidad}x ${item.productoNombre}</span>
-        <span>${item.precioUnitario.toStringAsFixed(2)} €</span>
-        <span>${item.subtotal.toStringAsFixed(2)} €</span>
+        <span>${item.precioUnitario.toStringAsFixed(2)} EUR</span>
+        <span>${item.subtotal.toStringAsFixed(2)} EUR</span>
       </div>
     ''',
         )
@@ -66,22 +66,22 @@ class TicketWidget extends StatelessWidget {
       <div class="divider"></div>
       <div class="row">
         <span>Base imponible:</span>
-        <span>${baseImponible.toStringAsFixed(2)} €</span>
+        <span>${baseImponible.toStringAsFixed(2)} EUR</span>
       </div>
       <div class="row">
         <span>IVA (${ivaPorcentaje.toStringAsFixed(0)}%):</span>
-        <span>${importeIva.toStringAsFixed(2)} €</span>
+        <span>${importeIva.toStringAsFixed(2)} EUR</span>
       </div>
       ${porcentajePropina > 0 ? '''
       <div class="row">
         <span>Propina (${porcentajePropina.toStringAsFixed(0)}%):</span>
-        <span>+${(total * porcentajePropina / 100).toStringAsFixed(2)} €</span>
+        <span>+${(total * porcentajePropina / 100).toStringAsFixed(2)} EUR</span>
       </div>
       ''' : ''}
       <div class="divider"></div>
       <div class="row total">
         <span>TOTAL:</span>
-        <span>${totalConPropina.toStringAsFixed(2)} €</span>
+        <span>${totalConPropina.toStringAsFixed(2)} EUR</span>
       </div>
       <div class="divider"></div>
       <div class="footer">
@@ -273,7 +273,7 @@ class TicketWidget extends StatelessWidget {
                 SizedBox(
                   width: isCompact ? 40 : 45,
                   child: Text(
-                    '${item.precioUnitario.toStringAsFixed(2)} €',
+                    '${item.precioUnitario.toStringAsFixed(2)} EUR',
                     style: TextStyle(fontSize: fontSize),
                     textAlign: TextAlign.right,
                   ),
@@ -281,7 +281,7 @@ class TicketWidget extends StatelessWidget {
                 SizedBox(
                   width: isCompact ? 45 : 50,
                   child: Text(
-                    '${item.subtotal.toStringAsFixed(2)} €',
+                    '${item.subtotal.toStringAsFixed(2)} EUR',
                     style: TextStyle(fontSize: fontSize),
                     textAlign: TextAlign.right,
                   ),
@@ -300,7 +300,7 @@ class TicketWidget extends StatelessWidget {
         if (porcentajePropina > 0)
           _buildRow(
             'Propina (${porcentajePropina.toStringAsFixed(0)}%):',
-            '+${(total * porcentajePropina / 100).toStringAsFixed(2)} €',
+            '+${(total * porcentajePropina / 100).toStringAsFixed(2)} EUR',
           ),
       ],
     );
@@ -316,7 +316,7 @@ class TicketWidget extends StatelessWidget {
           style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
         ),
         Text(
-          '${totalConPropina.toStringAsFixed(2)} €',
+          '${totalConPropina.toStringAsFixed(2)} EUR',
           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
         ),
       ],
