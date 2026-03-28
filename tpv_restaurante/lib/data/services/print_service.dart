@@ -251,9 +251,9 @@ class PrintService {
   }) async {
     final pdf = pw.Document();
     final fechaActual = fechaVenta ?? DateTime.now();
-    final baseImponible = subtotal;
-    final importeIva = baseImponible * (ivaPorcentaje / 100);
-    final totalConIva = baseImponible + importeIva;
+    final totalConIva = subtotal;
+    final baseImponible = totalConIva / (1 + ivaPorcentaje / 100);
+    final importeIva = totalConIva - baseImponible;
     final montoPropina = baseImponible * (porcentajePropina / 100);
     final totalFinal = totalConIva + montoPropina;
 

@@ -103,7 +103,9 @@ final clientesProvider = StateNotifierProvider<ClientesNotifier, List<Cliente>>(
 class ClientesNotifier extends StateNotifier<List<Cliente>> {
   final DatabaseService _db;
 
-  ClientesNotifier(this._db) : super([]);
+  ClientesNotifier(this._db) : super([]) {
+    actualizarLista();
+  }
 
   Future<void> agregar(Cliente cliente) async {
     await _db.clientesBox.add(cliente);
