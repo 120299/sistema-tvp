@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
@@ -7,6 +8,29 @@ import '../../data/models/models.dart';
 class PrintService {
   static Future<void> abrirCajon() async {
     try {
+      final Uint8List openCashDrawerCommand = Uint8List.fromList([
+        0x1B,
+        0x70,
+        0x00,
+        0x19,
+        0xFA,
+      ]);
+
+      final printers = await Printing.listPrinters();
+      if (printers.isNotEmpty) {
+        await Printing.directPrintPdf(
+          printer: printers.first,
+          onLayout: (PdfPageFormat format) async {
+            return openCashDrawerCommand;
+          },
+        );
+        debugPrint('Comando abrir cajón enviado a: ${printers.first.name}');
+      } else {
+        throw Exception('No se encontró ninguna impresora');
+      }
+    } catch (e) {
+      debugPrint('Error al abrir cajón: $e');
+
       final pdf = pw.Document();
       pdf.addPage(
         pw.Page(
@@ -14,9 +38,7 @@ class PrintService {
             72 * PdfPageFormat.mm,
             30 * PdfPageFormat.mm,
           ),
-          build: (pw.Context context) {
-            return pw.Container();
-          },
+          build: (context) => pw.Container(),
         ),
       );
 
@@ -24,10 +46,7 @@ class PrintService {
         onLayout: (PdfPageFormat format) async => pdf.save(),
         name: 'Abrir Cajón',
       );
-
-      debugPrint('Comando abrir cajón enviado');
-    } catch (e) {
-      debugPrint('Error al abrir cajón: $e');
+      debugPrint('Comando abrir cajón enviado (método alternativo)');
     }
   }
 
@@ -232,10 +251,10 @@ class PrintService {
   }) async {
     final pdf = pw.Document();
     final fechaActual = fechaVenta ?? DateTime.now();
-    final baseImponible = subtotal / (1 + ivaPorcentaje / 100);
-    final importeIva = subtotal - baseImponible;
-    final totalConIva = subtotal;
-    final montoPropina = totalConIva * (porcentajePropina / 100);
+    final baseImponible = subtotal;
+    final importeIva = baseImponible * (ivaPorcentaje / 100);
+    final totalConIva = baseImponible + importeIva;
+    final montoPropina = baseImponible * (porcentajePropina / 100);
     final totalFinal = totalConIva + montoPropina;
 
     pdf.addPage(
@@ -944,24 +963,18 @@ class PrintService {
     );
   }
 
-  static String _formatFechaShort(DateTime d) {
-    return '${d.year}${d.month.toString().padLeft(2, '0')}${d.day.toString().padLeft(2, '0')}';
-  }
-
   static pw.Widget _buildFechaHora([int? numeroTicket, DateTime? fechaVenta]) {
     final now = fechaVenta ?? DateTime.now();
     String numero;
     if (numeroTicket != null) {
-      numero =
-          'T-${_formatFechaShort(now)}-${numeroTicket.toString().padLeft(4, '0')}';
+      numero = numeroTicket.toString().padLeft(6, '0');
     } else {
-      numero =
-          'T-${_formatFechaShort(now)}-${now.millisecondsSinceEpoch.toString().substring(7)}';
+      numero = '000000';
     }
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
-        pw.Text('N: $numero', style: const pw.TextStyle(fontSize: 9)),
+        pw.Text('Nº Ticket: $numero', style: const pw.TextStyle(fontSize: 9)),
         pw.Text(
           '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
           style: const pw.TextStyle(fontSize: 9),

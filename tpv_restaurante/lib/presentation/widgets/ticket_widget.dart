@@ -12,6 +12,7 @@ class TicketWidget extends StatelessWidget {
   final DatosNegocio negocio;
   final String? mesaNumero;
   final DateTime? fechaVenta;
+  final int? numeroTicket;
 
   const TicketWidget({
     super.key,
@@ -23,12 +24,13 @@ class TicketWidget extends StatelessWidget {
     required this.negocio,
     this.mesaNumero,
     this.fechaVenta,
+    this.numeroTicket,
   });
 
   String generateTicketHtml() {
     final baseImponible = total / (1 + ivaPorcentaje / 100);
     final importeIva = total - baseImponible;
-    final now = DateTime.now();
+    final now = fechaVenta ?? DateTime.now();
     final numeroTicket = _generateNumeroTicket(now);
     final totalConPropina = total * (1 + porcentajePropina / 100);
 
@@ -139,7 +141,7 @@ class TicketWidget extends StatelessWidget {
           Divider(thickness: 1, height: 1),
           _buildRow(
             'Nº Ticket',
-            _generateNumeroTicket(DateTime.now()),
+            _generateNumeroTicket(fechaVenta ?? DateTime.now()),
             bold: true,
             fontSize: fontSizeBody,
             isCompact: isCompact,
@@ -173,7 +175,10 @@ class TicketWidget extends StatelessWidget {
   }
 
   String _generateNumeroTicket(DateTime now) {
-    return 'T-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.millisecondsSinceEpoch.toString().substring(7)}';
+    if (numeroTicket != null) {
+      return numeroTicket.toString().padLeft(6, '0');
+    }
+    return '000000';
   }
 
   Widget _buildRow(
@@ -342,6 +347,7 @@ class TicketPrintHelper {
     required DatosNegocio negocio,
     String? mesaNumero,
     DateTime? fechaVenta,
+    int? numeroTicket,
     VoidCallback? onImprimir,
     VoidCallback? onCerrar,
   }) {
@@ -359,6 +365,7 @@ class TicketPrintHelper {
           negocio: negocio,
           mesaNumero: mesaNumero,
           fechaVenta: fechaVenta,
+          numeroTicket: numeroTicket,
         );
 
         return _TicketPrintDialog(
@@ -371,6 +378,7 @@ class TicketPrintHelper {
           mesaNumero: mesaNumero,
           porcentajePropina: porcentajePropina,
           fechaVenta: fechaVenta,
+          numeroTicket: numeroTicket,
           onImprimir: onImprimir,
           onCerrar: onCerrar,
         );
@@ -399,6 +407,7 @@ class _TicketPrintDialog extends StatefulWidget {
   final String? mesaNumero;
   final double porcentajePropina;
   final DateTime? fechaVenta;
+  final int? numeroTicket;
   final VoidCallback? onImprimir;
   final VoidCallback? onCerrar;
 
@@ -412,6 +421,7 @@ class _TicketPrintDialog extends StatefulWidget {
     this.mesaNumero,
     required this.porcentajePropina,
     this.fechaVenta,
+    this.numeroTicket,
     this.onImprimir,
     this.onCerrar,
   });
@@ -432,9 +442,7 @@ class _TicketPrintDialogState extends State<_TicketPrintDialog> {
         negocio: widget.negocio,
         mesaNumero: widget.mesaNumero,
         porcentajePropina: widget.porcentajePropina,
-        numeroTicket: widget.fechaVenta != null
-            ? DateTime.now().millisecondsSinceEpoch % 10000
-            : null,
+        numeroTicket: widget.numeroTicket,
         fechaVenta: widget.fechaVenta,
       );
     } catch (e) {
@@ -582,9 +590,7 @@ class _TicketPrintDialogState extends State<_TicketPrintDialog> {
                             negocio: widget.negocio,
                             mesaNumero: widget.mesaNumero,
                             porcentajePropina: widget.porcentajePropina,
-                            numeroTicket: widget.fechaVenta != null
-                                ? DateTime.now().millisecondsSinceEpoch % 10000
-                                : null,
+                            numeroTicket: widget.numeroTicket,
                             fechaVenta: widget.fechaVenta,
                           );
                         } catch (e) {

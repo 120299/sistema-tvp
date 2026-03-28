@@ -737,6 +737,7 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
         negocio: negocio,
         mesaNumero: widget.mesa.numero.toString(),
         fechaVenta: pedido.horaApertura,
+        numeroTicket: pedido.numeroTicket,
         onImprimir: () {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

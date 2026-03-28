@@ -118,13 +118,15 @@ class MesaAdapter extends TypeAdapter<Mesa> {
       estado: EstadoMesa.values[fields[3] as int],
       pedidoActualId: fields[4] as String?,
       horaApertura: fields[5] as DateTime?,
+      nombre: numOfFields > 6 ? fields[6] as String? : null,
+      fechaReserva: numOfFields > 7 ? fields[7] as DateTime? : null,
     );
   }
 
   @override
   void write(BinaryWriter writer, Mesa obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -136,7 +138,11 @@ class MesaAdapter extends TypeAdapter<Mesa> {
       ..writeByte(4)
       ..write(obj.pedidoActualId)
       ..writeByte(5)
-      ..write(obj.horaApertura);
+      ..write(obj.horaApertura)
+      ..writeByte(6)
+      ..write(obj.nombre)
+      ..writeByte(7)
+      ..write(obj.fechaReserva);
   }
 }
 
@@ -277,14 +283,17 @@ class DatosNegocioAdapter extends TypeAdapter<DatosNegocio> {
       numeroSerie: fields[12] as String?,
       numeroLicencia: fields[13] as String?,
       actividad: fields[14] as String?,
-      configuracionCompletada: fields[15] as bool? ?? false,
+      contadorTicketsDiario: fields[15] as int? ?? 0,
+      contadorTicketsGlobal: fields[16] as int? ?? 0,
+      ultimaFechaContador: fields[17] as DateTime?,
+      configuracionCompletada: fields[18] as bool? ?? false,
     );
   }
 
   @override
   void write(BinaryWriter writer, DatosNegocio obj) {
     writer
-      ..writeByte(16)
+      ..writeByte(19)
       ..writeByte(0)
       ..write(obj.nombre)
       ..writeByte(1)
@@ -316,6 +325,12 @@ class DatosNegocioAdapter extends TypeAdapter<DatosNegocio> {
       ..writeByte(14)
       ..write(obj.actividad)
       ..writeByte(15)
+      ..write(obj.contadorTicketsDiario)
+      ..writeByte(16)
+      ..write(obj.contadorTicketsGlobal)
+      ..writeByte(17)
+      ..write(obj.ultimaFechaContador)
+      ..writeByte(18)
       ..write(obj.configuracionCompletada);
   }
 }
@@ -336,8 +351,8 @@ class MovimientoCajaAdapter extends TypeAdapter<MovimientoCaja> {
       cantidad: fields[2] as double,
       descripcion: fields[3] as String?,
       metodoPago: fields[4] as String?,
-      fecha: fields[5] as DateTime,
-      pedidoId: fields[6] as String?,
+      fecha: fields[5] as DateTime? ?? DateTime.now(),
+      pedidoId: numOfFields > 6 ? fields[6] as String? : null,
     );
   }
 
@@ -381,13 +396,18 @@ class CajeroAdapter extends TypeAdapter<Cajero> {
       rol: fields[5] != null
           ? RolCajero.values[fields[5] as int]
           : RolCajero.cajero,
+      telefono: numOfFields > 6 ? fields[6] as String? : null,
+      direccion: numOfFields > 7 ? fields[7] as String? : null,
+      ciudad: numOfFields > 8 ? fields[8] as String? : null,
+      codigoPostal: numOfFields > 9 ? fields[9] as String? : null,
+      provincia: numOfFields > 10 ? fields[10] as String? : null,
     );
   }
 
   @override
   void write(BinaryWriter writer, Cajero obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -399,7 +419,17 @@ class CajeroAdapter extends TypeAdapter<Cajero> {
       ..writeByte(4)
       ..write(obj.activo)
       ..writeByte(5)
-      ..write(obj.rol.index);
+      ..write(obj.rol.index)
+      ..writeByte(6)
+      ..write(obj.telefono)
+      ..writeByte(7)
+      ..write(obj.direccion)
+      ..writeByte(8)
+      ..write(obj.ciudad)
+      ..writeByte(9)
+      ..write(obj.codigoPostal)
+      ..writeByte(10)
+      ..write(obj.provincia);
   }
 }
 
@@ -413,22 +443,47 @@ class ClienteAdapter extends TypeAdapter<Cliente> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
+
+    if (numOfFields <= 8) {
+      return Cliente(
+        id:
+            (fields[0] as String?) ??
+            'cliente_${DateTime.now().millisecondsSinceEpoch}',
+        nombre: (fields[1] as String?) ?? 'Sin nombre',
+        telefono: fields[2] as String?,
+        email: fields[3] as String?,
+        observaciones: fields[4] as String?,
+        fechaCreacion: (fields[5] as DateTime?) ?? DateTime.now(),
+        totalPedidos: (fields[6] as int?) ?? 0,
+        totalGastado: (fields[7] as double?) ?? 0.0,
+      );
+    }
+
     return Cliente(
-      id: fields[0] as String,
-      nombre: fields[1] as String,
+      id:
+          (fields[0] as String?) ??
+          'cliente_${DateTime.now().millisecondsSinceEpoch}',
+      nombre: (fields[1] as String?) ?? 'Sin nombre',
       telefono: fields[2] as String?,
       email: fields[3] as String?,
-      observaciones: fields[4] as String?,
-      fechaCreacion: fields[5] as DateTime,
-      totalPedidos: fields[6] as int? ?? 0,
-      totalGastado: fields[7] as double? ?? 0,
+      nif: numOfFields > 4 ? fields[4] as String? : null,
+      direccion: numOfFields > 5 ? fields[5] as String? : null,
+      codigoPostal: numOfFields > 6 ? fields[6] as String? : null,
+      ciudad: numOfFields > 7 ? fields[7] as String? : null,
+      poblacion: numOfFields > 8 ? fields[8] as String? : null,
+      observaciones: numOfFields > 9 ? fields[9] as String? : null,
+      fechaCreacion: numOfFields > 10
+          ? (fields[10] as DateTime?) ?? DateTime.now()
+          : DateTime.now(),
+      totalPedidos: numOfFields > 11 ? (fields[11] as int?) ?? 0 : 0,
+      totalGastado: numOfFields > 12 ? (fields[12] as double?) ?? 0.0 : 0.0,
     );
   }
 
   @override
   void write(BinaryWriter writer, Cliente obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -438,12 +493,22 @@ class ClienteAdapter extends TypeAdapter<Cliente> {
       ..writeByte(3)
       ..write(obj.email)
       ..writeByte(4)
-      ..write(obj.observaciones)
+      ..write(obj.nif)
       ..writeByte(5)
-      ..write(obj.fechaCreacion)
+      ..write(obj.direccion)
       ..writeByte(6)
-      ..write(obj.totalPedidos)
+      ..write(obj.codigoPostal)
       ..writeByte(7)
+      ..write(obj.ciudad)
+      ..writeByte(8)
+      ..write(obj.poblacion)
+      ..writeByte(9)
+      ..write(obj.observaciones)
+      ..writeByte(10)
+      ..write(obj.fechaCreacion)
+      ..writeByte(11)
+      ..write(obj.totalPedidos)
+      ..writeByte(12)
       ..write(obj.totalGastado);
   }
 }
@@ -460,7 +525,7 @@ class CajaAdapter extends TypeAdapter<Caja> {
     };
     return Caja(
       id: fields[0] as String,
-      fechaApertura: fields[1] as DateTime,
+      fechaApertura: fields[1] as DateTime? ?? DateTime.now(),
       fechaCierre: fields[2] as DateTime?,
       fondoInicial: fields[3] as double? ?? 0,
       totalVentas: fields[4] as double? ?? 0,
@@ -469,8 +534,8 @@ class CajaAdapter extends TypeAdapter<Caja> {
       movimientos: (fields[7] as List?)?.cast<MovimientoCaja>() ?? [],
       estado: EstadoCaja.values[fields[8] as int? ?? 0],
       saldoFinal: fields[9] as double?,
-      cajeroId: fields[10] as String?,
-      cajeroNombre: fields[11] as String?,
+      cajeroId: numOfFields > 10 ? fields[10] as String? : null,
+      cajeroNombre: numOfFields > 11 ? fields[11] as String? : null,
     );
   }
 

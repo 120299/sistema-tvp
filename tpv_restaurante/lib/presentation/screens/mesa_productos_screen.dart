@@ -675,12 +675,19 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      '${item.precioUnitario.toStringAsFixed(2)} € c/u',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${item.precioUnitario.toStringAsFixed(2)} € c/u',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(Icons.edit, size: 12, color: Colors.grey.shade400),
+                      ],
                     ),
                   ],
                 ),

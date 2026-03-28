@@ -1381,10 +1381,15 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
           TextButton.icon(
             onPressed: () async {
               final negocio = ref.read(negocioProvider);
+              final cajaConCierre = caja.copyWith(
+                estado: EstadoCaja.cerrada,
+                fechaCierre: DateTime.now(),
+                saldoFinal: efectivo + tarjeta,
+              );
               try {
                 final pdf = await PrintService.buildCierreCajaPdf(
                   negocio,
-                  caja,
+                  cajaConCierre,
                 );
                 if (context.mounted) {
                   await PrintService.previewCierreCaja(
@@ -1410,10 +1415,15 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
           TextButton.icon(
             onPressed: () async {
               final negocio = ref.read(negocioProvider);
+              final cajaConCierre = caja.copyWith(
+                estado: EstadoCaja.cerrada,
+                fechaCierre: DateTime.now(),
+                saldoFinal: efectivo + tarjeta,
+              );
               try {
                 final pdf = await PrintService.buildCierreCajaPdf(
                   negocio,
-                  caja,
+                  cajaConCierre,
                 );
                 if (context.mounted) {
                   await PrintService.previewCierreCaja(

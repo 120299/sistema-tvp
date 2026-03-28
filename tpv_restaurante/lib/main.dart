@@ -10,6 +10,21 @@ import 'presentation/screens/setup_screen.dart';
 import 'presentation/providers/providers.dart';
 import 'init/desktop_init.dart' if (dart.library.html) 'init/web_init.dart';
 
+class KeyboardDismissWrapper extends StatelessWidget {
+  final Widget child;
+
+  const KeyboardDismissWrapper({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.translucent,
+      child: child,
+    );
+  }
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -108,18 +123,24 @@ class _AppWithAuthState extends ConsumerState<_AppWithAuth> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoggedIn = ref.watch(isLoggedInProvider);
-    final negocio = ref.watch(negocioProvider);
-    final necesitaSetup = !negocio.estaConfigurado;
+    return KeyboardDismissWrapper(
+      child: Builder(
+        builder: (context) {
+          final isLoggedIn = ref.watch(isLoggedInProvider);
+          final negocio = ref.watch(negocioProvider);
+          final necesitaSetup = !negocio.estaConfigurado;
 
-    if (necesitaSetup) {
-      return const SetupScreen();
-    }
+          if (necesitaSetup) {
+            return const SetupScreen();
+          }
 
-    if (!isLoggedIn) {
-      return LoginScreen(onLoginSuccess: _onLoginSuccess);
-    }
+          if (!isLoggedIn) {
+            return LoginScreen(onLoginSuccess: _onLoginSuccess);
+          }
 
-    return AppShell(onLogout: _onLogout);
+          return AppShell(onLogout: _onLogout);
+        },
+      ),
+    );
   }
 }

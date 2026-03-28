@@ -19,7 +19,11 @@ class TicketHelper {
 
       doc.addPage(
         pw.Page(
-          pageFormat: PdfPageFormat.roll80,
+          pageFormat: const PdfPageFormat(
+            72 * PdfPageFormat.mm,
+            double.infinity,
+            marginAll: 5 * PdfPageFormat.mm,
+          ),
           build: (pw.Context context) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -196,7 +200,11 @@ class TicketHelper {
 
       doc.addPage(
         pw.Page(
-          pageFormat: PdfPageFormat.roll80,
+          pageFormat: const PdfPageFormat(
+            72 * PdfPageFormat.mm,
+            double.infinity,
+            marginAll: 5 * PdfPageFormat.mm,
+          ),
           build: (pw.Context ctx) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -372,7 +380,11 @@ class TicketHelper {
 
       doc.addPage(
         pw.Page(
-          pageFormat: PdfPageFormat.roll80,
+          pageFormat: const PdfPageFormat(
+            72 * PdfPageFormat.mm,
+            double.infinity,
+            marginAll: 5 * PdfPageFormat.mm,
+          ),
           build: (pw.Context context) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/ticket_helper.dart';
 import '../../data/models/models.dart';
+import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
 
 class ClientesScreen extends ConsumerStatefulWidget {
@@ -995,10 +996,19 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                     onPressed: () async {
                       final negocio = ref.read(negocioProvider);
                       try {
-                        await TicketHelper.previewPedido(
-                          context,
-                          negocio,
-                          pedido,
+                        await PrintService.mostrarTicketPreview(
+                          context: context,
+                          items: pedido.items,
+                          subtotal: pedido.subtotal,
+                          ivaPorcentaje: negocio.ivaPorcentaje,
+                          metodoPago: pedido.metodoPago ?? 'Efectivo',
+                          negocio: negocio,
+                          mesaNumero: pedido.mesaId,
+                          cajeroNombre: pedido.cajeroNombre,
+                          porcentajePropina: pedido.porcentajePropina,
+                          clienteNombre: pedido.clienteNombre,
+                          numeroTicket: pedido.numeroTicket,
+                          fechaVenta: pedido.horaApertura,
                         );
                       } catch (e) {
                         if (context.mounted) {

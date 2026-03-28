@@ -15,6 +15,7 @@ class DatosNegocio {
   final String? numeroLicencia;
   final String? actividad;
   final int contadorTicketsDiario;
+  final int contadorTicketsGlobal;
   final DateTime? ultimaFechaContador;
   final bool configuracionCompletada;
 
@@ -35,6 +36,7 @@ class DatosNegocio {
     this.numeroLicencia,
     this.actividad,
     this.contadorTicketsDiario = 0,
+    this.contadorTicketsGlobal = 0,
     this.ultimaFechaContador,
     this.configuracionCompletada = false,
   });
@@ -58,6 +60,7 @@ class DatosNegocio {
     String? numeroLicencia,
     String? actividad,
     int? contadorTicketsDiario,
+    int? contadorTicketsGlobal,
     DateTime? ultimaFechaContador,
     bool? configuracionCompletada,
   }) {
@@ -79,6 +82,8 @@ class DatosNegocio {
       actividad: actividad ?? this.actividad,
       contadorTicketsDiario:
           contadorTicketsDiario ?? this.contadorTicketsDiario,
+      contadorTicketsGlobal:
+          contadorTicketsGlobal ?? this.contadorTicketsGlobal,
       ultimaFechaContador: ultimaFechaContador ?? this.ultimaFechaContador,
       configuracionCompletada:
           configuracionCompletada ?? this.configuracionCompletada,
@@ -103,6 +108,7 @@ class DatosNegocio {
       'numeroLicencia': numeroLicencia,
       'actividad': actividad,
       'contadorTicketsDiario': contadorTicketsDiario,
+      'contadorTicketsGlobal': contadorTicketsGlobal,
       'ultimaFechaContador': ultimaFechaContador?.toIso8601String(),
       'configuracionCompletada': configuracionCompletada,
     };
@@ -126,6 +132,7 @@ class DatosNegocio {
       numeroLicencia: json['numeroLicencia'] as String?,
       actividad: json['actividad'] as String?,
       contadorTicketsDiario: json['contadorTicketsDiario'] as int? ?? 0,
+      contadorTicketsGlobal: json['contadorTicketsGlobal'] as int? ?? 0,
       ultimaFechaContador: json['ultimaFechaContador'] != null
           ? DateTime.parse(json['ultimaFechaContador'] as String)
           : null,

@@ -191,23 +191,26 @@ class NegocioNotifier extends StateNotifier<DatosNegocio> {
     final hoy = DateTime.now();
     final fechaUltima = state.ultimaFechaContador;
 
-    int nuevoContador;
+    int nuevoContadorDiario;
+    int nuevoContadorGlobal = state.contadorTicketsGlobal + 1;
+
     if (fechaUltima == null ||
         fechaUltima.day != hoy.day ||
         fechaUltima.month != hoy.month ||
         fechaUltima.year != hoy.year) {
-      nuevoContador = 1;
+      nuevoContadorDiario = 1;
     } else {
-      nuevoContador = state.contadorTicketsDiario + 1;
+      nuevoContadorDiario = state.contadorTicketsDiario + 1;
     }
 
     final actualizado = state.copyWith(
-      contadorTicketsDiario: nuevoContador,
+      contadorTicketsDiario: nuevoContadorDiario,
+      contadorTicketsGlobal: nuevoContadorGlobal,
       ultimaFechaContador: hoy,
     );
 
     await actualizar(actualizado);
-    return nuevoContador;
+    return nuevoContadorGlobal;
   }
 
   Future<void> reiniciarContadorDiario() async {

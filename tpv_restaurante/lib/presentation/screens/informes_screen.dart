@@ -1072,8 +1072,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
                           await PrintService.mostrarTicketPreview(
                             context: context,
                             items: p.items,
-                            subtotal:
-                                p.total / (1 + negocio.ivaPorcentaje / 100),
+                            subtotal: p.subtotal,
                             ivaPorcentaje: negocio.ivaPorcentaje,
                             metodoPago: p.metodoPago ?? 'Efectivo',
                             negocio: negocio,

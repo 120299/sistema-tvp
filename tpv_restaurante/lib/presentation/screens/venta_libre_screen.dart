@@ -1429,7 +1429,25 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 ),
               ],
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () => _mostrarDialogoEditarPrecio(item, index),
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.zero,
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.edit,
+                  color: AppColors.primary,
+                  size: 16,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
             GestureDetector(
               onTap: () => _eliminarProductoPorId(item.id),
               child: Container(
@@ -1710,6 +1728,44 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         }
       }
     }
+  }
+
+  void _mostrarDialogoEditarPrecio(PedidoItem item, int index) {
+    final precioController = TextEditingController(
+      text: item.precioUnitario.toStringAsFixed(2),
+    );
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Editar precio: ${item.productoNombre}'),
+        content: TextField(
+          controller: precioController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(
+            labelText: 'Precio unitario (€)',
+            prefixText: '€ ',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              final nuevoPrecio = double.tryParse(precioController.text);
+              if (nuevoPrecio != null && nuevoPrecio > 0) {
+                setState(() {
+                  _carrito[index] = item.copyWith(precioUnitario: nuevoPrecio);
+                });
+                Navigator.pop(ctx);
+              }
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _eliminarProductoPorId(String itemId) {
