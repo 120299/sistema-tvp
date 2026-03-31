@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/app_keyboard_overlay.dart';
 import '../../data/models/models.dart';
 import '../providers/providers.dart';
 import 'venta_libre_screen.dart';
@@ -17,16 +18,20 @@ import 'package:window_manager/window_manager.dart';
 
 void unfocusKeyboard() {
   FocusManager.instance.primaryFocus?.unfocus();
-  FocusManager.instance.primaryFocus?.dispose();
 }
 
-class AppShell extends ConsumerWidget {
+class AppShell extends ConsumerStatefulWidget {
   final VoidCallback? onLogout;
 
   const AppShell({super.key, this.onLogout});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell> {
+  @override
+  Widget build(BuildContext context) {
     final negocio = ref.watch(negocioProvider);
     final caja = ref.watch(cajaProvider);
     final cajeroActual = ref.watch(cajeroActualProvider);
@@ -38,32 +43,44 @@ class AppShell extends ConsumerWidget {
         final isMedium =
             constraints.maxWidth > 600 && constraints.maxWidth <= 900;
 
-        return Scaffold(
-          body: Row(
-            children: [
-              _buildMenuVertical(
-                context,
-                ref,
-                indiceActual,
-                cajeroActual,
-                isWide: isWide,
-                isMedium: isMedium,
-              ),
-              Expanded(
-                child: Column(
-                  children: [
-                    _buildHeader(context, ref, negocio, caja, cajeroActual),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: unfocusKeyboard,
-                        behavior: HitTestBehavior.translucent,
-                        child: _buildContenido(indiceActual),
-                      ),
-                    ),
-                  ],
+        return AppKeyboardOverlay(
+          child: Scaffold(
+            body: Row(
+              children: [
+                _buildMenuVertical(
+                  context,
+                  ref,
+                  indiceActual,
+                  cajeroActual,
+                  isWide: isWide,
+                  isMedium: isMedium,
                 ),
-              ),
-            ],
+                Expanded(
+                  child: Column(
+                    children: [
+                      _buildHeader(context, ref, negocio, caja, cajeroActual),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            final focus = FocusScope.of(context);
+                            final focusedWidget =
+                                focus.focusedChild?.context?.widget;
+
+                            if (focusedWidget is! EditableText &&
+                                focusedWidget is! TextField &&
+                                focusedWidget is! TextFormField) {
+                              unfocusKeyboard();
+                            }
+                          },
+                          behavior: HitTestBehavior.translucent,
+                          child: _buildContenido(indiceActual),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -216,7 +233,7 @@ class AppShell extends ConsumerWidget {
           await _borrarSesion();
           ref.read(cajeroActualProvider.notifier).state = null;
           ref.read(isLoggedInProvider.notifier).state = false;
-          onLogout?.call();
+          widget.onLogout?.call();
         }
       },
       itemBuilder: (context) => [

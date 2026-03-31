@@ -5,6 +5,7 @@ import '../../data/services/database_service.dart';
 import '../../data/services/image_storage_service.dart';
 import '../../data/models/models.dart';
 import '../../data/examples/ejemplos_usuarios.dart';
+import '../../core/services/device_input_service.dart';
 
 final isLoggedInProvider = StateProvider<bool>((ref) => false);
 
@@ -1159,3 +1160,59 @@ class CajasHistorialNotifier extends StateNotifier<List<Caja>> {
     super.dispose();
   }
 }
+
+final deviceInputServiceProvider = Provider<DeviceInputService>((ref) {
+  return DeviceInputService();
+});
+
+final deviceInputInfoProvider = FutureProvider<DeviceInputInfo>((ref) async {
+  final service = ref.watch(deviceInputServiceProvider);
+  return await service.getDeviceInputInfo();
+});
+
+final keyboardSettingsProvider =
+    StateNotifierProvider<KeyboardSettingsNotifier, KeyboardSettings>((ref) {
+      return KeyboardSettingsNotifier();
+    });
+
+class KeyboardSettingsNotifier extends StateNotifier<KeyboardSettings> {
+  KeyboardSettingsNotifier() : super(const KeyboardSettings());
+
+  void setUseVirtualKeyboard(bool value) {
+    state = state.copyWith(useVirtualKeyboard: value);
+  }
+
+  void setShowAlways(bool value) {
+    state = state.copyWith(showAlways: value);
+  }
+
+  void setKeyboardSize(KeyboardSize size) {
+    state = state.copyWith(keyboardSize: size);
+  }
+}
+
+class KeyboardSettings {
+  final bool useVirtualKeyboard;
+  final bool showAlways;
+  final KeyboardSize keyboardSize;
+
+  const KeyboardSettings({
+    this.useVirtualKeyboard = true,
+    this.showAlways = false,
+    this.keyboardSize = KeyboardSize.medium,
+  });
+
+  KeyboardSettings copyWith({
+    bool? useVirtualKeyboard,
+    bool? showAlways,
+    KeyboardSize? keyboardSize,
+  }) {
+    return KeyboardSettings(
+      useVirtualKeyboard: useVirtualKeyboard ?? this.useVirtualKeyboard,
+      showAlways: showAlways ?? this.showAlways,
+      keyboardSize: keyboardSize ?? this.keyboardSize,
+    );
+  }
+}
+
+enum KeyboardSize { small, medium, large }

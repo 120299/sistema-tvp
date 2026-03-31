@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
+import 'core/services/windows_keyboard_service.dart';
 import 'data/services/database_service.dart';
 import 'presentation/screens/app_shell.dart';
 import 'presentation/screens/login_screen.dart';
@@ -60,6 +61,11 @@ class _TPVRestauranteAppState extends ConsumerState<TPVRestauranteApp> {
     _dbService = DatabaseService();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _dbService.initialize();
+
+      if (Platform.isWindows) {
+        await WindowsKeyboardService.preventOskFromShowing();
+      }
+
       if (mounted) setState(() => _isInitialized = true);
     });
   }

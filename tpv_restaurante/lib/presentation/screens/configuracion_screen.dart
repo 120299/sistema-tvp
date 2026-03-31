@@ -335,6 +335,70 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
                 ),
               ]),
               const SizedBox(height: 32),
+              _buildSeccion('Teclado Virtual', [
+                Consumer(
+                  builder: (context, ref, child) {
+                    final keyboardSettings = ref.watch(
+                      keyboardSettingsProvider,
+                    );
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SwitchListTile(
+                          title: const Text('Activar teclado virtual'),
+                          subtitle: Text(
+                            keyboardSettings.useVirtualKeyboard
+                                ? 'Se mostrará un teclado personalizado al escribir'
+                                : 'Se usará el teclado del sistema',
+                          ),
+                          value: keyboardSettings.useVirtualKeyboard,
+                          onChanged: (value) {
+                            ref
+                                .read(keyboardSettingsProvider.notifier)
+                                .setUseVirtualKeyboard(value);
+                          },
+                          activeColor: AppColors.primary,
+                        ),
+                        if (keyboardSettings.useVirtualKeyboard) ...[
+                          const Divider(),
+                          const Text(
+                            'Tamaño del teclado:',
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 8),
+                          SegmentedButton<KeyboardSize>(
+                            segments: const [
+                              ButtonSegment(
+                                value: KeyboardSize.small,
+                                label: Text('Pequeño'),
+                                icon: Icon(Icons.keyboard),
+                              ),
+                              ButtonSegment(
+                                value: KeyboardSize.medium,
+                                label: Text('Mediano'),
+                                icon: Icon(Icons.keyboard),
+                              ),
+                              ButtonSegment(
+                                value: KeyboardSize.large,
+                                label: Text('Grande'),
+                                icon: Icon(Icons.keyboard),
+                              ),
+                            ],
+                            selected: {keyboardSettings.keyboardSize},
+                            onSelectionChanged: (selected) {
+                              ref
+                                  .read(keyboardSettingsProvider.notifier)
+                                  .setKeyboardSize(selected.first);
+                            },
+                          ),
+                        ],
+                      ],
+                    );
+                  },
+                ),
+              ]),
+              const SizedBox(height: 32),
             ],
           ),
         ),
