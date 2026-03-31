@@ -608,24 +608,13 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _enviarACocina,
-                        icon: const Icon(Icons.send),
-                        label: const Text('Cocina'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _cobrarPedido(total),
-                        icon: const Icon(Icons.payment),
-                        label: const Text('Cobrar'),
-                      ),
-                    ),
-                  ],
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _cobrarPedido(total),
+                    icon: const Icon(Icons.payment),
+                    label: const Text('Cobrar'),
+                  ),
                 ),
               ],
             ),
@@ -746,12 +735,14 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
 
     if (pedidoId.isEmpty) {
       final cajeroActual = ref.read(cajeroActualProvider);
+      final cajaActual = ref.read(cajaProvider);
       pedidoId = await ref
           .read(pedidosProvider.notifier)
           .crear(
             widget.mesa.id,
             cajeroId: cajeroActual?.id,
             cajeroNombre: cajeroActual?.nombre,
+            cajaId: cajaActual?.id,
           );
       await ref.read(mesasProvider.notifier).ocupar(widget.mesa.id, pedidoId);
     }
@@ -884,38 +875,6 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
     );
   }
 
-  void _enviarACocina() async {
-    final mesaActual = ref
-        .read(mesasProvider)
-        .firstWhere((m) => m.id == widget.mesa.id);
-    if (mesaActual.pedidoActualId == null) return;
-
-    final pedidoActual = _getPedidoActual();
-
-    await ref
-        .read(pedidosProvider.notifier)
-        .enviarACocina(mesaActual.pedidoActualId!);
-
-    try {
-      await PrintService.printCocinaTicket(
-        context: context,
-        items: pedidoActual,
-        mesaNumero: widget.mesa.numero.toString(),
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('No se pudo imprimir cocina: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
-
-    _mostrarMensaje('Enviado a cocina');
-  }
-
   void _cobrarPedido(double total) async {
     final mesaActual = ref
         .read(mesasProvider)
@@ -931,6 +890,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
           final negocio = ref.read(negocioProvider);
           final pedidoActual = _getPedidoActual();
           final pedidoId = mesaActual.pedidoActualId!;
+          final cajaActual = ref.read(cajaProvider);
 
           final numeroTicket = await ref
               .read(negocioProvider.notifier)
@@ -938,7 +898,19 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
 
           await ref
               .read(pedidosProvider.notifier)
-              .cerrar(pedidoId, metodoPago, numeroTicket: numeroTicket);
+              .cerrar(
+                pedidoId,
+                metodoPago,
+                numeroTicket: numeroTicket,
+                cajaId: cajaActual?.id,
+              );
+
+          // Registrar venta en la caja
+          if (cajaActual != null) {
+            await ref
+                .read(cajaProvider.notifier)
+                .registrarVenta(total, metodoPago, pedidoId: pedidoId);
+          }
 
           final pedidoCompleto = _getPedidoCompleto();
           await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);

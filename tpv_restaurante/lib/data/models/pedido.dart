@@ -1,23 +1,10 @@
-enum EstadoPedido {
-  abierto,
-  enviadoCocina,
-  enPreparacion,
-  listo,
-  cerrado,
-  cancelado,
-}
+enum EstadoPedido { abierto, cerrado, cancelado }
 
 extension EstadoPedidoExtension on EstadoPedido {
   String get nombre {
     switch (this) {
       case EstadoPedido.abierto:
         return 'Abierto';
-      case EstadoPedido.enviadoCocina:
-        return 'Enviado';
-      case EstadoPedido.enPreparacion:
-        return 'Preparando';
-      case EstadoPedido.listo:
-        return 'Listo';
       case EstadoPedido.cerrado:
         return 'Cerrado';
       case EstadoPedido.cancelado:
@@ -108,6 +95,7 @@ class Pedido {
   final String? cajeroNombre;
   final String? clienteId;
   final String? clienteNombre;
+  final String? cajaId;
   int? numeroTicket;
 
   Pedido({
@@ -126,6 +114,7 @@ class Pedido {
     this.cajeroNombre,
     this.clienteId,
     this.clienteNombre,
+    this.cajaId,
     this.numeroTicket,
   }) : items = items ?? [],
        horaApertura = horaApertura ?? DateTime.now();
@@ -158,6 +147,7 @@ class Pedido {
     String? cajeroNombre,
     String? clienteId,
     String? clienteNombre,
+    String? cajaId,
     int? numeroTicket,
   }) {
     return Pedido(
@@ -176,6 +166,7 @@ class Pedido {
       cajeroNombre: cajeroNombre ?? this.cajeroNombre,
       clienteId: clienteId ?? this.clienteId,
       clienteNombre: clienteNombre ?? this.clienteNombre,
+      cajaId: cajaId ?? this.cajaId,
       numeroTicket: numeroTicket ?? this.numeroTicket,
     );
   }
@@ -197,6 +188,7 @@ class Pedido {
       'cajeroNombre': cajeroNombre,
       'clienteId': clienteId,
       'clienteNombre': clienteNombre,
+      'cajaId': cajaId,
       'numeroTicket': numeroTicket,
     };
   }
@@ -221,7 +213,7 @@ class Pedido {
       cajeroId: json['cajeroId'] as String?,
       cajeroNombre: json['cajeroNombre'] as String?,
       clienteId: json['clienteId'] as String?,
-      clienteNombre: json['clienteNombre'] as String?,
+      cajaId: json['cajaId'] as String?,
       numeroTicket: json['numeroTicket'] as int?,
     );
   }

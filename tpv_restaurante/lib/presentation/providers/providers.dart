@@ -708,6 +708,7 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
     String? clienteNombre,
     String? cajeroId,
     String? cajeroNombre,
+    String? cajaId,
   }) async {
     final id = 'pedido_${DateTime.now().millisecondsSinceEpoch}';
     final pedido = Pedido(
@@ -719,6 +720,7 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
       clienteNombre: clienteNombre,
       cajeroId: cajeroId,
       cajeroNombre: cajeroNombre,
+      cajaId: cajaId,
     );
     await _db.pedidosBox.add(pedido);
     _refresh();
@@ -790,18 +792,6 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
     _refresh();
   }
 
-  Future<void> enviarACocina(String pedidoId) async {
-    await _cambiarEstado(pedidoId, EstadoPedido.enviadoCocina);
-  }
-
-  Future<void> marcarEnPreparacion(String pedidoId) async {
-    await _cambiarEstado(pedidoId, EstadoPedido.enPreparacion);
-  }
-
-  Future<void> marcarListo(String pedidoId) async {
-    await _cambiarEstado(pedidoId, EstadoPedido.listo);
-  }
-
   Future<void> cancelar(String pedidoId) async {
     await _cambiarEstado(pedidoId, EstadoPedido.cancelado);
   }
@@ -830,6 +820,7 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
     String metodoPago, {
     double descuento = 0,
     int? numeroTicket,
+    String? cajaId,
   }) async {
     final pedidoIndex = state.indexWhere((p) => p.id == pedidoId);
     if (pedidoIndex < 0) return;
@@ -841,6 +832,7 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
       metodoPago: metodoPago,
       descuento: descuento,
       numeroTicket: numeroTicket,
+      cajaId: cajaId,
     );
     await _db.pedidosBox.putAt(pedidoIndex, actualizado);
     _refresh();
@@ -870,17 +862,6 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
           (p) =>
               p.estado != EstadoPedido.cerrado &&
               p.estado != EstadoPedido.cancelado,
-        )
-        .toList();
-  }
-
-  List<Pedido> getCocina() {
-    return state
-        .where(
-          (p) =>
-              p.estado == EstadoPedido.enviadoCocina ||
-              p.estado == EstadoPedido.enPreparacion ||
-              p.estado == EstadoPedido.listo,
         )
         .toList();
   }
@@ -1016,21 +997,37 @@ class CajaNotifier extends StateNotifier<Caja?> {
     state = caja;
   }
 
-  Future<void> cerrarCaja({double? saldoFinal}) async {
+  Future<void> cerrarCaja({
+    double? saldoFinal,
+    double? totalEfectivo,
+    double? totalTarjeta,
+    double? totalVentas,
+  }) async {
     if (state == null) return;
+
+    // Buscar la clave correcta del box
+    dynamic cajaKey;
+    for (int i = 0; i < _db.cajaBox.length; i++) {
+      final key = _db.cajaBox.keyAt(i);
+      final caja = _db.cajaBox.get(key);
+      if (caja != null && caja.id == state!.id) {
+        cajaKey = key;
+        break;
+      }
+    }
+
+    if (cajaKey == null) return;
 
     final cerrada = state!.copyWith(
       estado: EstadoCaja.cerrada,
       fechaCierre: DateTime.now(),
       saldoFinal: saldoFinal ?? state!.saldoCaja,
+      totalEfectivo: totalEfectivo ?? state!.totalEfectivo,
+      totalTarjeta: totalTarjeta ?? state!.totalTarjeta,
+      totalVentas: totalVentas ?? state!.totalVentas,
     );
 
-    final values = _db.cajaBox.values.toList();
-    final index = values.indexWhere((c) => c.id == state!.id);
-    if (index >= 0) {
-      await _db.cajaBox.putAt(index, cerrada);
-    }
-
+    await _db.cajaBox.put(cajaKey, cerrada);
     state = null;
   }
 

@@ -1587,12 +1587,14 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
 
     if (pedidoId.isEmpty) {
       final cajeroActual = ref.read(cajeroActualProvider);
+      final cajaActual = ref.read(cajaProvider);
       pedidoId = await ref
           .read(pedidosProvider.notifier)
           .crear(
             _mesaAsignada!,
             cajeroId: cajeroActual?.id,
             cajeroNombre: cajeroActual?.nombre,
+            cajaId: cajaActual?.id,
           );
       await ref.read(mesasProvider.notifier).ocupar(_mesaAsignada!, pedidoId);
     }
@@ -1977,10 +1979,16 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 .obtenerSiguienteNumeroTicket();
 
             final metodoPrincipal = metodosPago.keys.first;
+            final cajaActual = ref.read(cajaProvider);
 
             await ref
                 .read(pedidosProvider.notifier)
-                .cerrar(pedidoId, metodoPrincipal, numeroTicket: numeroTicket);
+                .cerrar(
+                  pedidoId,
+                  metodoPrincipal,
+                  numeroTicket: numeroTicket,
+                  cajaId: cajaActual?.id,
+                );
 
             final pedido = ref
                 .read(pedidosProvider)

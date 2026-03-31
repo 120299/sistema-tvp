@@ -696,12 +696,14 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
 
   void _abrirMesa(Mesa mesa) async {
     final cajeroActual = ref.read(cajeroActualProvider);
+    final cajaActual = ref.read(cajaProvider);
     final pedidoId = await ref
         .read(pedidosProvider.notifier)
         .crear(
           mesa.id,
           cajeroId: cajeroActual?.id,
           cajeroNombre: cajeroActual?.nombre,
+          cajaId: cajaActual?.id,
         );
     await ref.read(mesasProvider.notifier).ocupar(mesa.id, pedidoId);
   }
@@ -905,9 +907,10 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                     .where((p) => p.id == mesa.pedidoActualId)
                     .firstOrNull;
                 if (pedido != null) {
+                  final cajaActual = ref.read(cajaProvider);
                   await ref
                       .read(pedidosProvider.notifier)
-                      .cerrar(pedido.id, 'Cancelado');
+                      .cerrar(pedido.id, 'Cancelado', cajaId: cajaActual?.id);
                 }
               }
               await ref.read(mesasProvider.notifier).liberar(mesa.id);

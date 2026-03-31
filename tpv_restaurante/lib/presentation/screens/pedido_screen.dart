@@ -29,20 +29,22 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
     }
   }
 
-  void _crearPedido() {
+  void _crearPedido() async {
     final cajeroActual = ref.read(cajeroActualProvider);
-    ref
+    final cajaActual = ref.read(cajaProvider);
+    final pedidoId = await ref
         .read(pedidosProvider.notifier)
         .crear(
           widget.mesa.id,
           cajeroId: cajeroActual?.id,
           cajeroNombre: cajeroActual?.nombre,
-        )
-        .then((id) {
-          setState(() => _pedidoId = id);
-        });
-    ref.read(mesasProvider.notifier).ocupar(widget.mesa.id, _pedidoId);
-    setState(() => _pedidoCreado = true);
+          cajaId: cajaActual?.id,
+        );
+    ref.read(mesasProvider.notifier).ocupar(widget.mesa.id, pedidoId);
+    setState(() {
+      _pedidoId = pedidoId;
+      _pedidoCreado = true;
+    });
   }
 
   @override
@@ -63,11 +65,6 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
         title: Text('Mesa ${widget.mesa.numero}'),
         actions: [
           if (pedido != null && pedido.items.isNotEmpty) ...[
-            IconButton(
-              icon: const Icon(Icons.send),
-              tooltip: 'Enviar a cocina',
-              onPressed: () => _enviarACocina(pedido),
-            ),
             IconButton(
               icon: const Icon(Icons.receipt_long),
               tooltip: 'Ver ticket',
@@ -412,16 +409,6 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
         .actualizarCantidad(_pedidoId, item.id, item.cantidad + delta);
   }
 
-  void _enviarACocina(Pedido pedido) {
-    ref.read(pedidosProvider.notifier).enviarACocina(_pedidoId);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Pedido enviado a cocina'),
-        backgroundColor: AppColors.success,
-      ),
-    );
-  }
-
   void _mostrarTicket(BuildContext context, Pedido pedido) {
     showModalBottomSheet(
       context: context,
@@ -713,15 +700,24 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
     );
   }
 
-  void _procesarCobro(String metodoPago, double porcentajePropina) {
+  void _procesarCobro(String metodoPago, double porcentajePropina) async {
     final notifier = ref.read(pedidosProvider.notifier);
     final negocio = ref.read(negocioProvider);
     final pedido = notifier.getPorId(_pedidoId);
+    final cajaActual = ref.read(cajaProvider);
 
     if (pedido != null) {
       final itemsParaTicket = List<PedidoItem>.from(pedido.items);
 
-      notifier.cerrar(_pedidoId, metodoPago);
+      await notifier.cerrar(_pedidoId, metodoPago, cajaId: cajaActual?.id);
+
+      // Registrar venta en la caja
+      if (cajaActual != null) {
+        await ref
+            .read(cajaProvider.notifier)
+            .registrarVenta(pedido.total, metodoPago, pedidoId: _pedidoId);
+      }
+
       ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
 
       Navigator.pop(context);

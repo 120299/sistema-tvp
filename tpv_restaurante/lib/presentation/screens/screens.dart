@@ -1,6 +1,5 @@
 export 'mesas_screen.dart';
 export 'productos_screen.dart';
-export 'cocina_screen.dart';
 export 'informes_screen.dart';
 export 'app_shell.dart';
 export 'pedido_screen.dart';

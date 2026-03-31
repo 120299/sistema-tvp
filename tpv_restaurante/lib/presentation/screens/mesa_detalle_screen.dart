@@ -780,12 +780,14 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
 
   void _nuevoPedido(Mesa mesa) async {
     final cajeroActual = ref.read(cajeroActualProvider);
+    final cajaActual = ref.read(cajaProvider);
     final pedidoId = await ref
         .read(pedidosProvider.notifier)
         .crear(
           mesa.id,
           cajeroId: cajeroActual?.id,
           cajeroNombre: cajeroActual?.nombre,
+          cajaId: cajaActual?.id,
         );
     await ref.read(mesasProvider.notifier).ocupar(mesa.id, pedidoId);
 
@@ -839,9 +841,10 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                     .where((p) => p.id == mesa.pedidoActualId)
                     .firstOrNull;
                 if (pedido != null) {
+                  final cajaActual = ref.read(cajaProvider);
                   await ref
                       .read(pedidosProvider.notifier)
-                      .cerrar(pedido.id, 'Cancelado');
+                      .cerrar(pedido.id, 'Cancelado', cajaId: cajaActual?.id);
                 }
               }
               await ref.read(mesasProvider.notifier).liberar(mesa.id);
@@ -888,7 +891,18 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
   }
 
   void _procesarPago(Mesa mesa, Pedido pedido, String metodoPago) async {
-    await ref.read(pedidosProvider.notifier).cerrar(pedido.id, metodoPago);
+    final cajaActual = ref.read(cajaProvider);
+    await ref
+        .read(pedidosProvider.notifier)
+        .cerrar(pedido.id, metodoPago, cajaId: cajaActual?.id);
+
+    // Registrar venta en la caja
+    if (cajaActual != null) {
+      await ref
+          .read(cajaProvider.notifier)
+          .registrarVenta(pedido.total, metodoPago, pedidoId: pedido.id);
+    }
+
     await ref.read(mesasProvider.notifier).liberar(mesa.id);
 
     if (mounted) {

@@ -391,20 +391,34 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
 
   Widget _buildCajaAbierta(Caja caja, bool esAdmin) {
     final pedidos = ref.watch(pedidosProvider);
-    final ventasHoy = pedidos.where((p) {
-      return p.estado == EstadoPedido.cerrado &&
-          p.horaApertura.year == DateTime.now().year &&
-          p.horaApertura.month == DateTime.now().month &&
-          p.horaApertura.day == DateTime.now().day;
-    }).toList();
+    final now = DateTime.now();
 
-    final efectivo = ventasHoy
+    final pedidosCaja = pedidos
+        .where((p) => p.cajaId == caja.id && p.estado == EstadoPedido.cerrado)
+        .toList();
+
+    final efectivoCaja = pedidosCaja
         .where((p) => p.metodoPago == 'Efectivo')
         .fold<double>(0, (sum, p) => sum + p.total);
-    final tarjeta = ventasHoy
+    final tarjetaCaja = pedidosCaja
         .where((p) => p.metodoPago == 'Tarjeta')
         .fold<double>(0, (sum, p) => sum + p.total);
-    final totalVentas = efectivo + tarjeta;
+    final totalCaja = efectivoCaja + tarjetaCaja;
+
+    final pedidosDia = pedidos.where((p) {
+      return p.estado == EstadoPedido.cerrado &&
+          p.horaApertura.year == now.year &&
+          p.horaApertura.month == now.month &&
+          p.horaApertura.day == now.day;
+    }).toList();
+
+    final efectivoDia = pedidosDia
+        .where((p) => p.metodoPago == 'Efectivo')
+        .fold<double>(0, (sum, p) => sum + p.total);
+    final tarjetaDia = pedidosDia
+        .where((p) => p.metodoPago == 'Tarjeta')
+        .fold<double>(0, (sum, p) => sum + p.total);
+    final totalDia = efectivoDia + tarjetaDia;
 
     final horaApertura = caja.fechaApertura;
     final tiempoAbierta = DateTime.now().difference(horaApertura);
@@ -414,185 +428,381 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColors.success, AppColors.success.withOpacity(0.8)],
+              colors: [AppColors.primary, AppColors.primary.withOpacity(0.85)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
-          child: Column(
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.zero,
-                    ),
-                    child: const Icon(
-                      Icons.lock_open,
-                      color: Colors.white,
-                      size: 32,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Caja Abierta',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${caja.cajeroNombre ?? 'Cajero'} • Abierta hace ${horas}h ${minutos}m',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => setState(() => _mostrarHistorial = true),
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.zero,
-                      ),
-                      child: const Icon(Icons.history, color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.zero,
                 ),
+                child: Icon(Icons.lock_open, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Fila 1: Fondo Inicial
-                    _buildSaldoCard(
-                      'Fondo Inicial',
-                      caja.fondoInicial,
-                      Icons.account_balance_wallet,
-                      Colors.grey,
+                    const Text(
+                      'Caja Abierta',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    // Fila 2: Ventas en Efectivo y Tarjeta
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildSaldoCard(
-                            'Venta en Efectivo',
-                            efectivo,
-                            Icons.money,
-                            Colors.green,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildSaldoCard(
-                            'Venta en Tarjeta',
-                            tarjeta,
-                            Icons.credit_card,
-                            Colors.blue,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    // Fila 3: Total Ventas y Saldo en Caja
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildSaldoCard(
-                            'Total Ventas',
-                            totalVentas,
-                            Icons.trending_up,
-                            AppColors.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildSaldoCard(
-                            'Saldo en Caja',
-                            caja.saldoCaja,
-                            Icons.inventory_2,
-                            Colors.orange,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      '${caja.cajeroNombre ?? 'Cajero'} • ${horas}h ${minutos}m',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 12,
+                      ),
                     ),
                   ],
+                ),
+              ),
+              IconButton(
+                onPressed: () => setState(() => _mostrarHistorial = true),
+                icon: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.zero,
+                  ),
+                  child: Icon(Icons.history, color: Colors.white, size: 20),
                 ),
               ),
             ],
           ),
         ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildAccionButton(
-                        Icons.add_circle,
-                        'Ingreso',
-                        AppColors.success,
-                        () => _mostrarDialogoIngreso(caja),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildAccionButton(
-                        Icons.remove_circle,
-                        'Retiro',
-                        AppColors.error,
-                        () => _mostrarDialogoRetiro(caja),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                if (esAdmin)
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _cerrarCaja(caja, efectivo, tarjeta),
-                      icon: const Icon(Icons.lock),
-                      label: const Text('CERRAR CAJA'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.warning,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.zero,
+        Flexible(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.zero,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'CAJA ACTUAL',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 6),
+                      _buildResumenFila(
+                        'Fondo Inicial',
+                        caja.fondoInicial,
+                        Icons.account_balance_wallet,
+                        Colors.grey,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildResumenFila(
+                              'Ventas en Efectivo',
+                              efectivoCaja,
+                              Icons.payments,
+                              Colors.green,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: _buildResumenFila(
+                              'Ventas en Tarjeta',
+                              tarjetaCaja,
+                              Icons.credit_card,
+                              Colors.blue,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildResumenFila(
+                              'Total Ventas',
+                              totalCaja,
+                              Icons.trending_up,
+                              AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: _buildResumenFila(
+                              'Saldo en Caja',
+                              caja.saldoCaja,
+                              Icons.account_balance,
+                              Colors.orange,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                const SizedBox(height: 16),
-                Expanded(child: _buildMovimientosCaja(caja)),
-              ],
-            ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.zero,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'VENTAS DEL DÍA',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.purple,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      _buildResumenFila(
+                        'Total del Día',
+                        totalDia,
+                        Icons.analytics,
+                        Colors.purple,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildResumenFila(
+                              'Ventas en Efectivo',
+                              efectivoDia,
+                              Icons.payments,
+                              Colors.green,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: _buildResumenFila(
+                              'Ventas en Tarjeta',
+                              tarjetaDia,
+                              Icons.credit_card,
+                              Colors.blue,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildAccionButtonCompact(
+                  Icons.add_circle,
+                  'Ingreso',
+                  AppColors.success,
+                  () => _mostrarDialogoIngreso(caja),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildAccionButtonCompact(
+                  Icons.remove_circle,
+                  'Retiro',
+                  AppColors.error,
+                  () => _mostrarDialogoRetiro(caja),
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (esAdmin)
+                Expanded(
+                  flex: 2,
+                  child: _buildAccionButtonCompact(
+                    Icons.lock,
+                    'Cerrar',
+                    AppColors.warning,
+                    () => _cerrarCaja(caja, efectivoCaja, tarjetaCaja),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Expanded(child: _buildMovimientosCaja(caja)),
       ],
+    );
+  }
+
+  Widget _buildResumenCardCompact({
+    required String label,
+    required double valor,
+    required Color color,
+    bool isLarge = false,
+  }) {
+    return Container(
+      height: 45,
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.zero,
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            '€${valor.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontSize: isLarge ? 18 : 14,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResumenCardGris({
+    required String label,
+    required double valor,
+    required Color color,
+  }) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.zero,
+        border: Border.all(color: color.withOpacity(0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Text(
+            '€${valor.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResumenCardUniforme({
+    required String label,
+    required double valor,
+    required Color color,
+  }) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.zero,
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Text(
+            '€${valor.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAccionButtonCompact(
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onPressed,
+  ) {
+    return Material(
+      color: color.withOpacity(0.1),
+      child: InkWell(
+        onTap: onPressed,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            border: Border.all(color: color.withOpacity(0.3)),
+            borderRadius: BorderRadius.zero,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -603,7 +813,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
     Color color,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.zero,
@@ -612,14 +822,14 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: color.withOpacity(0.2),
               borderRadius: BorderRadius.zero,
             ),
-            child: Icon(icono, color: color, size: 24),
+            child: Icon(icono, color: color, size: 18),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -627,16 +837,16 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 10,
                     color: Colors.grey.shade600,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 1),
                 Text(
                   '€${valor.toStringAsFixed(2)}',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: color,
                   ),
@@ -671,6 +881,68 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
             '€${valor.toStringAsFixed(2)}',
             style: TextStyle(
               fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResumenCard({
+    required String label,
+    required double valor,
+    required IconData icono,
+    required Color color,
+    bool isLarge = false,
+  }) {
+    final isBigCard = isLarge;
+
+    return Container(
+      padding: EdgeInsets.all(isBigCard ? 16 : 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
+        ),
+        borderRadius: BorderRadius.zero,
+        border: Border.all(color: color.withOpacity(0.3), width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isBigCard ? 10 : 6),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.2),
+                  borderRadius: BorderRadius.zero,
+                ),
+                child: Icon(icono, color: color, size: isBigCard ? 24 : 18),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: isBigCard ? 14 : 11,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: isBigCard ? 12 : 8),
+          Text(
+            '€${valor.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontSize: isBigCard ? 28 : 18,
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -1455,7 +1727,14 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
     );
 
     if (confirmado == true) {
-      await ref.read(cajaProvider.notifier).cerrarCaja();
+      await ref
+          .read(cajaProvider.notifier)
+          .cerrarCaja(
+            saldoFinal: total,
+            totalEfectivo: efectivo,
+            totalTarjeta: tarjeta,
+            totalVentas: total,
+          );
       // Limpiar datos de la sesión anterior
       if (mounted) {
         setState(() {

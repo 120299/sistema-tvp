@@ -30,8 +30,10 @@ class Repositorio<T> {
   Future<void> update(T item) async {
     final values = _box.values.toList();
     final index = values.indexWhere((existing) {
-      if (item is Producto && existing is Producto) return item.id == existing.id;
-      if (item is CategoriaProducto && existing is CategoriaProducto) return item.id == existing.id;
+      if (item is Producto && existing is Producto)
+        return item.id == existing.id;
+      if (item is CategoriaProducto && existing is CategoriaProducto)
+        return item.id == existing.id;
       if (item is Mesa && existing is Mesa) return item.id == existing.id;
       if (item is Pedido && existing is Pedido) return item.id == existing.id;
       if (item is Caja && existing is Caja) return item.id == existing.id;
@@ -39,7 +41,7 @@ class Repositorio<T> {
       if (item is Cliente && existing is Cliente) return item.id == existing.id;
       return false;
     });
-    
+
     if (index >= 0) {
       await _box.putAt(index, item);
     }
@@ -119,17 +121,6 @@ class PedidoRepositorio extends Repositorio<Pedido> {
           (p) =>
               p.estado != EstadoPedido.cerrado &&
               p.estado != EstadoPedido.cancelado,
-        )
-        .toList();
-  }
-
-  List<Pedido> getDeCocina() {
-    return getAll()
-        .where(
-          (p) =>
-              p.estado == EstadoPedido.enviadoCocina ||
-              p.estado == EstadoPedido.enPreparacion ||
-              p.estado == EstadoPedido.listo,
         )
         .toList();
   }
