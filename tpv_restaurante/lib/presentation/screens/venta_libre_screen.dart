@@ -72,50 +72,43 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     final productosAMostrar = productosFiltrados;
 
     return Scaffold(
-      body: GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide = constraints.maxWidth > 800;
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth > 800;
 
-            if (isWide) {
-              return Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      children: [
-                        _buildHeader(
-                          mesasDisponibles,
-                          caja: caja,
-                          isWide: true,
-                        ),
-                        _buildCategorias(
-                          categoriaSeleccionada,
-                          categoriasOrdenadas,
-                        ),
-                        _buildBuscador(),
-                        Expanded(child: _buildGridProductos(productosAMostrar)),
-                      ],
-                    ),
+          if (isWide) {
+            return Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    children: [
+                      _buildHeader(mesasDisponibles, caja: caja, isWide: true),
+                      _buildCategorias(
+                        categoriaSeleccionada,
+                        categoriasOrdenadas,
+                      ),
+                      _buildBuscador(),
+                      Expanded(child: _buildGridProductos(productosAMostrar)),
+                    ],
                   ),
-                  Container(width: 1, color: AppColors.lightDivider),
-                  SizedBox(width: 380, child: _buildPanelCarrito()),
-                ],
-              );
-            } else {
-              return Column(
-                children: [
-                  _buildHeader(mesasDisponibles, caja: caja, isWide: false),
-                  _buildCategorias(categoriaSeleccionada, categoriasOrdenadas),
-                  _buildBuscador(),
-                  Expanded(child: _buildGridProductos(productosAMostrar)),
-                  _buildCarritoBarra(),
-                ],
-              );
-            }
-          },
-        ),
+                ),
+                Container(width: 1, color: AppColors.lightDivider),
+                SizedBox(width: 380, child: _buildPanelCarrito()),
+              ],
+            );
+          } else {
+            return Column(
+              children: [
+                _buildHeader(mesasDisponibles, caja: caja, isWide: false),
+                _buildCategorias(categoriaSeleccionada, categoriasOrdenadas),
+                _buildBuscador(),
+                Expanded(child: _buildGridProductos(productosAMostrar)),
+                _buildCarritoBarra(),
+              ],
+            );
+          }
+        },
       ),
     );
   }
@@ -728,6 +721,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           Expanded(
             child: TextField(
               controller: _buscadorController,
+              autofocus: false,
               decoration: InputDecoration(
                 hintText: 'Buscar producto...',
                 prefixIcon: const Icon(Icons.search),

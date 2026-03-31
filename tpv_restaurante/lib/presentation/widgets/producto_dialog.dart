@@ -282,37 +282,43 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
     final categorias = ref.watch(categoriasProvider);
 
     return Dialog(
-      child: Container(
-        width: 600,
-        constraints: const BoxConstraints(maxHeight: 700),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildHeader(esEdicion),
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildImagePreview(),
-                      const SizedBox(height: 20),
-                      _buildBasicInfo(),
-                      const SizedBox(height: 20),
-                      _buildPricesRow(),
-                      const SizedBox(height: 20),
-                      _buildCategoryAndStock(categorias),
-                      const SizedBox(height: 20),
-                      _buildOptionalFields(),
-                    ],
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          FocusManager.instance.primaryFocus?.unfocus();
+        },
+        child: Container(
+          width: 600,
+          constraints: const BoxConstraints(maxHeight: 700),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeader(esEdicion),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildImagePreview(),
+                        const SizedBox(height: 20),
+                        _buildBasicInfo(),
+                        const SizedBox(height: 20),
+                        _buildPricesRow(),
+                        const SizedBox(height: 20),
+                        _buildCategoryAndStock(categorias),
+                        const SizedBox(height: 20),
+                        _buildOptionalFields(),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            _buildActions(esEdicion),
-          ],
+              _buildActions(esEdicion),
+            ],
+          ),
         ),
       ),
     );

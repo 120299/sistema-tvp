@@ -84,17 +84,14 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
     final cajeroActual = ref.watch(cajeroActualProvider);
     final esAdmin = cajeroActual?.isAdministrador ?? false;
 
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Container(
-        color: AppColors.lightBackground,
-        child: SafeArea(
-          child: _mostrarHistorial
-              ? _buildHistorial(esAdmin, cajeroActual)
-              : (caja == null || caja.estado == EstadoCaja.cerrada
-                    ? _buildCajaCerrada(cajeroActual)
-                    : _buildCajaAbierta(caja, esAdmin)),
-        ),
+    return Container(
+      color: AppColors.lightBackground,
+      child: SafeArea(
+        child: _mostrarHistorial
+            ? _buildHistorial(esAdmin, cajeroActual)
+            : (caja == null || caja.estado == EstadoCaja.cerrada
+                  ? _buildCajaCerrada(cajeroActual)
+                  : _buildCajaAbierta(caja, esAdmin)),
       ),
     );
   }

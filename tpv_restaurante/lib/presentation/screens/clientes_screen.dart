@@ -6,6 +6,7 @@ import '../../core/utils/ticket_helper.dart';
 import '../../data/models/models.dart';
 import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
+import 'app_shell.dart';
 
 class ClientesScreen extends ConsumerStatefulWidget {
   const ClientesScreen({super.key});
@@ -45,19 +46,16 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
               .toList();
 
     return Scaffold(
-      body: GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildBuscador(),
-            Expanded(
-              child: clientesFiltrados.isEmpty
-                  ? _buildEmptyState()
-                  : _buildClienteList(clientesFiltrados),
-            ),
-          ],
-        ),
+      body: Column(
+        children: [
+          _buildHeader(),
+          _buildBuscador(),
+          Expanded(
+            child: clientesFiltrados.isEmpty
+                ? _buildEmptyState()
+                : _buildClienteList(clientesFiltrados),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'nuevo_cliente',
@@ -126,6 +124,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
       color: Colors.white,
       child: TextField(
         controller: _buscadorController,
+        autofocus: false,
         decoration: InputDecoration(
           hintText: 'Buscar por nombre, teléfono o email...',
           prefixIcon: const Icon(Icons.search),
@@ -525,7 +524,10 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                       ),
                     const Spacer(),
                     TextButton(
-                      onPressed: () => Navigator.pop(ctx),
+                      onPressed: () {
+                        unfocusKeyboard();
+                        Navigator.pop(ctx);
+                      },
                       child: const Text('Cancelar'),
                     ),
                     const SizedBox(width: 8),
@@ -586,6 +588,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                               .read(clientesProvider.notifier)
                               .agregar(nuevoCliente);
                         }
+                        unfocusKeyboard();
                         Navigator.pop(ctx);
                       },
                       child: Text(esEdicion ? 'Guardar' : 'Añadir'),

@@ -55,20 +55,17 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     productosFiltrados = _ordenarProductos(productosFiltrados, ordenProducto);
 
     return Scaffold(
-      body: GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildCategoriasToolbar(categoriaSeleccionada, categorias),
-            _buildToolbar(busqueda, categoriaSeleccionada, categorias),
-            Expanded(
-              child: productosFiltrados.isEmpty
-                  ? _buildEmptyState()
-                  : _buildProductGrid(productosFiltrados, categorias),
-            ),
-          ],
-        ),
+      body: Column(
+        children: [
+          _buildHeader(),
+          _buildCategoriasToolbar(categoriaSeleccionada, categorias),
+          _buildToolbar(busqueda, categoriaSeleccionada, categorias),
+          Expanded(
+            child: productosFiltrados.isEmpty
+                ? _buildEmptyState()
+                : _buildProductGrid(productosFiltrados, categorias),
+          ),
+        ],
       ),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
@@ -215,6 +212,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
               Expanded(
                 child: TextField(
                   controller: _busquedaController,
+                  autofocus: false,
                   decoration: InputDecoration(
                     hintText: 'Buscar producto...',
                     prefixIcon: const Icon(Icons.search, size: 20),

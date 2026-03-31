@@ -67,32 +67,29 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               .toList()
         : productosFiltrados;
 
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Container(
-        color: AppColors.lightBackground,
-        child: Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: Column(
-                children: [
-                  _buildHeader(),
-                  _buildCategorias(categoriaSeleccionada, categoriasOrdenadas),
-                  _buildBuscador(),
-                  Expanded(
-                    child: _buildGridProductos(
-                      productosAMostrar,
-                      categoriasOrdenadas,
-                    ),
+    return Container(
+      color: AppColors.lightBackground,
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Column(
+              children: [
+                _buildHeader(),
+                _buildCategorias(categoriaSeleccionada, categoriasOrdenadas),
+                _buildBuscador(),
+                Expanded(
+                  child: _buildGridProductos(
+                    productosAMostrar,
+                    categoriasOrdenadas,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Container(width: 1, color: AppColors.lightDivider),
-            SizedBox(width: 380, child: _buildPanelPedido()),
-          ],
-        ),
+          ),
+          Container(width: 1, color: AppColors.lightDivider),
+          SizedBox(width: 380, child: _buildPanelPedido()),
+        ],
       ),
     );
   }

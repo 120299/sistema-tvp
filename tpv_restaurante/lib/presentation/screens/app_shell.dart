@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/app_keyboard_overlay.dart';
 import '../../data/models/models.dart';
 import '../providers/providers.dart';
 import 'venta_libre_screen.dart';
@@ -15,13 +16,22 @@ import 'clientes_screen.dart';
 import 'usuarios_screen.dart';
 import 'package:window_manager/window_manager.dart';
 
-class AppShell extends ConsumerWidget {
+void unfocusKeyboard() {
+  FocusManager.instance.primaryFocus?.unfocus();
+}
+
+class AppShell extends ConsumerStatefulWidget {
   final VoidCallback? onLogout;
 
   const AppShell({super.key, this.onLogout});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell> {
+  @override
+  Widget build(BuildContext context) {
     final negocio = ref.watch(negocioProvider);
     final caja = ref.watch(cajaProvider);
     final cajeroActual = ref.watch(cajeroActualProvider);
@@ -33,10 +43,9 @@ class AppShell extends ConsumerWidget {
         final isMedium =
             constraints.maxWidth > 600 && constraints.maxWidth <= 900;
 
-        return Scaffold(
-          body: GestureDetector(
-            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-            child: Row(
+        return AppKeyboardOverlay(
+          child: Scaffold(
+            body: Row(
               children: [
                 _buildMenuVertical(
                   context,
@@ -50,7 +59,23 @@ class AppShell extends ConsumerWidget {
                   child: Column(
                     children: [
                       _buildHeader(context, ref, negocio, caja, cajeroActual),
-                      Expanded(child: _buildContenido(indiceActual)),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            final focus = FocusScope.of(context);
+                            final focusedWidget =
+                                focus.focusedChild?.context?.widget;
+
+                            if (focusedWidget is! EditableText &&
+                                focusedWidget is! TextField &&
+                                focusedWidget is! TextFormField) {
+                              unfocusKeyboard();
+                            }
+                          },
+                          behavior: HitTestBehavior.translucent,
+                          child: _buildContenido(indiceActual),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -208,7 +233,7 @@ class AppShell extends ConsumerWidget {
           await _borrarSesion();
           ref.read(cajeroActualProvider.notifier).state = null;
           ref.read(isLoggedInProvider.notifier).state = false;
-          onLogout?.call();
+          widget.onLogout?.call();
         }
       },
       itemBuilder: (context) => [
@@ -285,28 +310,40 @@ class AppShell extends ConsumerWidget {
             icon: Icons.point_of_sale,
             label: 'Venta',
             isSelected: indiceActual == 0,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 0,
+            onTap: () {
+              unfocusKeyboard();
+              ref.read(indiceNavegacionProvider.notifier).state = 0;
+            },
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
             icon: Icons.inventory_2,
             label: 'Productos',
             isSelected: indiceActual == 1,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 1,
+            onTap: () {
+              unfocusKeyboard();
+              ref.read(indiceNavegacionProvider.notifier).state = 1;
+            },
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
             icon: Icons.table_restaurant,
             label: 'Mesas',
             isSelected: indiceActual == 2,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 2,
+            onTap: () {
+              unfocusKeyboard();
+              ref.read(indiceNavegacionProvider.notifier).state = 2;
+            },
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
             icon: Icons.people,
             label: 'Clientes',
             isSelected: indiceActual == 3,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 3,
+            onTap: () {
+              unfocusKeyboard();
+              ref.read(indiceNavegacionProvider.notifier).state = 3;
+            },
             mostrarTexto: mostrarTexto,
           ),
           const Divider(color: Colors.white24, height: 24),
@@ -314,7 +351,10 @@ class AppShell extends ConsumerWidget {
             icon: Icons.account_balance_wallet,
             label: 'Caja',
             isSelected: indiceActual == 4,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 4,
+            onTap: () {
+              unfocusKeyboard();
+              ref.read(indiceNavegacionProvider.notifier).state = 4;
+            },
             mostrarTexto: mostrarTexto,
           ),
           if (cajeroActual?.isAdministrador == true)
@@ -322,22 +362,30 @@ class AppShell extends ConsumerWidget {
               icon: Icons.people_alt,
               label: 'Usuarios',
               isSelected: indiceActual == 5,
-              onTap: () =>
-                  ref.read(indiceNavegacionProvider.notifier).state = 5,
+              onTap: () {
+                unfocusKeyboard();
+                ref.read(indiceNavegacionProvider.notifier).state = 5;
+              },
               mostrarTexto: mostrarTexto,
             ),
           _buildMenuVerticalItem(
             icon: Icons.analytics,
             label: 'Informes',
             isSelected: indiceActual == 6,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 6,
+            onTap: () {
+              unfocusKeyboard();
+              ref.read(indiceNavegacionProvider.notifier).state = 6;
+            },
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
             icon: Icons.settings,
             label: 'Config',
             isSelected: indiceActual == 7,
-            onTap: () => ref.read(indiceNavegacionProvider.notifier).state = 7,
+            onTap: () {
+              unfocusKeyboard();
+              ref.read(indiceNavegacionProvider.notifier).state = 7;
+            },
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(

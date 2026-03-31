@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/app_keyboard_overlay.dart';
 import '../../data/models/models.dart';
 import '../providers/providers.dart';
 
@@ -223,10 +224,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     final isCompact = screenH < 700;
     final isWide = screenW > 600;
 
-    return Scaffold(
-      body: GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        child: Container(
+    return AppKeyboardOverlay(
+      child: Scaffold(
+        body: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,

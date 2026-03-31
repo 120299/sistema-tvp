@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import '../../core/theme/app_theme.dart';
+import '../../core/services/windows_keyboard_service.dart';
+import '../../core/widgets/app_keyboard_overlay.dart';
 import '../../data/models/models.dart';
 import '../providers/providers.dart';
 
@@ -25,6 +27,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
   bool _guardando = false;
   String? _error;
+  bool _usarTecladoVirtual = true;
+  bool _loadingKeyboard = false;
 
   @override
   void dispose() {
@@ -45,6 +49,10 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       _guardando = true;
       _error = null;
     });
+
+    if (_usarTecladoVirtual) {
+      await WindowsKeyboardService.preventOskFromShowing();
+    }
 
     try {
       final db = ref.read(databaseServiceProvider);
@@ -102,262 +110,353 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.primary, AppColors.primaryDark],
+    return AppKeyboardOverlay(
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [AppColors.primary, AppColors.primaryDark],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32),
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 600),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.zero,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        color: AppColors.primary,
-                        child: const Column(
-                          children: [
-                            Icon(Icons.store, size: 48, color: Colors.white),
-                            SizedBox(height: 12),
-                            Text(
-                              'TPV Restaurante',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Configuración Inicial',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.white70,
-                              ),
-                            ),
-                          ],
-                        ),
+          child: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(32),
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.zero,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'DATOS FISCALES (Obligatorios)',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _nombreController,
-                              decoration: const InputDecoration(
-                                labelText: 'Nombre del negocio *',
-                                prefixIcon: Icon(Icons.store_mall_directory),
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'El nombre es obligatorio';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _cifController,
-                              decoration: const InputDecoration(
-                                labelText: 'CIF/NIF *',
-                                prefixIcon: Icon(Icons.badge),
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'El CIF/NIF es obligatorio';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _direccionController,
-                              decoration: const InputDecoration(
-                                labelText: 'Dirección *',
-                                prefixIcon: Icon(Icons.location_on),
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'La dirección es obligatoria';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _telefonoController,
-                              decoration: const InputDecoration(
-                                labelText: 'Teléfono *',
-                                prefixIcon: Icon(Icons.phone),
-                                border: OutlineInputBorder(),
-                              ),
-                              keyboardType: TextInputType.phone,
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'El teléfono es obligatorio';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _ciudadController,
-                              decoration: const InputDecoration(
-                                labelText: 'Ciudad *',
-                                prefixIcon: Icon(Icons.location_city),
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'La ciudad es obligatoria';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 24),
-                            const Text(
-                              'CREAR USUARIO ADMINISTRADOR',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _usuarioController,
-                              decoration: const InputDecoration(
-                                labelText: 'Nombre de usuario *',
-                                prefixIcon: Icon(Icons.person),
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'El nombre de usuario es obligatorio';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _pinController,
-                              decoration: const InputDecoration(
-                                labelText: 'PIN (4 dígitos) *',
-                                prefixIcon: Icon(Icons.pin),
-                                border: OutlineInputBorder(),
-                              ),
-                              keyboardType: TextInputType.number,
-                              maxLength: 4,
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'El PIN es obligatorio';
-                                }
-                                if (value.length != 4) {
-                                  return 'El PIN debe tener exactamente 4 dígitos';
-                                }
-                                if (!RegExp(r'^\d{4}$').hasMatch(value)) {
-                                  return 'El PIN debe contenir solo números';
-                                }
-                                return null;
-                              },
-                            ),
-                            if (_error != null) ...[
-                              const SizedBox(height: 16),
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.error.withOpacity(0.1),
-                                  border: Border.all(color: AppColors.error),
+                    ],
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          color: AppColors.primary,
+                          child: const Column(
+                            children: [
+                              Icon(Icons.store, size: 48, color: Colors.white),
+                              SizedBox(height: 12),
+                              Text(
+                                'TPV Restaurante',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
                                 ),
-                                child: Text(
-                                  _error!,
-                                  style: const TextStyle(
-                                    color: AppColors.error,
-                                  ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Configuración Inicial',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white70,
                                 ),
                               ),
                             ],
-                            const SizedBox(height: 24),
-                            SizedBox(
-                              height: 50,
-                              child: ElevatedButton.icon(
-                                onPressed: _guardando
-                                    ? null
-                                    : _guardarConfiguracion,
-                                icon: _guardando
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'DATOS FISCALES (Obligatorios)',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _nombreController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Nombre del negocio *',
+                                  prefixIcon: Icon(Icons.store_mall_directory),
+                                  border: OutlineInputBorder(),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'El nombre es obligatorio';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _cifController,
+                                decoration: const InputDecoration(
+                                  labelText: 'CIF/NIF *',
+                                  prefixIcon: Icon(Icons.badge),
+                                  border: OutlineInputBorder(),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'El CIF/NIF es obligatorio';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _direccionController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Dirección *',
+                                  prefixIcon: Icon(Icons.location_on),
+                                  border: OutlineInputBorder(),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'La dirección es obligatoria';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _telefonoController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Teléfono *',
+                                  prefixIcon: Icon(Icons.phone),
+                                  border: OutlineInputBorder(),
+                                ),
+                                keyboardType: TextInputType.phone,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'El teléfono es obligatorio';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _ciudadController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Ciudad *',
+                                  prefixIcon: Icon(Icons.location_city),
+                                  border: OutlineInputBorder(),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'La ciudad es obligatoria';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 24),
+                              const Text(
+                                'CREAR USUARIO ADMINISTRADOR',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _usuarioController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Nombre de usuario *',
+                                  prefixIcon: Icon(Icons.person),
+                                  border: OutlineInputBorder(),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'El nombre de usuario es obligatorio';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _pinController,
+                                decoration: const InputDecoration(
+                                  labelText: 'PIN (4 dígitos) *',
+                                  prefixIcon: Icon(Icons.pin),
+                                  border: OutlineInputBorder(),
+                                ),
+                                keyboardType: TextInputType.number,
+                                maxLength: 4,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'El PIN es obligatorio';
+                                  }
+                                  if (value.length != 4) {
+                                    return 'El PIN debe tener exactamente 4 dígitos';
+                                  }
+                                  if (!RegExp(r'^\d{4}$').hasMatch(value)) {
+                                    return 'El PIN debe contenir solo números';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 24),
+                              const Text(
+                                'CONFIGURACIÓN DE TECLADO',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.keyboard,
+                                          color: AppColors.primary,
                                         ),
-                                      )
-                                    : const Icon(Icons.save),
-                                label: Text(
-                                  _guardando
-                                      ? 'Guardando...'
-                                      : 'GUARDAR Y CONTINUAR',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                        const SizedBox(width: 12),
+                                        const Expanded(
+                                          child: Text(
+                                            'Usar teclado virtual',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        Switch(
+                                          value: _usarTecladoVirtual,
+                                          onChanged: (value) async {
+                                            setState(() {
+                                              _usarTecladoVirtual = value;
+                                            });
+                                            if (value) {
+                                              setState(
+                                                () => _loadingKeyboard = true,
+                                              );
+                                              await WindowsKeyboardService.preventOskFromShowing();
+                                              setState(
+                                                () => _loadingKeyboard = false,
+                                              );
+                                            }
+                                          },
+                                          activeColor: AppColors.primary,
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      _usarTecladoVirtual
+                                          ? 'Se mostrará un teclado virtual personalizado al escribir en los campos de texto.'
+                                          : 'Se usará el teclado del sistema.',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    if (_loadingKeyboard) ...[
+                                      const SizedBox(height: 12),
+                                      const Row(
+                                        children: [
+                                          SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            'Configurando teclado táctil de Windows...',
+                                            style: TextStyle(fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              if (_error != null) ...[
+                                const SizedBox(height: 16),
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.error.withOpacity(0.1),
+                                    border: Border.all(color: AppColors.error),
+                                  ),
+                                  child: Text(
+                                    _error!,
+                                    style: const TextStyle(
+                                      color: AppColors.error,
+                                    ),
                                   ),
                                 ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.success,
-                                  foregroundColor: Colors.white,
+                              ],
+                              const SizedBox(height: 24),
+                              SizedBox(
+                                height: 50,
+                                child: ElevatedButton.icon(
+                                  onPressed: _guardando
+                                      ? null
+                                      : _guardarConfiguracion,
+                                  icon: _guardando
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Icon(Icons.save),
+                                  label: Text(
+                                    _guardando
+                                        ? 'Guardando...'
+                                        : 'GUARDAR Y CONTINUAR',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.success,
+                                    foregroundColor: Colors.white,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 12),
-                            const Center(
-                              child: Text(
-                                'No podrá acceder a la app sin completar esta configuración',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
+                              const SizedBox(height: 12),
+                              const Center(
+                                child: Text(
+                                  'No podrá acceder a la app sin completar esta configuración',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
