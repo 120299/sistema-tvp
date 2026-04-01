@@ -6,3 +6,5 @@ export 'mesa.dart';
 export 'pedido.dart';
 export 'producto.dart';
 export 'caja.dart';
+export 'ingrediente_producto.dart';
+export 'extra_producto.dart';

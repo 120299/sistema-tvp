@@ -7,6 +7,7 @@ import '../../data/services/image_storage_service.dart';
 import '../../data/services/print_service.dart';
 import '../widgets/producto_dialog.dart';
 import '../widgets/seleccion_variante_dialog.dart';
+import '../widgets/seleccion_extras_dialog.dart';
 import '../providers/providers.dart';
 import 'cobro_sheet.dart';
 
@@ -1472,6 +1473,29 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       return;
     }
 
+    // Verificar stock
+    if (producto.estaAgotado) {
+      _mostrarAlertaStockAgotado(producto);
+      return;
+    }
+
+    // Si tiene ingredientes o extras, mostrar diálogo de selección
+    final tieneOpciones =
+        (producto.ingredientes?.isNotEmpty ?? false) ||
+        (producto.extras?.isNotEmpty ?? false);
+
+    if (tieneOpciones) {
+      final resultado = await showDialog<PedidoItem>(
+        context: context,
+        builder: (ctx) => SeleccionExtrasDialog(producto: producto),
+      );
+
+      if (resultado != null) {
+        await _agregarItemAlCarrito(producto, resultado);
+      }
+      return;
+    }
+
     // Si es variable con variantes, mostrar diálogo de selección
     if (producto.esVariable && (producto.variantes?.isNotEmpty ?? false)) {
       showDialog(
@@ -1522,7 +1546,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       return;
     }
 
-    // Producto normal (no variable)
+    // Producto normal (no variable, sin extras)
     final itemExistente = _carrito
         .where((i) => i.productoId == producto.id)
         .firstOrNull;
@@ -1552,6 +1576,80 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         await _agregarItemBD(nuevoItem);
       }
     }
+  }
+
+  Future<void> _agregarItemAlCarrito(Producto producto, PedidoItem item) async {
+    final itemExistente = _carrito
+        .where(
+          (i) =>
+              i.productoId == producto.id &&
+              i.varianteId == item.varianteId &&
+              _sonExtrasIguales(
+                i.extrasSeleccionados,
+                item.extrasSeleccionados,
+              ),
+        )
+        .firstOrNull;
+
+    if (itemExistente != null) {
+      final index = _carrito.indexOf(itemExistente);
+      setState(() {
+        _carrito[index] = itemExistente.copyWith(
+          cantidad: itemExistente.cantidad + 1,
+        );
+      });
+      if (_mesaAsignada != null) {
+        await _actualizarItemBD(itemExistente, itemExistente.cantidad + 1);
+      }
+    } else {
+      setState(() {
+        _carrito.add(item);
+      });
+      if (_mesaAsignada != null) {
+        await _agregarItemBD(item);
+      }
+    }
+  }
+
+  bool _sonExtrasIguales(List<ExtraProducto>? a, List<ExtraProducto>? b) {
+    if (a == null && b == null) return true;
+    if (a == null || b == null) return false;
+    if (a.length != b.length) return false;
+    for (final extra in a) {
+      if (!b.any((e) => e.id == extra.id)) return false;
+    }
+    return true;
+  }
+
+  void _mostrarAlertaStockAgotado(Producto producto) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning, color: Colors.orange),
+            SizedBox(width: 12),
+            Text('Producto Agotado'),
+          ],
+        ),
+        content: Text(
+          'El producto "${producto.nombre}" está agotado.\n\n'
+          '¿Desea reponer el stock?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+            },
+            child: const Text('Reponer Stock'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _agregarItemBDConVar(
@@ -1966,6 +2064,10 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     ),
                     cantidad: item.cantidad,
                   );
+
+              await ref
+                  .read(productosProvider.notifier)
+                  .decrementarStock(item.productoId, item.cantidad);
             }
 
             final numeroTicket = await ref

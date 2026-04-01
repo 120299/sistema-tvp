@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/windows_keyboard_service.dart';
@@ -14,31 +15,29 @@ import 'init/desktop_init.dart' if (dart.library.html) 'init/web_init.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Verificar instancia única solo en Windows
-  if (Platform.isWindows) {
-    final mutexName = 'TPV_Restaurante_SingleInstance';
-    try {
-      final result = await Process.run('tasklist', [
-        '/FI',
-        'IMAGENAME eq tpv_restaurante.exe',
-        '/NH',
-      ]);
-      final lines = result.stdout.toString().split('\n');
-      int count = 0;
-      for (final line in lines) {
-        if (line.trim().toLowerCase().contains('tpv_restaurante.exe')) {
-          count++;
+  if (!kIsWeb) {
+    if (Platform.isWindows) {
+      final mutexName = 'TPV_Restaurante_SingleInstance';
+      try {
+        final result = await Process.run('tasklist', [
+          '/FI',
+          'IMAGENAME eq tpv_restaurante.exe',
+          '/NH',
+        ]);
+        final lines = result.stdout.toString().split('\n');
+        int count = 0;
+        for (final line in lines) {
+          if (line.trim().toLowerCase().contains('tpv_restaurante.exe')) {
+            count++;
+          }
         }
-      }
-      if (count > 1) {
-        exit(0);
-      }
-    } catch (e) {
-      // Si falla la verificación, continuar normalmente
+        if (count > 1) {
+          exit(0);
+        }
+      } catch (e) {}
     }
   }
 
-  // Inicializar window_manager solo en plataformas de escritorio
   await initializeDesktop();
 
   runApp(const TPVRestauranteApp());
@@ -62,7 +61,7 @@ class _TPVRestauranteAppState extends ConsumerState<TPVRestauranteApp> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _dbService.initialize();
 
-      if (Platform.isWindows) {
+      if (!kIsWeb && Platform.isWindows) {
         await WindowsKeyboardService.preventOskFromShowing();
       }
 

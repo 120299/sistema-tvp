@@ -46,7 +46,7 @@ class _TPVKeyboardState extends State<TPVKeyboard> {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final keyboardHeight = screenHeight * 0.28;
+    final keyboardHeight = screenHeight * 0.40;
 
     return Container(
       height: keyboardHeight,
@@ -238,7 +238,7 @@ class TPVKeyboardOverlay extends StatelessWidget {
     required this.isVisible,
     this.controller,
     required this.onClose,
-    this.height = 0.28,
+    this.height = 0.40,
   });
 
   @override

@@ -323,6 +323,21 @@ class ProductosNotifier extends StateNotifier<List<Producto>> {
   void actualizarLista() {
     _refresh();
   }
+
+  Future<void> decrementarStock(String productoId, int cantidad) async {
+    final producto = state.firstWhere(
+      (p) => p.id == productoId,
+      orElse: () => throw Exception('Producto no encontrado'),
+    );
+
+    if (producto.stockActual == null) return;
+
+    final nuevoStock = producto.stockActual! - cantidad;
+    final productoActualizado = producto.copyWith(
+      stockActual: nuevoStock < 0 ? 0 : nuevoStock,
+    );
+    await actualizar(productoActualizado);
+  }
 }
 
 final categoriasProvider =

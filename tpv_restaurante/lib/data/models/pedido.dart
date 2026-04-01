@@ -1,3 +1,5 @@
+import 'extra_producto.dart';
+
 enum EstadoPedido { abierto, cerrado, cancelado }
 
 extension EstadoPedidoExtension on EstadoPedido {
@@ -21,6 +23,8 @@ class PedidoItem {
   final int cantidad;
   final double precioUnitario;
   final String? notas;
+  final List<String>? ingredientesQuitados;
+  final List<ExtraProducto>? extrasSeleccionados;
 
   const PedidoItem({
     required this.id,
@@ -30,9 +34,32 @@ class PedidoItem {
     required this.cantidad,
     required this.precioUnitario,
     this.notas,
+    this.ingredientesQuitados,
+    this.extrasSeleccionados,
   });
 
-  double get subtotal => cantidad * precioUnitario;
+  double get precioExtras {
+    if (extrasSeleccionados == null) return 0;
+    return extrasSeleccionados!.fold(0, (sum, extra) => sum + extra.precio);
+  }
+
+  double get subtotal => cantidad * (precioUnitario + precioExtras);
+
+  String get descripcionModificaciones {
+    final parts = <String>[];
+
+    if (ingredientesQuitados != null && ingredientesQuitados!.isNotEmpty) {
+      parts.add('Sin ${ingredientesQuitados!.join(", ")}');
+    }
+
+    if (extrasSeleccionados != null && extrasSeleccionados!.isNotEmpty) {
+      for (final extra in extrasSeleccionados!) {
+        parts.add('+${extra.nombre}');
+      }
+    }
+
+    return parts.join(' | ');
+  }
 
   PedidoItem copyWith({
     String? id,
@@ -42,6 +69,8 @@ class PedidoItem {
     int? cantidad,
     double? precioUnitario,
     String? notas,
+    List<String>? ingredientesQuitados,
+    List<ExtraProducto>? extrasSeleccionados,
   }) {
     return PedidoItem(
       id: id ?? this.id,
@@ -51,6 +80,8 @@ class PedidoItem {
       cantidad: cantidad ?? this.cantidad,
       precioUnitario: precioUnitario ?? this.precioUnitario,
       notas: notas ?? this.notas,
+      ingredientesQuitados: ingredientesQuitados ?? this.ingredientesQuitados,
+      extrasSeleccionados: extrasSeleccionados ?? this.extrasSeleccionados,
     );
   }
 
@@ -63,6 +94,10 @@ class PedidoItem {
       'cantidad': cantidad,
       'precioUnitario': precioUnitario,
       'notas': notas,
+      'ingredientesQuitados': ingredientesQuitados,
+      'extrasSeleccionados': extrasSeleccionados
+          ?.map((e) => e.toJson())
+          .toList(),
     };
   }
 
@@ -75,6 +110,12 @@ class PedidoItem {
       cantidad: json['cantidad'] as int,
       precioUnitario: (json['precioUnitario'] as num).toDouble(),
       notas: json['notas'] as String?,
+      ingredientesQuitados: (json['ingredientesQuitados'] as List?)
+          ?.map((e) => e as String)
+          .toList(),
+      extrasSeleccionados: (json['extrasSeleccionados'] as List?)
+          ?.map((e) => ExtraProducto.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 }

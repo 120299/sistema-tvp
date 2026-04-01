@@ -7,7 +7,10 @@ import 'package:uuid/uuid.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../../data/services/image_storage_service.dart';
+import '../../data/services/ingredientes_extras_service.dart';
 import '../providers/providers.dart';
+import 'ingrediente_dialog.dart';
+import 'extra_dialog.dart';
 
 class ProductoDialog extends ConsumerStatefulWidget {
   final Producto? producto;
@@ -18,7 +21,6 @@ class ProductoDialog extends ConsumerStatefulWidget {
   ConsumerState<ProductoDialog> createState() => _ProductoDialogState();
 }
 
-// Top-level Variante dialog for editing/adding a variant
 class _VarianteDialog extends StatefulWidget {
   final VarianteProducto? variante;
   final ValueChanged<VarianteProducto> onGuardar;
@@ -107,7 +109,6 @@ class _VarianteDialogState extends State<_VarianteDialog> {
   }
 }
 
-// Public variant picker for usage across screens
 class VarianteDialog extends StatefulWidget {
   final ValueChanged<VarianteProducto> onGuardar;
   const VarianteDialog({Key? key, required this.onGuardar}) : super(key: key);
@@ -182,11 +183,16 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
   late TextEditingController _precioCompraController;
   late TextEditingController _descripcionController;
   late TextEditingController _codigoBarrasController;
+  late TextEditingController _stockController;
+  late TextEditingController _stockMinimoController;
   late String _categoriaId;
   late bool _disponible;
   late bool _esAlergenico;
   late bool _esVariable;
+  late bool _controlStock;
   List<VarianteProducto> _variantes = [];
+  List<IngredienteProducto> _ingredientes = [];
+  List<ExtraProducto> _extras = [];
 
   String? _localImageBase64;
   String? _currentImagePath;
@@ -210,11 +216,20 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
     _codigoBarrasController = TextEditingController(
       text: widget.producto?.codigoBarras ?? '',
     );
+    _stockController = TextEditingController(
+      text: widget.producto?.stockActual?.toString() ?? '',
+    );
+    _stockMinimoController = TextEditingController(
+      text: widget.producto?.stockMinimo?.toString() ?? '5',
+    );
     _categoriaId = widget.producto?.categoriaId ?? 'cafes';
     _disponible = widget.producto?.disponible ?? true;
     _esAlergenico = widget.producto?.esAlergenico ?? false;
     _esVariable = widget.producto?.esVariable ?? false;
+    _controlStock = widget.producto?.controlStock ?? false;
     _variantes = List.from(widget.producto?.variantes ?? []);
+    _ingredientes = List.from(widget.producto?.ingredientes ?? []);
+    _extras = List.from(widget.producto?.extras ?? []);
 
     if (widget.producto?.imagenUrl != null &&
         widget.producto!.imagenUrl!.startsWith('products/')) {
@@ -222,8 +237,6 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
       _loadLocalImage(widget.producto!.imagenUrl!);
     }
   }
-
-  // Variantes editoras se mueven a nivel superior (ver abajo)
 
   void _loadLocalImage(String imagePath) {
     final base64 = imageStorageService.getBase64FromPath(imagePath);
@@ -237,18 +250,14 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
       context: context,
       builder: (ctx) => _VarianteDialog(
         onGuardar: (variante) {
-          setState(() {
-            _variantes.add(variante);
-          });
+          setState(() => _variantes.add(variante));
         },
       ),
     );
   }
 
   void _eliminarVariante(int index) {
-    setState(() {
-      _variantes.removeAt(index);
-    });
+    setState(() => _variantes.removeAt(index));
   }
 
   void _editarVariante(int index) {
@@ -258,12 +267,49 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
       builder: (ctx) => _VarianteDialog(
         variante: variante,
         onGuardar: (varianteEditada) {
-          setState(() {
-            _variantes[index] = varianteEditada;
-          });
+          setState(() => _variantes[index] = varianteEditada);
         },
       ),
     );
+  }
+
+  void _agregarIngrediente() async {
+    final resultado = await showDialog<IngredienteProducto>(
+      context: context,
+      builder: (ctx) => const IngredienteDialog(),
+    );
+    if (resultado != null) {
+      setState(() => _ingredientes.add(resultado));
+    }
+  }
+
+  void _eliminarIngrediente(int index) {
+    setState(() => _ingredientes.removeAt(index));
+  }
+
+  void _agregarExtra() async {
+    final resultado = await showDialog<ExtraProducto>(
+      context: context,
+      builder: (ctx) => const ExtraDialog(),
+    );
+    if (resultado != null) {
+      setState(() => _extras.add(resultado));
+    }
+  }
+
+  void _eliminarExtra(int index) {
+    setState(() => _extras.removeAt(index));
+  }
+
+  void _editarExtra(int index) async {
+    final extra = _extras[index];
+    final resultado = await showDialog<ExtraProducto>(
+      context: context,
+      builder: (ctx) => ExtraDialog(extra: extra),
+    );
+    if (resultado != null) {
+      setState(() => _extras[index] = resultado);
+    }
   }
 
   @override
@@ -273,6 +319,8 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
     _precioCompraController.dispose();
     _descripcionController.dispose();
     _codigoBarrasController.dispose();
+    _stockController.dispose();
+    _stockMinimoController.dispose();
     super.dispose();
   }
 
@@ -288,8 +336,8 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
           FocusManager.instance.primaryFocus?.unfocus();
         },
         child: Container(
-          width: 600,
-          constraints: const BoxConstraints(maxHeight: 700),
+          width: 700,
+          constraints: const BoxConstraints(maxHeight: 800),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -310,7 +358,13 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
                         const SizedBox(height: 20),
                         _buildCategoryAndStock(categorias),
                         const SizedBox(height: 20),
+                        _buildStockSection(),
+                        const SizedBox(height: 20),
                         _buildOptionalFields(),
+                        const SizedBox(height: 20),
+                        _buildIngredientesSection(),
+                        const SizedBox(height: 20),
+                        _buildExtrasSection(),
                       ],
                     ),
                   ),
@@ -446,9 +500,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
 
     if (imagen != null) {
       final Uint8List bytes = await imagen.readAsBytes();
-      setState(() {
-        _localImageBase64 = base64Encode(bytes);
-      });
+      setState(() => _localImageBase64 = base64Encode(bytes));
     }
   }
 
@@ -483,7 +535,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
           controller: _nombreController,
           decoration: const InputDecoration(
             labelText: 'Nombre del producto *',
-            hintText: 'Ej: Café Latte',
+            hintText: 'Ej: Hamburguesa Especial',
             prefixIcon: Icon(Icons.restaurant_menu),
           ),
           textCapitalization: TextCapitalization.words,
@@ -679,6 +731,106 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
     );
   }
 
+  Widget _buildStockSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _controlStock
+            ? Colors.orange.withOpacity(0.05)
+            : Colors.grey.shade50,
+        border: Border.all(
+          color: _controlStock
+              ? Colors.orange.withOpacity(0.3)
+              : Colors.grey.shade300,
+        ),
+        borderRadius: BorderRadius.zero,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.inventory,
+                color: _controlStock ? Colors.orange : Colors.grey,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Control de Stock',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Activar para gestionar el inventario',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: _controlStock,
+                onChanged: (value) => setState(() => _controlStock = value),
+                activeThumbColor: Colors.orange,
+              ),
+            ],
+          ),
+          if (_controlStock) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _stockController,
+                    decoration: const InputDecoration(
+                      labelText: 'Stock actual',
+                      prefixIcon: Icon(Icons.numbers),
+                      hintText: 'Ej: 50',
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (_controlStock && (value == null || value.isEmpty)) {
+                        return 'Obligatorio si control stock activo';
+                      }
+                      if (value != null &&
+                          value.isNotEmpty &&
+                          int.tryParse(value) == null) {
+                        return 'Debe ser un número';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextFormField(
+                    controller: _stockMinimoController,
+                    decoration: const InputDecoration(
+                      labelText: 'Stock mínimo (alerta)',
+                      prefixIcon: Icon(Icons.warning_amber),
+                      hintText: 'Ej: 5',
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildOptionalFields() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -692,7 +844,6 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
           ),
         ),
         const SizedBox(height: 12),
-        // Codigo de barras y alergenos
         Row(
           children: [
             Expanded(
@@ -752,152 +903,355 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
           ],
         ),
         const SizedBox(height: 20),
-        // Producto Variable Section
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: _esVariable
-                ? AppColors.primary.withOpacity(0.05)
-                : Colors.grey.shade50,
-            border: Border.all(
-              color: _esVariable
-                  ? AppColors.primary.withOpacity(0.3)
-                  : Colors.grey.shade300,
-            ),
-            borderRadius: BorderRadius.zero,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        _buildVariableSection(),
+      ],
+    );
+  }
+
+  Widget _buildVariableSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _esVariable
+            ? AppColors.primary.withOpacity(0.05)
+            : Colors.grey.shade50,
+        border: Border.all(
+          color: _esVariable
+              ? AppColors.primary.withOpacity(0.3)
+              : Colors.grey.shade300,
+        ),
+        borderRadius: BorderRadius.zero,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.tune,
-                    color: _esVariable ? AppColors.primary : Colors.grey,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Producto Variable',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          'Permite crear variantes (ej: tamaños, sabores)',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Switch(
-                    value: _esVariable,
-                    onChanged: (value) => setState(() {
-                      _esVariable = value;
-                      if (!value) {
-                        _variantes.clear();
-                      }
-                    }),
-                    activeThumbColor: AppColors.primary,
-                  ),
-                ],
+              Icon(
+                Icons.tune,
+                color: _esVariable ? AppColors.primary : Colors.grey,
               ),
-              if (_esVariable) ...[
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 8),
-                Row(
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Variantes',
+                      'Producto Variable',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const Spacer(),
-                    ElevatedButton.icon(
-                      onPressed: _agregarVariante,
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Añadir'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
+                    Text(
+                      'Permite crear variantes (ej: tamaños, sabores)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                if (_variantes.isEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.zero,
-                    ),
-                    child: Center(
-                      child: Text(
-                        'No hay variantes. Añade al menos una.',
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  Container(
-                    constraints: const BoxConstraints(maxHeight: 200),
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: _variantes.length,
-                      itemBuilder: (context, index) {
-                        final variante = _variantes[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: ListTile(
-                            title: Text(variante.nombre),
-                            subtitle: Text(
-                              '${variante.precio.toStringAsFixed(2)} €',
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.edit_outlined,
-                                    color: AppColors.primary,
-                                  ),
-                                  onPressed: () => _editarVariante(index),
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.delete_outline,
-                                    color: AppColors.error,
-                                  ),
-                                  onPressed: () => _eliminarVariante(index),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-              ],
+              ),
+              Switch(
+                value: _esVariable,
+                onChanged: (value) => setState(() {
+                  _esVariable = value;
+                  if (!value) {
+                    _variantes.clear();
+                  }
+                }),
+                activeThumbColor: AppColors.primary,
+              ),
             ],
           ),
-        ),
-      ],
+          if (_esVariable) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Text(
+                  'Variantes',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                ElevatedButton.icon(
+                  onPressed: _agregarVariante,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Añadir'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (_variantes.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.zero,
+                ),
+                child: Center(
+                  child: Text(
+                    'No hay variantes. Añade al menos una.',
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                  ),
+                ),
+              )
+            else
+              Container(
+                constraints: const BoxConstraints(maxHeight: 150),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _variantes.length,
+                  itemBuilder: (context, index) {
+                    final variante = _variantes[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        title: Text(variante.nombre),
+                        subtitle: Text(
+                          '${variante.precio.toStringAsFixed(2)} €',
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.edit_outlined,
+                                color: AppColors.primary,
+                              ),
+                              onPressed: () => _editarVariante(index),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: AppColors.error,
+                              ),
+                              onPressed: () => _eliminarVariante(index),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIngredientesSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.green.withOpacity(0.05),
+        border: Border.all(color: Colors.green.withOpacity(0.3)),
+        borderRadius: BorderRadius.zero,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.restaurant_menu, color: Colors.green),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Ingredientes',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Ingredientes incluidos (cliente puede quitarlos)',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: _agregarIngrediente,
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Añadir'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (_ingredientes.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.zero,
+              ),
+              child: Center(
+                child: Text(
+                  'Sin ingredientes. Añade los ingredientes que lleva el producto.',
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                ),
+              ),
+            )
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _ingredientes.asMap().entries.map((entry) {
+                final index = entry.key;
+                final ingrediente = entry.value;
+                return Chip(
+                  label: Text(ingrediente.nombre),
+                  backgroundColor: Colors.green.shade50,
+                  deleteIcon: const Icon(Icons.close, size: 18),
+                  onDeleted: () => _eliminarIngrediente(index),
+                );
+              }).toList(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExtrasSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.purple.withOpacity(0.05),
+        border: Border.all(color: Colors.purple.withOpacity(0.3)),
+        borderRadius: BorderRadius.zero,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.add_circle, color: Colors.purple),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Extras',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Extras con precio adicional',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: _agregarExtra,
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Añadir'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (_extras.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.zero,
+              ),
+              child: Center(
+                child: Text(
+                  'Sin extras. Añade extras con precio adicional.',
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                ),
+              ),
+            )
+          else
+            Container(
+              constraints: const BoxConstraints(maxHeight: 150),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: _extras.length,
+                itemBuilder: (context, index) {
+                  final extra = _extras[index];
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.shade50,
+                          borderRadius: BorderRadius.zero,
+                        ),
+                        child: const Icon(
+                          Icons.add_circle,
+                          color: Colors.purple,
+                          size: 20,
+                        ),
+                      ),
+                      title: Text(extra.nombre),
+                      subtitle: Text(
+                        '+${extra.precio.toStringAsFixed(2)} €',
+                        style: const TextStyle(
+                          color: Colors.purple,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.edit_outlined,
+                              color: AppColors.primary,
+                            ),
+                            onPressed: () => _editarExtra(index),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: AppColors.error,
+                            ),
+                            onPressed: () => _eliminarExtra(index),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -942,7 +1296,6 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
 
   Future<void> _guardar() async {
     if (_formKey.currentState!.validate()) {
-      // Validate variants if variable product
       if (_esVariable && _variantes.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -965,6 +1318,16 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
         );
       }
 
+      int? stockActual;
+      if (_controlStock && _stockController.text.isNotEmpty) {
+        stockActual = int.tryParse(_stockController.text);
+      }
+
+      int? stockMinimo;
+      if (_controlStock && _stockMinimoController.text.isNotEmpty) {
+        stockMinimo = int.tryParse(_stockMinimoController.text);
+      }
+
       final producto = Producto(
         id: productoId,
         nombre: _nombreController.text.trim(),
@@ -984,12 +1347,15 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
             : _codigoBarrasController.text.trim(),
         esVariable: _esVariable,
         variantes: _esVariable ? _variantes : null,
+        ingredientes: _ingredientes.isNotEmpty ? _ingredientes : null,
+        extras: _extras.isNotEmpty ? _extras : null,
+        stockActual: stockActual,
+        stockMinimo: stockMinimo,
+        controlStock: _controlStock,
       );
 
       if (widget.producto != null) {
         await ref.read(productosProvider.notifier).actualizar(producto);
-
-        // Verificar que se actualizó correctamente
         final productos = ref.read(productosProvider);
         final actualizado = productos
             .where((p) => p.id == producto.id)

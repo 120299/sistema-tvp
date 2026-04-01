@@ -1,5 +1,8 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
@@ -19,6 +22,10 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
   late TextEditingController _nombreController;
   late TextEditingController _iconoController;
   late Color _color;
+  bool _usarImagen = false;
+  String? _imagenBase64;
+  String? _imagenUrlActual;
+  final ImagePicker _imagePicker = ImagePicker();
 
   static const List<Color> _coloresDisponibles = [
     Color(0xFF8B4513),
@@ -45,6 +52,8 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
       text: widget.categoria?.icono ?? '📦',
     );
     _color = widget.categoria?.color ?? _coloresDisponibles.first;
+    _usarImagen = widget.categoria?.imagenUrl != null;
+    _imagenUrlActual = widget.categoria?.imagenUrl;
   }
 
   @override
@@ -54,13 +63,27 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
     super.dispose();
   }
 
+  Future<void> _seleccionarImagen() async {
+    final XFile? imagen = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 80,
+    );
+
+    if (imagen != null) {
+      final Uint8List bytes = await imagen.readAsBytes();
+      setState(() => _imagenBase64 = base64Encode(bytes));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final esEdicion = widget.categoria != null;
 
     return Dialog(
       child: Container(
-        width: 450,
+        width: 500,
         padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
@@ -68,50 +91,10 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: _color.withOpacity(0.2),
-                      borderRadius: BorderRadius.zero,
-                    ),
-                    child: Text(
-                      _iconoController.text,
-                      style: const TextStyle(fontSize: 24),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          esEdicion ? 'Editar Categoría' : 'Nueva Categoría',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          esEdicion
-                              ? 'Actualiza los datos'
-                              : 'Crea una nueva categoría',
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
+              _buildHeader(esEdicion),
               const SizedBox(height: 24),
+              _buildImageSection(),
+              const SizedBox(height: 20),
               TextFormField(
                 controller: _nombreController,
                 decoration: const InputDecoration(
@@ -121,75 +104,12 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
                 ),
                 validator: (v) => v?.isEmpty == true ? 'Obligatorio' : null,
               ),
+              const SizedBox(height: 20),
+              _buildIconSelector(),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _iconoController,
-                decoration: const InputDecoration(
-                  labelText: 'Icono (emoji)',
-                  prefixIcon: Icon(Icons.emoji_emotions),
-                  border: OutlineInputBorder(),
-                  hintText: 'Ej: ☕, 🍕, 🍷',
-                ),
-                onChanged: (_) => setState(() {}),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Color:',
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _coloresDisponibles.map((color) {
-                  return GestureDetector(
-                    onTap: () => setState(() => _color = color),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.zero,
-                        border: _color == color
-                            ? Border.all(color: Colors.black, width: 3)
-                            : null,
-                      ),
-                      child: _color == color
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 20,
-                            )
-                          : null,
-                    ),
-                  );
-                }).toList(),
-              ),
+              _buildColorSelector(),
               const SizedBox(height: 24),
-              Row(
-                children: [
-                  if (esEdicion)
-                    TextButton.icon(
-                      onPressed: _eliminar,
-                      icon: const Icon(Icons.delete),
-                      label: const Text('Eliminar'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.error,
-                      ),
-                    ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancelar'),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed: _guardar,
-                    icon: Icon(esEdicion ? Icons.save : Icons.add),
-                    label: Text(esEdicion ? 'Guardar' : 'Crear'),
-                  ),
-                ],
-              ),
+              _buildActions(esEdicion),
             ],
           ),
         ),
@@ -197,13 +117,302 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
     );
   }
 
+  Widget _buildHeader(bool esEdicion) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: _color.withOpacity(0.2),
+            borderRadius: BorderRadius.zero,
+          ),
+          child: _usarImagen && _imagenBase64 != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.zero,
+                  child: Image.memory(
+                    base64Decode(_imagenBase64!),
+                    width: 24,
+                    height: 24,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              : _usarImagen && _imagenUrlActual != null
+              ? Image.network(
+                  _imagenUrlActual!,
+                  width: 24,
+                  height: 24,
+                  errorBuilder: (_, __, ___) => Text(
+                    _iconoController.text,
+                    style: const TextStyle(fontSize: 24),
+                  ),
+                )
+              : Text(
+                  _iconoController.text,
+                  style: const TextStyle(fontSize: 24),
+                ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                esEdicion ? 'Editar Categoría' : 'Nueva Categoría',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                esEdicion ? 'Actualiza los datos' : 'Crea una nueva categoría',
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.close),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImageSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.zero,
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _buildToggleButton(
+                  'Usar Icono',
+                  Icons.emoji_emotions,
+                  !_usarImagen,
+                  () => setState(() => _usarImagen = false),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildToggleButton(
+                  'Usar Imagen',
+                  Icons.image,
+                  _usarImagen,
+                  () => setState(() => _usarImagen = true),
+                ),
+              ),
+            ],
+          ),
+          if (_usarImagen) ...[
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: _seleccionarImagen,
+              child: Container(
+                width: double.infinity,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.zero,
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: _imagenBase64 != null
+                    ? Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.zero,
+                            child: Image.memory(
+                              base64Decode(_imagenBase64!),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: IconButton(
+                              onPressed: () {
+                                setState(() => _imagenBase64 = null);
+                              },
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.black54,
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.add_photo_alternate,
+                            size: 40,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Toca para seleccionar imagen',
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggleButton(
+    String label,
+    IconData icon,
+    bool selected,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary.withOpacity(0.1) : Colors.white,
+          borderRadius: BorderRadius.zero,
+          border: Border.all(
+            color: selected ? AppColors.primary : Colors.grey.shade300,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: selected ? AppColors.primary : Colors.grey,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: selected ? AppColors.primary : Colors.grey,
+                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconSelector() {
+    if (_usarImagen) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextFormField(
+          controller: _iconoController,
+          decoration: const InputDecoration(
+            labelText: 'Icono (emoji)',
+            prefixIcon: Icon(Icons.emoji_emotions),
+            border: OutlineInputBorder(),
+            hintText: 'Ej: ☕, 🍕, 🍷',
+          ),
+          onChanged: (_) => setState(() {}),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildColorSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Color:', style: TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _coloresDisponibles.map((color) {
+            return GestureDetector(
+              onTap: () => setState(() => _color = color),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.zero,
+                  border: _color == color
+                      ? Border.all(color: Colors.black, width: 3)
+                      : null,
+                ),
+                child: _color == color
+                    ? const Icon(Icons.check, color: Colors.white, size: 20)
+                    : null,
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActions(bool esEdicion) {
+    return Row(
+      children: [
+        if (esEdicion)
+          TextButton.icon(
+            onPressed: _eliminar,
+            icon: const Icon(Icons.delete),
+            label: const Text('Eliminar'),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+          ),
+        const Spacer(),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        const SizedBox(width: 12),
+        ElevatedButton.icon(
+          onPressed: _guardar,
+          icon: Icon(esEdicion ? Icons.save : Icons.add),
+          label: Text(esEdicion ? 'Guardar' : 'Crear'),
+        ),
+      ],
+    );
+  }
+
   void _guardar() async {
     if (_formKey.currentState!.validate()) {
+      String? imagenUrl;
+
+      if (_usarImagen && _imagenBase64 != null) {
+        imagenUrl = 'data:image/png;base64,$_imagenBase64';
+      } else if (_usarImagen && _imagenUrlActual != null) {
+        imagenUrl = _imagenUrlActual;
+      }
+
       final categoria = CategoriaProducto(
         id: widget.categoria?.id ?? 'cat_${const Uuid().v4()}',
         nombre: _nombreController.text.trim(),
-        icono: _iconoController.text,
+        icono: _usarImagen ? '🖼️' : _iconoController.text,
         color: _color,
+        imagenUrl: imagenUrl,
         orden: widget.categoria?.orden ?? 0,
       );
 

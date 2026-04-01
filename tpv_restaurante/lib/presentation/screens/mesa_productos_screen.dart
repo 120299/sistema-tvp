@@ -7,6 +7,8 @@ import '../../data/services/image_storage_service.dart';
 import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
 import '../widgets/producto_dialog.dart';
+import '../widgets/seleccion_extras_dialog.dart';
+import '../widgets/seleccion_variante_dialog.dart';
 
 class MesaProductosScreen extends ConsumerStatefulWidget {
   final Mesa mesa;
@@ -743,12 +745,34 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
           );
       await ref.read(mesasProvider.notifier).ocupar(widget.mesa.id, pedidoId);
     }
-    // Si el producto es variable, pedimos seleccionar variante
+
+    final tieneOpciones =
+        (producto.ingredientes?.isNotEmpty ?? false) ||
+        (producto.extras?.isNotEmpty ?? false);
+
+    if (tieneOpciones) {
+      final resultado = await showDialog<PedidoItem>(
+        context: context,
+        builder: (ctx) => SeleccionExtrasDialog(producto: producto),
+      );
+
+      if (resultado != null) {
+        await ref
+            .read(pedidosProvider.notifier)
+            .agregarItem(pedidoId, producto, cantidad: 1);
+        final mensaje = '${producto.nombre} añadido';
+        _mostrarMensaje(mensaje);
+        setState(() {});
+      }
+      return;
+    }
+
     if (producto.esVariable && (producto.variantes?.isNotEmpty ?? false)) {
       showDialog(
         context: context,
-        builder: (ctx) => VarianteDialog(
-          onGuardar: (vari) async {
+        builder: (ctx) => SeleccionVarianteDialog(
+          producto: producto,
+          onVarianteSeleccionada: (vari) async {
             await ref
                 .read(pedidosProvider.notifier)
                 .agregarItem(pedidoId, producto, cantidad: 1, variante: vari);
@@ -901,6 +925,12 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                 numeroTicket: numeroTicket,
                 cajaId: cajaActual?.id,
               );
+
+          for (final item in pedidoActual) {
+            await ref
+                .read(productosProvider.notifier)
+                .decrementarStock(item.productoId, item.cantidad);
+          }
 
           // Registrar venta en la caja
           if (cajaActual != null) {

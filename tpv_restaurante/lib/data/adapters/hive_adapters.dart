@@ -41,6 +41,63 @@ class CategoriaProductoAdapter extends TypeAdapter<CategoriaProducto> {
   }
 }
 
+class IngredienteProductoAdapter extends TypeAdapter<IngredienteProducto> {
+  @override
+  final int typeId = 10;
+
+  @override
+  IngredienteProducto read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return IngredienteProducto(
+      id: fields[0] as String,
+      nombre: fields[1] as String,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, IngredienteProducto obj) {
+    writer
+      ..writeByte(2)
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
+      ..write(obj.nombre);
+  }
+}
+
+class ExtraProductoAdapter extends TypeAdapter<ExtraProducto> {
+  @override
+  final int typeId = 11;
+
+  @override
+  ExtraProducto read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return ExtraProducto(
+      id: fields[0] as String,
+      nombre: fields[1] as String,
+      precio: fields[2] as double,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, ExtraProducto obj) {
+    writer
+      ..writeByte(3)
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
+      ..write(obj.nombre)
+      ..writeByte(2)
+      ..write(obj.precio);
+  }
+}
+
 class ProductoAdapter extends TypeAdapter<Producto> {
   @override
   final int typeId = 1;
@@ -51,6 +108,31 @@ class ProductoAdapter extends TypeAdapter<Producto> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
+
+    List<VarianteProducto>? variantes;
+    if (fields[11] != null) {
+      variantes = (fields[11] as List).map((v) {
+        final map = Map<String, dynamic>.from(v as Map);
+        return VarianteProducto.fromJson(map);
+      }).toList();
+    }
+
+    List<IngredienteProducto>? ingredientes;
+    if (fields.length > 12 && fields[12] != null) {
+      ingredientes = (fields[12] as List).map((i) {
+        final map = Map<String, dynamic>.from(i as Map);
+        return IngredienteProducto.fromJson(map);
+      }).toList();
+    }
+
+    List<ExtraProducto>? extras;
+    if (fields.length > 13 && fields[13] != null) {
+      extras = (fields[13] as List).map((e) {
+        final map = Map<String, dynamic>.from(e as Map);
+        return ExtraProducto.fromJson(map);
+      }).toList();
+    }
+
     return Producto(
       id: fields[0] as String,
       nombre: fields[1] as String,
@@ -63,17 +145,19 @@ class ProductoAdapter extends TypeAdapter<Producto> {
       esAlergenico: fields[8] as bool? ?? false,
       codigoBarras: fields[9] as String?,
       esVariable: fields[10] as bool? ?? false,
-      variantes: (fields[11] as List?)?.map((v) {
-        final map = Map<String, dynamic>.from(v as Map);
-        return VarianteProducto.fromJson(map);
-      }).toList(),
+      variantes: variantes,
+      ingredientes: ingredientes,
+      extras: extras,
+      stockActual: fields.length > 14 ? fields[14] as int? : null,
+      stockMinimo: fields.length > 15 ? fields[15] as int? : null,
+      controlStock: fields.length > 16 ? fields[16] as bool? ?? false : false,
     );
   }
 
   @override
   void write(BinaryWriter writer, Producto obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -97,7 +181,17 @@ class ProductoAdapter extends TypeAdapter<Producto> {
       ..writeByte(10)
       ..write(obj.esVariable)
       ..writeByte(11)
-      ..write(obj.variantes?.map((v) => v.toJson()).toList());
+      ..write(obj.variantes?.map((v) => v.toJson()).toList())
+      ..writeByte(12)
+      ..write(obj.ingredientes?.map((i) => i.toJson()).toList())
+      ..writeByte(13)
+      ..write(obj.extras?.map((e) => e.toJson()).toList())
+      ..writeByte(14)
+      ..write(obj.stockActual)
+      ..writeByte(15)
+      ..write(obj.stockMinimo)
+      ..writeByte(16)
+      ..write(obj.controlStock);
   }
 }
 
@@ -156,6 +250,20 @@ class PedidoItemAdapter extends TypeAdapter<PedidoItem> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
+
+    List<String>? ingredientesQuitados;
+    if (fields.length > 7 && fields[7] != null) {
+      ingredientesQuitados = (fields[7] as List).cast<String>().toList();
+    }
+
+    List<ExtraProducto>? extrasSeleccionados;
+    if (fields.length > 8 && fields[8] != null) {
+      extrasSeleccionados = (fields[8] as List).map((e) {
+        final map = Map<String, dynamic>.from(e as Map);
+        return ExtraProducto.fromJson(map);
+      }).toList();
+    }
+
     return PedidoItem(
       id: fields[0] as String,
       productoId: fields[1] as String,
@@ -164,13 +272,15 @@ class PedidoItemAdapter extends TypeAdapter<PedidoItem> {
       cantidad: fields[4] as int,
       precioUnitario: fields[5] as double,
       notas: fields[6] as String?,
+      ingredientesQuitados: ingredientesQuitados,
+      extrasSeleccionados: extrasSeleccionados,
     );
   }
 
   @override
   void write(BinaryWriter writer, PedidoItem obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -184,7 +294,11 @@ class PedidoItemAdapter extends TypeAdapter<PedidoItem> {
       ..writeByte(5)
       ..write(obj.precioUnitario)
       ..writeByte(6)
-      ..write(obj.notas);
+      ..write(obj.notas)
+      ..writeByte(7)
+      ..write(obj.ingredientesQuitados)
+      ..writeByte(8)
+      ..write(obj.extrasSeleccionados?.map((e) => e.toJson()).toList());
   }
 }
 

@@ -7,6 +7,7 @@ import '../models/models.dart';
 import '../adapters/hive_adapters.dart';
 import '../repositories/repositories.dart';
 import 'image_storage_service.dart';
+import 'ingredientes_extras_service.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
@@ -61,6 +62,8 @@ class DatabaseService {
     }
 
     Hive.registerAdapter(CategoriaProductoAdapter());
+    Hive.registerAdapter(IngredienteProductoAdapter());
+    Hive.registerAdapter(ExtraProductoAdapter());
     Hive.registerAdapter(ProductoAdapter());
     Hive.registerAdapter(MesaAdapter());
     Hive.registerAdapter(PedidoItemAdapter());
@@ -93,6 +96,9 @@ class DatabaseService {
     cajaRepositorio = CajaRepositorio(cajaBox);
     movimientoRepositorio = MovimientoRepositorio(movimientosBox);
 
+    final ingredientesExtrasSvc = IngredientesExtrasService();
+    await ingredientesExtrasSvc.init();
+
     _initialized = true;
   }
 
@@ -124,9 +130,29 @@ class DatabaseService {
 
     if (!await tpvdDir.exists()) {
       await tpvdDir.create(recursive: true);
+      await _extractDefaultData(tpvdDir);
     }
 
     return tpvdDir;
+  }
+
+  Future<void> _extractDefaultData(Directory targetDir) async {
+    try {
+      final assetDir = Directory('assets/tpv_datos');
+      if (await assetDir.exists()) {
+        await for (final entity in assetDir.list()) {
+          if (entity is File) {
+            final fileName = entity.path.split('/').last;
+            if (fileName.endsWith('.hive') && !fileName.endsWith('.lock')) {
+              final targetFile = File('${targetDir.path}/$fileName');
+              await entity.copy(targetFile.path);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error extracting default data: $e');
+    }
   }
 
   void _setupListeners() {

@@ -23,7 +23,7 @@ class ProductCard extends ConsumerWidget {
     ref.watch(imageRefreshTriggerProvider);
 
     return GestureDetector(
-      onTap: producto.disponible ? onTap : null,
+      onTap: producto.estaAgotado ? null : onTap,
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
@@ -45,20 +45,61 @@ class ProductCard extends ConsumerWidget {
                 fit: StackFit.expand,
                 children: [
                   _buildProductImage(),
-                  if (!producto.disponible)
+                  if (producto.estaAgotado)
                     Container(
                       decoration: const BoxDecoration(
                         color: Colors.black54,
                         borderRadius: BorderRadius.zero,
                       ),
                       child: const Center(
-                        child: Text(
-                          'AGOTADO',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.block, color: Colors.white, size: 32),
+                            SizedBox(height: 4),
+                            Text(
+                              'AGOTADO',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else if (producto.stockBajo)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade700,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.warning,
+                              color: Colors.white,
+                              size: 14,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Stock: ${producto.stockActual}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -128,13 +169,54 @@ class ProductCard extends ConsumerWidget {
                           color: Theme.of(context).textTheme.bodySmall?.color,
                         ),
                       ),
-                    Text(
-                      '${producto.precio.toStringAsFixed(2)} €',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.secondary,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${producto.precioTotal.toStringAsFixed(2)} €',
+                            style: TextStyle(
+                              fontSize: producto.precioExtras > 0 ? 14 : 18,
+                              fontWeight: FontWeight.bold,
+                              color: producto.precioExtras > 0
+                                  ? Colors.purple.shade700
+                                  : AppColors.secondary,
+                            ),
+                          ),
+                        ),
+                        if (producto.tieneOpciones)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (producto.ingredientes?.isNotEmpty ?? false)
+                                  Icon(
+                                    Icons.restaurant_menu,
+                                    size: 12,
+                                    color: Colors.green.shade700,
+                                  ),
+                                if (producto.extras?.isNotEmpty ?? false) ...[
+                                  if (producto.ingredientes?.isNotEmpty ??
+                                      false)
+                                    const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.add_circle,
+                                    size: 12,
+                                    color: Colors.purple.shade700,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
@@ -182,4 +264,9 @@ class ProductCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+extension _ProductoExtension on Producto {
+  bool get tieneOpciones =>
+      (ingredientes?.isNotEmpty ?? false) || (extras?.isNotEmpty ?? false);
 }

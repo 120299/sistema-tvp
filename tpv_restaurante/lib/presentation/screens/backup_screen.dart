@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' if (dart.library.html) 'dart:io_stub.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -45,6 +46,11 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   }
 
   Future<void> _cargarBackups() async {
+    if (kIsWeb) {
+      setState(() => _backupsDisponibles = []);
+      return;
+    }
+
     try {
       final basePath = Directory.current.path;
       final backupsDir = Directory('$basePath/backups');
@@ -162,22 +168,12 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       }
 
       final jsonString = const JsonEncoder.withIndent('  ').convert(datos);
-      final basePath = Directory.current.path;
-      final backupsDir = Directory('$basePath/backups');
 
-      if (!await backupsDir.exists()) {
-        await backupsDir.create(recursive: true);
+      if (kIsWeb) {
+        await _exportarWeb(jsonString);
+      } else {
+        await _exportarDesktop(jsonString);
       }
-
-      final fecha = DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now());
-      final nombreArchivo = 'backup_tpv_$fecha.json';
-      final archivo = File('${backupsDir.path}/$nombreArchivo');
-
-      await archivo.writeAsString(jsonString);
-
-      await Share.shareXFiles([
-        XFile(archivo.path),
-      ], text: 'Copia de seguridad TPV Restaurante');
 
       setState(() {
         _mensaje = 'Backup exportado correctamente';
@@ -195,6 +191,35 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     }
   }
 
+  Future<void> _exportarDesktop(String jsonString) async {
+    final basePath = Directory.current.path;
+    final backupsDir = Directory('$basePath/backups');
+
+    if (!await backupsDir.exists()) {
+      await backupsDir.create(recursive: true);
+    }
+
+    final fecha = DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now());
+    final nombreArchivo = 'backup_tpv_$fecha.json';
+    final archivo = File('${backupsDir.path}/$nombreArchivo');
+
+    await archivo.writeAsString(jsonString);
+
+    await Share.shareXFiles([
+      XFile(archivo.path),
+    ], text: 'Copia de seguridad TPV Restaurante');
+  }
+
+  Future<void> _exportarWeb(String jsonString) async {
+    final fecha = DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now());
+    final nombreArchivo = 'backup_tpv_$fecha.json';
+
+    await Share.share(
+      jsonString,
+      subject: 'Copia de seguridad TPV Restaurante - $nombreArchivo',
+    );
+  }
+
   Future<void> _importar(String rutaArchivo, {bool fusionar = true}) async {
     setState(() {
       _cargando = true;
@@ -202,185 +227,31 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     });
 
     try {
-      final archivo = File(rutaArchivo);
-      if (!await archivo.exists()) {
-        setState(() {
-          _mensaje = 'Archivo no encontrado';
-          _esError = true;
-        });
-        return;
-      }
+      String contenido;
 
-      final contenido = await archivo.readAsString();
-      final datos = json.decode(contenido) as Map<String, dynamic>;
-
-      final db = ref.read(databaseServiceProvider);
-
-      if (fusionar) {
-        if (datos['negocio'] != null) {
-          final negocio = DatosNegocio.fromJson(datos['negocio']);
-          await db.negocioBox.putAt(0, negocio);
-          ref.read(negocioProvider.notifier).actualizar(negocio);
-        }
-
-        if (datos['cajeros'] != null) {
-          for (final cajeroJson in datos['cajeros']) {
-            final cajero = Cajero.fromJson(cajeroJson);
-            final existe = ref
-                .read(cajerosProvider)
-                .any((c) => c.id == cajero.id);
-            if (!existe) {
-              await db.cajerosBox.add(cajero);
-            }
-          }
-          ref.read(cajerosProvider.notifier).actualizarLista();
-        }
-
-        if (datos['clientes'] != null) {
-          for (final clienteJson in datos['clientes']) {
-            final cliente = Cliente.fromJson(clienteJson);
-            final existe = ref
-                .read(clientesProvider)
-                .any((c) => c.id == cliente.id);
-            if (!existe) {
-              await db.clientesBox.add(cliente);
-            }
-          }
-          ref.read(clientesProvider.notifier).actualizarLista();
-        }
-
-        if (datos['categorias'] != null) {
-          for (final catJson in datos['categorias']) {
-            final cat = CategoriaProducto.fromJson(catJson);
-            final existe = ref
-                .read(categoriasProvider)
-                .any((c) => c.id == cat.id);
-            if (!existe) {
-              await db.categoriasBox.add(cat);
-            }
-          }
-          ref.read(categoriasProvider.notifier).actualizarLista();
-        }
-
-        if (datos['productos'] != null) {
-          for (final prodJson in datos['productos']) {
-            final prod = Producto.fromJson(prodJson);
-            final existe = ref
-                .read(productosProvider)
-                .any((p) => p.id == prod.id);
-            if (!existe) {
-              await db.productosBox.add(prod);
-            }
-          }
-          ref.read(productosProvider.notifier).actualizarLista();
-        }
-
-        if (datos['mesas'] != null) {
-          for (final mesaJson in datos['mesas']) {
-            final mesa = Mesa.fromJson(mesaJson);
-            final existe = ref.read(mesasProvider).any((m) => m.id == mesa.id);
-            if (!existe) {
-              await db.mesasBox.add(mesa);
-            }
-          }
-          ref.read(mesasProvider.notifier).actualizarLista();
-        }
-
-        if (datos['pedidos'] != null) {
-          for (final pedJson in datos['pedidos']) {
-            final ped = Pedido.fromJson(pedJson);
-            final existe = ref.read(pedidosProvider).any((p) => p.id == ped.id);
-            if (!existe) {
-              await db.pedidosBox.add(ped);
-            }
-          }
-          ref.read(pedidosProvider.notifier).actualizarLista();
-        }
-
-        if (datos['cajas'] != null) {
-          for (final cajaJson in datos['cajas']) {
-            final caja = Caja.fromJson(cajaJson);
-            final existe = db.cajaRepositorio.getAll().any(
-              (c) => c.id == caja.id,
-            );
-            if (!existe) {
-              await db.cajaBox.add(caja);
-            }
-          }
-        }
-
-        setState(() {
-          _mensaje = 'Datos importados correctamente (fusionando)';
-          _esError = false;
-        });
+      if (kIsWeb) {
+        contenido = rutaArchivo;
       } else {
-        await db.cajerosBox.clear();
-        await db.clientesBox.clear();
-        await db.categoriasBox.clear();
-        await db.productosBox.clear();
-        await db.mesasBox.clear();
-        await db.pedidosBox.clear();
-        await db.cajaBox.clear();
-
-        if (datos['negocio'] != null) {
-          final negocio = DatosNegocio.fromJson(datos['negocio']);
-          await db.negocioBox.putAt(0, negocio);
+        final archivo = File(rutaArchivo);
+        if (!await archivo.exists()) {
+          setState(() {
+            _mensaje = 'Archivo no encontrado';
+            _esError = true;
+          });
+          return;
         }
-
-        if (datos['cajeros'] != null) {
-          for (final cajeroJson in datos['cajeros']) {
-            await db.cajerosBox.add(Cajero.fromJson(cajeroJson));
-          }
-        }
-
-        if (datos['clientes'] != null) {
-          for (final clienteJson in datos['clientes']) {
-            await db.clientesBox.add(Cliente.fromJson(clienteJson));
-          }
-        }
-
-        if (datos['categorias'] != null) {
-          for (final catJson in datos['categorias']) {
-            await db.categoriasBox.add(CategoriaProducto.fromJson(catJson));
-          }
-        }
-
-        if (datos['productos'] != null) {
-          for (final prodJson in datos['productos']) {
-            await db.productosBox.add(Producto.fromJson(prodJson));
-          }
-        }
-
-        if (datos['mesas'] != null) {
-          for (final mesaJson in datos['mesas']) {
-            await db.mesasBox.add(Mesa.fromJson(mesaJson));
-          }
-        }
-
-        if (datos['pedidos'] != null) {
-          for (final pedJson in datos['pedidos']) {
-            await db.pedidosBox.add(Pedido.fromJson(pedJson));
-          }
-        }
-
-        if (datos['cajas'] != null) {
-          for (final cajaJson in datos['cajas']) {
-            await db.cajaBox.add(Caja.fromJson(cajaJson));
-          }
-        }
-
-        ref.read(cajerosProvider.notifier).actualizarLista();
-        ref.read(clientesProvider.notifier).actualizarLista();
-        ref.read(categoriasProvider.notifier).actualizarLista();
-        ref.read(productosProvider.notifier).actualizarLista();
-        ref.read(mesasProvider.notifier).actualizarLista();
-        ref.read(pedidosProvider.notifier).actualizarLista();
-
-        setState(() {
-          _mensaje = 'Datos importados correctamente (sobrescribiendo)';
-          _esError = false;
-        });
+        contenido = await archivo.readAsString();
       }
+
+      final datos = json.decode(contenido) as Map<String, dynamic>;
+      await _procesarImportacion(datos, fusionar);
+
+      setState(() {
+        _mensaje = fusionar
+            ? 'Datos importados correctamente (fusionando)'
+            : 'Datos importados correctamente (sobrescribiendo)';
+        _esError = false;
+      });
     } catch (e) {
       setState(() {
         _mensaje = 'Error al importar: $e';
@@ -393,18 +264,187 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     }
   }
 
+  Future<void> _procesarImportacion(
+    Map<String, dynamic> datos,
+    bool fusionar,
+  ) async {
+    final db = ref.read(databaseServiceProvider);
+
+    if (fusionar) {
+      if (datos['negocio'] != null) {
+        final negocio = DatosNegocio.fromJson(datos['negocio']);
+        await db.negocioBox.putAt(0, negocio);
+        ref.read(negocioProvider.notifier).actualizar(negocio);
+      }
+
+      if (datos['cajeros'] != null) {
+        for (final cajeroJson in datos['cajeros']) {
+          final cajero = Cajero.fromJson(cajeroJson);
+          final existe = ref
+              .read(cajerosProvider)
+              .any((c) => c.id == cajero.id);
+          if (!existe) {
+            await db.cajerosBox.add(cajero);
+          }
+        }
+        ref.read(cajerosProvider.notifier).actualizarLista();
+      }
+
+      if (datos['clientes'] != null) {
+        for (final clienteJson in datos['clientes']) {
+          final cliente = Cliente.fromJson(clienteJson);
+          final existe = ref
+              .read(clientesProvider)
+              .any((c) => c.id == cliente.id);
+          if (!existe) {
+            await db.clientesBox.add(cliente);
+          }
+        }
+        ref.read(clientesProvider.notifier).actualizarLista();
+      }
+
+      if (datos['categorias'] != null) {
+        for (final catJson in datos['categorias']) {
+          final cat = CategoriaProducto.fromJson(catJson);
+          final existe = ref
+              .read(categoriasProvider)
+              .any((c) => c.id == cat.id);
+          if (!existe) {
+            await db.categoriasBox.add(cat);
+          }
+        }
+        ref.read(categoriasProvider.notifier).actualizarLista();
+      }
+
+      if (datos['productos'] != null) {
+        for (final prodJson in datos['productos']) {
+          final prod = Producto.fromJson(prodJson);
+          final existe = ref
+              .read(productosProvider)
+              .any((p) => p.id == prod.id);
+          if (!existe) {
+            await db.productosBox.add(prod);
+          }
+        }
+        ref.read(productosProvider.notifier).actualizarLista();
+      }
+
+      if (datos['mesas'] != null) {
+        for (final mesaJson in datos['mesas']) {
+          final mesa = Mesa.fromJson(mesaJson);
+          final existe = ref.read(mesasProvider).any((m) => m.id == mesa.id);
+          if (!existe) {
+            await db.mesasBox.add(mesa);
+          }
+        }
+        ref.read(mesasProvider.notifier).actualizarLista();
+      }
+
+      if (datos['pedidos'] != null) {
+        for (final pedJson in datos['pedidos']) {
+          final ped = Pedido.fromJson(pedJson);
+          final existe = ref.read(pedidosProvider).any((p) => p.id == ped.id);
+          if (!existe) {
+            await db.pedidosBox.add(ped);
+          }
+        }
+        ref.read(pedidosProvider.notifier).actualizarLista();
+      }
+
+      if (datos['cajas'] != null) {
+        for (final cajaJson in datos['cajas']) {
+          final caja = Caja.fromJson(cajaJson);
+          final existe = db.cajaRepositorio.getAll().any(
+            (c) => c.id == caja.id,
+          );
+          if (!existe) {
+            await db.cajaBox.add(caja);
+          }
+        }
+      }
+    } else {
+      await db.cajerosBox.clear();
+      await db.clientesBox.clear();
+      await db.categoriasBox.clear();
+      await db.productosBox.clear();
+      await db.mesasBox.clear();
+      await db.pedidosBox.clear();
+      await db.cajaBox.clear();
+
+      if (datos['negocio'] != null) {
+        final negocio = DatosNegocio.fromJson(datos['negocio']);
+        await db.negocioBox.putAt(0, negocio);
+      }
+
+      if (datos['cajeros'] != null) {
+        for (final cajeroJson in datos['cajeros']) {
+          await db.cajerosBox.add(Cajero.fromJson(cajeroJson));
+        }
+      }
+
+      if (datos['clientes'] != null) {
+        for (final clienteJson in datos['clientes']) {
+          await db.clientesBox.add(Cliente.fromJson(clienteJson));
+        }
+      }
+
+      if (datos['categorias'] != null) {
+        for (final catJson in datos['categorias']) {
+          await db.categoriasBox.add(CategoriaProducto.fromJson(catJson));
+        }
+      }
+
+      if (datos['productos'] != null) {
+        for (final prodJson in datos['productos']) {
+          await db.productosBox.add(Producto.fromJson(prodJson));
+        }
+      }
+
+      if (datos['mesas'] != null) {
+        for (final mesaJson in datos['mesas']) {
+          await db.mesasBox.add(Mesa.fromJson(mesaJson));
+        }
+      }
+
+      if (datos['pedidos'] != null) {
+        for (final pedJson in datos['pedidos']) {
+          await db.pedidosBox.add(Pedido.fromJson(pedJson));
+        }
+      }
+
+      if (datos['cajas'] != null) {
+        for (final cajaJson in datos['cajas']) {
+          await db.cajaBox.add(Caja.fromJson(cajaJson));
+        }
+      }
+
+      ref.read(cajerosProvider.notifier).actualizarLista();
+      ref.read(clientesProvider.notifier).actualizarLista();
+      ref.read(categoriasProvider.notifier).actualizarLista();
+      ref.read(productosProvider.notifier).actualizarLista();
+      ref.read(mesasProvider.notifier).actualizarLista();
+      ref.read(pedidosProvider.notifier).actualizarLista();
+    }
+  }
+
   Future<void> _seleccionarArchivoYImportar() async {
     try {
       final resultado = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
+        withData: kIsWeb,
       );
 
-      if (resultado != null && resultado.files.single.path != null) {
-        await _importar(
-          resultado.files.single.path!,
-          fusionar: _importarFusionar,
-        );
+      if (resultado != null) {
+        if (kIsWeb && resultado.files.single.bytes != null) {
+          final contenido = String.fromCharCodes(resultado.files.single.bytes!);
+          await _importar(contenido, fusionar: _importarFusionar);
+        } else if (resultado.files.single.path != null) {
+          await _importar(
+            resultado.files.single.path!,
+            fusionar: _importarFusionar,
+          );
+        }
       }
     } catch (e) {
       setState(() {
@@ -701,9 +741,11 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               ),
             ),
           const SizedBox(height: 24),
-          const Text(
-            'Backups disponibles en este dispositivo:',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          Text(
+            kIsWeb
+                ? 'Backups disponibles (usa compartir para enviar archivo):'
+                : 'Backups disponibles en este dispositivo:',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 12),
           if (_backupsDisponibles.isEmpty)
@@ -717,14 +759,17 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 child: Column(
                   children: [
                     Icon(
-                      Icons.folder_off,
+                      kIsWeb ? Icons.share : Icons.folder_off,
                       size: 48,
                       color: Colors.grey.shade400,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'No hay backups guardados',
+                      kIsWeb
+                          ? 'No hay backups en este dispositivo.\nPuedes importar un archivo JSON.'
+                          : 'No hay backups guardados',
                       style: TextStyle(color: Colors.grey.shade600),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
