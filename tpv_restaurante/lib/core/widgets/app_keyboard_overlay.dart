@@ -83,16 +83,28 @@ class _AppKeyboardOverlayState extends ConsumerState<AppKeyboardOverlay> {
       final context = primaryFocus.context;
       if (context == null) return;
 
-      final widget = context.widget;
+      final focusedWidget = context.widget;
 
       TextEditingController? controller;
 
-      if (widget is TextField) {
-        controller = widget.controller;
-      } else if (widget is TextFormField) {
-        controller = widget.controller;
-      } else if (widget is EditableText) {
-        controller = widget.controller;
+      if (focusedWidget is TextField) {
+        final textField = focusedWidget as TextField;
+        if (textField.readOnly == true || textField.enabled == false) {
+          return;
+        }
+        controller = textField.controller;
+      } else if (focusedWidget is TextFormField) {
+        final formField = focusedWidget as TextFormField;
+        if (formField.enabled == false) {
+          return;
+        }
+        controller = formField.controller;
+      } else if (focusedWidget is EditableText) {
+        final editable = focusedWidget as EditableText;
+        if (editable.readOnly == true) {
+          return;
+        }
+        controller = editable.controller;
       } else {
         controller = _findControllerInElement(context as Element);
       }
@@ -110,14 +122,21 @@ class _AppKeyboardOverlayState extends ConsumerState<AppKeyboardOverlay> {
 
   TextEditingController? _findControllerInElement(Element element) {
     final widget = element.widget;
+
     if (widget is TextField) {
-      return widget.controller;
+      final tf = widget as TextField;
+      if (tf.readOnly == true || tf.enabled == false) return null;
+      return tf.controller;
     }
     if (widget is TextFormField) {
-      return widget.controller;
+      final tff = widget as TextFormField;
+      if (tff.enabled == false) return null;
+      return tff.controller;
     }
     if (widget is EditableText) {
-      return widget.controller;
+      final et = widget as EditableText;
+      if (et.readOnly == true) return null;
+      return et.controller;
     }
 
     TextEditingController? result;
