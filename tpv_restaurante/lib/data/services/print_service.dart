@@ -1056,42 +1056,90 @@ class PrintService {
         pw.Divider(thickness: 0.5),
         ...items.map(
           (item) => pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(vertical: 1),
-            child: pw.Row(
+            padding: const pw.EdgeInsets.symmetric(vertical: 2),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.SizedBox(
-                  width: 20,
-                  child: pw.Text(
-                    '${item.cantidad}',
-                    style: const pw.TextStyle(fontSize: 9),
-                  ),
-                ),
-                pw.Expanded(
-                  child: pw.Text(
-                    item.productoNombre,
-                    style: const pw.TextStyle(fontSize: 9),
-                  ),
-                ),
-                pw.SizedBox(
-                  width: 45,
-                  child: pw.Text(
-                    item.precioUnitario.toStringAsFixed(2),
-                    style: const pw.TextStyle(fontSize: 9),
-                    textAlign: pw.TextAlign.right,
-                  ),
-                ),
-                // ...
-                pw.SizedBox(
-                  width: 45,
-                  child: pw.Text(
-                    '${(item.cantidad * item.precioUnitario).toStringAsFixed(2)} EUR',
-                    style: pw.TextStyle(
-                      fontSize: 9,
-                      fontWeight: pw.FontWeight.bold,
+                pw.Row(
+                  children: [
+                    pw.SizedBox(
+                      width: 20,
+                      child: pw.Text(
+                        '${item.cantidad}',
+                        style: const pw.TextStyle(fontSize: 9),
+                      ),
                     ),
-                    textAlign: pw.TextAlign.right,
-                  ),
+                    pw.Expanded(
+                      child: pw.Text(
+                        item.productoNombre,
+                        style: pw.TextStyle(
+                          fontSize: 9,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    pw.SizedBox(
+                      width: 45,
+                      child: pw.Text(
+                        item.precioUnitario.toStringAsFixed(2),
+                        style: const pw.TextStyle(fontSize: 9),
+                        textAlign: pw.TextAlign.right,
+                      ),
+                    ),
+                    pw.SizedBox(
+                      width: 45,
+                      child: pw.Text(
+                        '${item.subtotal.toStringAsFixed(2)} EUR',
+                        style: pw.TextStyle(
+                          fontSize: 9,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                        textAlign: pw.TextAlign.right,
+                      ),
+                    ),
+                  ],
                 ),
+                if (item.ingredientesQuitados?.isNotEmpty ?? false)
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(left: 20),
+                    child: pw.Text(
+                      'Sin ${item.ingredientesQuitados!.join(", ")}',
+                      style: const pw.TextStyle(
+                        fontSize: 8,
+                        color: PdfColors.grey600,
+                      ),
+                    ),
+                  ),
+                if (item.extrasSeleccionados?.isNotEmpty ?? false)
+                  ...item.extrasSeleccionados!.map(
+                    (extra) => pw.Padding(
+                      padding: const pw.EdgeInsets.only(left: 20),
+                      child: pw.Row(
+                        children: [
+                          pw.Text(
+                            '+${extra.nombre}',
+                            style: const pw.TextStyle(fontSize: 8),
+                          ),
+                          pw.Spacer(),
+                          pw.Text(
+                            '+${extra.precio.toStringAsFixed(2)} EUR',
+                            style: const pw.TextStyle(fontSize: 8),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                if (item.notas?.isNotEmpty ?? false)
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(left: 20),
+                    child: pw.Text(
+                      'Nota: ${item.notas}',
+                      style: const pw.TextStyle(
+                        fontSize: 8,
+                        color: PdfColors.orange,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

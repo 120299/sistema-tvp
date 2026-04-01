@@ -174,9 +174,11 @@ class ProductCard extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            '${producto.precioTotal.toStringAsFixed(2)} €',
+                            _formatearPrecio(producto),
                             style: TextStyle(
-                              fontSize: producto.precioExtras > 0 ? 14 : 18,
+                              fontSize: producto.tieneRangoPrecios
+                                  ? 12
+                                  : (producto.precioExtras > 0 ? 14 : 18),
                               fontWeight: FontWeight.bold,
                               color: producto.precioExtras > 0
                                   ? Colors.purple.shade700
@@ -264,9 +266,22 @@ class ProductCard extends ConsumerWidget {
       ),
     );
   }
+
+  String _formatearPrecio(Producto producto) {
+    if (producto.esVariable &&
+        producto.variantes != null &&
+        producto.variantes!.length > 1) {
+      final precios = producto.variantes!.map((v) => v.precio).toList()..sort();
+      return '${precios.first.toStringAsFixed(2)}€ - ${precios.last.toStringAsFixed(2)}€';
+    }
+    return '${producto.precioTotal.toStringAsFixed(2)} €';
+  }
 }
 
 extension _ProductoExtension on Producto {
   bool get tieneOpciones =>
       (ingredientes?.isNotEmpty ?? false) || (extras?.isNotEmpty ?? false);
+
+  bool get tieneRangoPrecios =>
+      esVariable && variantes != null && variantes!.isNotEmpty;
 }

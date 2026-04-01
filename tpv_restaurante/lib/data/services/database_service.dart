@@ -8,6 +8,7 @@ import '../adapters/hive_adapters.dart';
 import '../repositories/repositories.dart';
 import 'image_storage_service.dart';
 import 'ingredientes_extras_service.dart';
+import 'migration_service.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
@@ -74,16 +75,40 @@ class DatabaseService {
     Hive.registerAdapter(CajeroAdapter());
     Hive.registerAdapter(ClienteAdapter());
 
-    productosBox = await Hive.openBox<Producto>(_productosBox);
-    categoriasBox = await Hive.openBox<CategoriaProducto>(_categoriasBox);
-    mesasBox = await Hive.openBox<Mesa>(_mesasBox);
-    pedidosBox = await Hive.openBox<Pedido>(_pedidosBox);
-    negocioBox = await Hive.openBox<DatosNegocio>(_negocioBox);
-    configBox = await Hive.openBox(_configBox);
-    cajaBox = await Hive.openBox<Caja>(_cajaBox);
-    movimientosBox = await Hive.openBox<MovimientoCaja>(_movimientosBox);
-    cajerosBox = await Hive.openBox<Cajero>(_cajerosBox);
-    clientesBox = await Hive.openBox<Cliente>(_clientesBox);
+    try {
+      productosBox = await Hive.openBox<Producto>(_productosBox);
+      categoriasBox = await Hive.openBox<CategoriaProducto>(_categoriasBox);
+      mesasBox = await Hive.openBox<Mesa>(_mesasBox);
+      pedidosBox = await Hive.openBox<Pedido>(_pedidosBox);
+      negocioBox = await Hive.openBox<DatosNegocio>(_negocioBox);
+      configBox = await Hive.openBox(_configBox);
+      cajaBox = await Hive.openBox<Caja>(_cajaBox);
+      movimientosBox = await Hive.openBox<MovimientoCaja>(_movimientosBox);
+      cajerosBox = await Hive.openBox<Cajero>(_cajerosBox);
+      clientesBox = await Hive.openBox<Cliente>(_clientesBox);
+    } catch (e) {
+      debugPrint('Error abriendo cajas Hive, intentando migración...');
+      try {
+        final targetDir = await _getDataDirectory();
+        await MigrationService.migrateFromOldData(
+          'assets/tpv_datos',
+          targetDir.path,
+        );
+        productosBox = await Hive.openBox<Producto>(_productosBox);
+        categoriasBox = await Hive.openBox<CategoriaProducto>(_categoriasBox);
+        mesasBox = await Hive.openBox<Mesa>(_mesasBox);
+        pedidosBox = await Hive.openBox<Pedido>(_pedidosBox);
+        negocioBox = await Hive.openBox<DatosNegocio>(_negocioBox);
+        configBox = await Hive.openBox(_configBox);
+        cajaBox = await Hive.openBox<Caja>(_cajaBox);
+        movimientosBox = await Hive.openBox<MovimientoCaja>(_movimientosBox);
+        cajerosBox = await Hive.openBox<Cajero>(_cajerosBox);
+        clientesBox = await Hive.openBox<Cliente>(_clientesBox);
+      } catch (e2) {
+        debugPrint('Error en migración: $e2');
+        rethrow;
+      }
+    }
 
     _setupListeners();
 

@@ -1005,16 +1005,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (cat.icono != null)
-                  Text(cat.icono!, style: const TextStyle(fontSize: 28))
-                else
-                  Icon(
-                    Icons.category,
-                    size: 28,
-                    color: isSelected
-                        ? (cat.color ?? AppColors.primary)
-                        : Colors.grey,
-                  ),
+                _buildCategoryImage(cat),
                 const SizedBox(height: 6),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -1458,6 +1449,50 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
 
   void _agregarProducto(BuildContext context) {
     showDialog(context: context, builder: (context) => const ProductoDialog());
+  }
+
+  Widget _buildCategoryImage(CategoriaProducto cat) {
+    if (cat.imagenUrl != null && cat.imagenUrl!.isNotEmpty) {
+      if (cat.imagenUrl!.startsWith('http')) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            cat.imagenUrl!,
+            width: 50,
+            height: 50,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _buildCategoryIcon(cat),
+          ),
+        );
+      }
+      if (cat.imagenUrl!.startsWith('categories/')) {
+        final base64 = imageStorageService.getBase64FromPath(cat.imagenUrl!);
+        if (base64.isNotEmpty) {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.memory(
+              base64Decode(base64),
+              width: 50,
+              height: 50,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _buildCategoryIcon(cat),
+            ),
+          );
+        }
+      }
+    }
+    return _buildCategoryIcon(cat);
+  }
+
+  Widget _buildCategoryIcon(CategoriaProducto cat) {
+    if (cat.icono != null && cat.icono!.isNotEmpty) {
+      return Text(cat.icono!, style: const TextStyle(fontSize: 28));
+    }
+    return Icon(
+      Icons.category,
+      size: 28,
+      color: cat.color ?? AppColors.primary,
+    );
   }
 
   void _editarProducto(BuildContext context, Producto producto) {

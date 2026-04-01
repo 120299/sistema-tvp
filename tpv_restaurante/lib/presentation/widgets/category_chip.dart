@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
+import '../../data/services/image_storage_service.dart';
 
 class CategoryChip extends StatelessWidget {
   final CategoriaProducto categoria;
@@ -20,14 +22,12 @@ class CategoryChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? categoria.color : Theme.of(context).cardColor,
           borderRadius: BorderRadius.zero,
           border: Border.all(
-            color: isSelected
-                ? categoria.color
-                : Colors.grey.withOpacity(0.3),
+            color: isSelected ? categoria.color : Colors.grey.withOpacity(0.3),
             width: 1.5,
           ),
           boxShadow: isSelected
@@ -43,19 +43,68 @@ class CategoryChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(categoria.icono, style: const TextStyle(fontSize: 18)),
+            _buildAvatar(),
             const SizedBox(width: 8),
-            Text(
-              categoria.nombre,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : AppColors.textPrimary,
+            Flexible(
+              child: Text(
+                categoria.nombre,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected ? Colors.white : AppColors.textPrimary,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    if (categoria.imagenUrl != null && categoria.imagenUrl!.isNotEmpty) {
+      if (categoria.imagenUrl!.startsWith('http')) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: Image.network(
+            categoria.imagenUrl!,
+            width: 24,
+            height: 24,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _buildIcon(),
+          ),
+        );
+      }
+      if (categoria.imagenUrl!.startsWith('categories/')) {
+        final base64 = imageStorageService.getBase64FromPath(
+          categoria.imagenUrl!,
+        );
+        if (base64.isNotEmpty) {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: Image.memory(
+              base64Decode(base64),
+              width: 24,
+              height: 24,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _buildIcon(),
+            ),
+          );
+        }
+      }
+    }
+    return _buildIcon();
+  }
+
+  Widget _buildIcon() {
+    if (categoria.icono != null && categoria.icono!.isNotEmpty) {
+      return Text(categoria.icono!, style: const TextStyle(fontSize: 16));
+    }
+    return Icon(
+      Icons.category,
+      size: 16,
+      color: isSelected ? Colors.white : categoria.color,
     );
   }
 }

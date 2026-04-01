@@ -1,29 +1,96 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 
-class SeleccionExtrasDialog extends StatefulWidget {
+class ProductoPersonalizacionDialog extends StatefulWidget {
   final Producto producto;
-  final VarianteProducto? variante;
+  final Function(PedidoItem) onConfirm;
+  final PedidoItem? itemInicial;
 
-  const SeleccionExtrasDialog({
+  const ProductoPersonalizacionDialog({
     super.key,
     required this.producto,
-    this.variante,
+    required this.onConfirm,
+    this.itemInicial,
   });
 
   @override
-  State<SeleccionExtrasDialog> createState() => _SeleccionExtrasDialogState();
+  State<ProductoPersonalizacionDialog> createState() =>
+      _ProductoPersonalizacionDialogState();
 }
 
-class _SeleccionExtrasDialogState extends State<SeleccionExtrasDialog> {
+class _ProductoPersonalizacionDialogState
+    extends State<ProductoPersonalizacionDialog> {
+  VarianteProducto? _varianteSeleccionada;
   final Set<String> _ingredientesQuitados = {};
   final Set<String> _extrasSeleccionados = {};
+  late TextEditingController _notasController;
+
+  @override
+  void initState() {
+    super.initState();
+    _notasController = TextEditingController(text: widget.itemInicial?.notas);
+
+    if (widget.itemInicial != null) {
+      final item = widget.itemInicial!;
+      if (item.varianteId != null && widget.producto.variantes != null) {
+        _varianteSeleccionada = widget.producto.variantes!
+            .where((v) => v.id == item.varianteId)
+            .firstOrNull;
+      }
+      if (item.ingredientesQuitados != null) {
+        for (final nombre in item.ingredientesQuitados!) {
+          final ingrediente = widget.producto.ingredientes
+              ?.where((i) => i.nombre == nombre)
+              .firstOrNull;
+          if (ingrediente != null) {
+            _ingredientesQuitados.add(ingrediente.id);
+          }
+        }
+      }
+      if (item.extrasSeleccionados != null) {
+        for (final extra in item.extrasSeleccionados!) {
+          _extrasSeleccionados.add(extra.id);
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _notasController.dispose();
+    super.dispose();
+  }
+
+  bool get _esVariable => widget.producto.esVariable;
+  bool get _tieneVariantes =>
+      widget.producto.variantes != null &&
+      widget.producto.variantes!.isNotEmpty;
+  bool get _tieneIngredientes =>
+      widget.producto.ingredientes != null &&
+      widget.producto.ingredientes!.isNotEmpty;
+  bool get _tieneExtras =>
+      widget.producto.extras != null && widget.producto.extras!.isNotEmpty;
+
+  bool get _puedeConfirmar {
+    if (_esVariable && _tieneVariantes && _varianteSeleccionada == null) {
+      return false;
+    }
+    return true;
+  }
+
+  String? get _mensajeError {
+    if (_esVariable && _tieneVariantes && _varianteSeleccionada == null) {
+      return 'Por favor, selecciona una opción';
+    }
+    return null;
+  }
 
   double get _precioBase {
-    if (widget.variante != null) {
-      return widget.variante!.precio;
+    if (_varianteSeleccionada != null) {
+      return _varianteSeleccionada!.precio;
     }
     return widget.producto.precio;
   }
@@ -40,19 +107,52 @@ class _SeleccionExtrasDialogState extends State<SeleccionExtrasDialog> {
 
   double get _precioTotal => _precioBase + _precioExtras;
 
-  bool get _tieneIngredientes =>
-      widget.producto.ingredientes != null &&
-      widget.producto.ingredientes!.isNotEmpty;
+  String _getNombreCompleto() {
+    String nombre = widget.producto.nombre;
+    if (_varianteSeleccionada != null) {
+      nombre += ' - ${_varianteSeleccionada!.nombre}';
+    }
+    return nombre;
+  }
 
-  bool get _tieneExtras =>
-      widget.producto.extras != null && widget.producto.extras!.isNotEmpty;
+  void _confirmar() {
+    if (!_puedeConfirmar) return;
 
-  bool get _tieneOpciones => _tieneIngredientes || _tieneExtras;
+    List<ExtraProducto> extrasLista = [];
+    if (_extrasSeleccionados.isNotEmpty) {
+      extrasLista = widget.producto.extras!
+          .where((e) => _extrasSeleccionados.contains(e.id))
+          .toList();
+    }
+
+    List<String> ingredientesQuitadosLista = [];
+    if (_ingredientesQuitados.isNotEmpty) {
+      ingredientesQuitadosLista = widget.producto.ingredientes!
+          .where((i) => _ingredientesQuitados.contains(i.id))
+          .map((i) => i.nombre)
+          .toList();
+    }
+
+    final item = PedidoItem(
+      id: widget.itemInicial?.id ?? 'item_${const Uuid().v4()}',
+      productoId: widget.producto.id,
+      varianteId: _varianteSeleccionada?.id,
+      productoNombre: _getNombreCompleto(),
+      cantidad: widget.itemInicial?.cantidad ?? 1,
+      precioUnitario: _precioBase,
+      notas: _notasController.text.isNotEmpty ? _notasController.text : null,
+      ingredientesQuitados: ingredientesQuitadosLista.isNotEmpty
+          ? ingredientesQuitadosLista
+          : null,
+      extrasSeleccionados: extrasLista.isNotEmpty ? extrasLista : null,
+    );
+
+    widget.onConfirm(item);
+    Navigator.pop(context, item);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final nombreVariante = widget.variante?.nombre;
-
     return Dialog(
       child: Container(
         width: 500,
@@ -60,18 +160,24 @@ class _SeleccionExtrasDialogState extends State<SeleccionExtrasDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildHeader(nombreVariante),
+            _buildHeader(),
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (_esVariable && _tieneVariantes)
+                      _buildVariantesSection(),
+                    if ((_esVariable && _tieneVariantes) &&
+                        (_tieneIngredientes || _tieneExtras))
+                      const SizedBox(height: 16),
                     if (_tieneIngredientes) _buildIngredientesSection(),
                     if (_tieneIngredientes && _tieneExtras)
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
                     if (_tieneExtras) _buildExtrasSection(),
-                    if (!_tieneOpciones) _buildSinOpciones(),
+                    const SizedBox(height: 16),
+                    _buildNotasSection(),
                   ],
                 ),
               ),
@@ -83,13 +189,12 @@ class _SeleccionExtrasDialogState extends State<SeleccionExtrasDialog> {
     );
   }
 
-  Widget _buildHeader(String? nombreVariante) {
+  Widget _buildHeader() {
+    String? nombreVariante = _varianteSeleccionada?.nombre;
+
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.zero,
-      ),
+      decoration: const BoxDecoration(color: AppColors.primary),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -138,6 +243,110 @@ class _SeleccionExtrasDialogState extends State<SeleccionExtrasDialog> {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVariantesSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.zero,
+        border: Border.all(color: Colors.blue.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.straighten, color: Colors.blue.shade700, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'TAMAÑO / PRESENTACIÓN',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue.shade700,
+                ),
+              ),
+              const Text(' *', style: TextStyle(color: Colors.red)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: widget.producto.variantes!.map((variante) {
+              final isSelected = _varianteSeleccionada?.id == variante.id;
+              return InkWell(
+                onTap: () {
+                  setState(() {
+                    _varianteSeleccionada = variante;
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.blue.shade100 : Colors.white,
+                    borderRadius: BorderRadius.zero,
+                    border: Border.all(
+                      color: isSelected
+                          ? Colors.blue.shade600
+                          : Colors.grey.shade300,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        variante.nombre,
+                        style: TextStyle(
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${variante.precio.toStringAsFixed(2)}€',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          if (_mensajeError != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.zero,
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning, color: Colors.red.shade700, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    _mensajeError!,
+                    style: TextStyle(color: Colors.red.shade700, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -350,25 +559,42 @@ class _SeleccionExtrasDialogState extends State<SeleccionExtrasDialog> {
     );
   }
 
-  Widget _buildSinOpciones() {
+  Widget _buildNotasSection() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Colors.orange.shade50,
         borderRadius: BorderRadius.zero,
+        border: Border.all(color: Colors.orange.shade200),
       ),
-      child: Center(
-        child: Column(
-          children: [
-            Icon(Icons.info_outline, color: Colors.grey.shade400, size: 48),
-            const SizedBox(height: 12),
-            Text(
-              'Este producto no tiene ingredientes ni extras configurados',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-              textAlign: TextAlign.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.note, color: Colors.orange.shade700, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'NOTAS',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange.shade700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _notasController,
+            decoration: InputDecoration(
+              hintText: 'Ej: Sin hielo, extra sal, etc.',
+              border: OutlineInputBorder(borderRadius: BorderRadius.zero),
+              contentPadding: const EdgeInsets.all(12),
             ),
-          ],
-        ),
+            maxLines: 2,
+          ),
+        ],
       ),
     );
   }
@@ -463,13 +689,14 @@ class _SeleccionExtrasDialogState extends State<SeleccionExtrasDialog> {
               Expanded(
                 flex: 2,
                 child: ElevatedButton.icon(
-                  onPressed: _confirmar,
+                  onPressed: _puedeConfirmar ? _confirmar : null,
                   icon: const Icon(Icons.add_shopping_cart),
-                  label: const Text('Añadir al pedido'),
+                  label: Text('Añadir ${_precioTotal.toStringAsFixed(2)}€'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
+                    disabledBackgroundColor: Colors.grey.shade300,
                   ),
                 ),
               ),
@@ -478,40 +705,6 @@ class _SeleccionExtrasDialogState extends State<SeleccionExtrasDialog> {
         ],
       ),
     );
-  }
-
-  void _confirmar() {
-    List<ExtraProducto> extrasSeleccionados = [];
-    if (_extrasSeleccionados.isNotEmpty) {
-      extrasSeleccionados = widget.producto.extras!
-          .where((e) => _extrasSeleccionados.contains(e.id))
-          .toList();
-    }
-
-    List<String> ingredientesQuitados = [];
-    if (_ingredientesQuitados.isNotEmpty) {
-      ingredientesQuitados = widget.producto.ingredientes!
-          .where((i) => _ingredientesQuitados.contains(i.id))
-          .map((i) => i.nombre)
-          .toList();
-    }
-
-    final item = PedidoItem(
-      id: 'item_${const Uuid().v4()}',
-      productoId: widget.producto.id,
-      varianteId: widget.variante?.id,
-      productoNombre: widget.producto.nombre,
-      cantidad: 1,
-      precioUnitario: _precioBase,
-      ingredientesQuitados: ingredientesQuitados.isNotEmpty
-          ? ingredientesQuitados
-          : null,
-      extrasSeleccionados: extrasSeleccionados.isNotEmpty
-          ? extrasSeleccionados
-          : null,
-    );
-
-    Navigator.pop(context, item);
   }
 
   String _getIngredientesQuitadosTexto() {

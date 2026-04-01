@@ -6,8 +6,7 @@ import '../../data/models/models.dart';
 import '../../data/services/image_storage_service.dart';
 import '../../data/services/print_service.dart';
 import '../widgets/producto_dialog.dart';
-import '../widgets/seleccion_variante_dialog.dart';
-import '../widgets/seleccion_extras_dialog.dart';
+import '../widgets/producto_personalizacion_dialog.dart';
 import '../providers/providers.dart';
 import 'cobro_sheet.dart';
 
@@ -1473,21 +1472,23 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       return;
     }
 
-    // Verificar stock
     if (producto.estaAgotado) {
       _mostrarAlertaStockAgotado(producto);
       return;
     }
 
-    // Si tiene ingredientes o extras, mostrar diálogo de selección
-    final tieneOpciones =
+    final esConfigurable =
+        producto.esVariable ||
         (producto.ingredientes?.isNotEmpty ?? false) ||
         (producto.extras?.isNotEmpty ?? false);
 
-    if (tieneOpciones) {
+    if (esConfigurable) {
       final resultado = await showDialog<PedidoItem>(
         context: context,
-        builder: (ctx) => SeleccionExtrasDialog(producto: producto),
+        builder: (ctx) => ProductoPersonalizacionDialog(
+          producto: producto,
+          onConfirm: (item) => Navigator.pop(ctx, item),
+        ),
       );
 
       if (resultado != null) {
@@ -1496,57 +1497,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       return;
     }
 
-    // Si es variable con variantes, mostrar diálogo de selección
-    if (producto.esVariable && (producto.variantes?.isNotEmpty ?? false)) {
-      showDialog(
-        context: context,
-        builder: (ctx) => SeleccionVarianteDialog(
-          producto: producto,
-          onVarianteSeleccionada: (variante) async {
-            final itemExistente = _carrito
-                .where(
-                  (i) =>
-                      i.productoId == producto.id &&
-                      i.varianteId == variante.id,
-                )
-                .firstOrNull;
-
-            if (itemExistente != null) {
-              final index = _carrito.indexOf(itemExistente);
-              setState(() {
-                _carrito[index] = itemExistente.copyWith(
-                  cantidad: itemExistente.cantidad + 1,
-                );
-              });
-              if (_mesaAsignada != null) {
-                await _actualizarItemBD(
-                  itemExistente,
-                  itemExistente.cantidad + 1,
-                );
-              }
-            } else {
-              final nuevoItem = PedidoItem(
-                id: 'item_${DateTime.now().millisecondsSinceEpoch}',
-                productoId: producto.id,
-                varianteId: variante.id,
-                productoNombre: '${producto.nombre} (${variante.nombre})',
-                cantidad: 1,
-                precioUnitario: variante.precio,
-              );
-              setState(() {
-                _carrito.add(nuevoItem);
-              });
-              if (_mesaAsignada != null) {
-                await _agregarItemBDConVar(nuevoItem, variante);
-              }
-            }
-          },
-        ),
-      );
-      return;
-    }
-
-    // Producto normal (no variable, sin extras)
     final itemExistente = _carrito
         .where((i) => i.productoId == producto.id)
         .firstOrNull;

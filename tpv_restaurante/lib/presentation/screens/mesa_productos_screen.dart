@@ -7,8 +7,7 @@ import '../../data/services/image_storage_service.dart';
 import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
 import '../widgets/producto_dialog.dart';
-import '../widgets/seleccion_extras_dialog.dart';
-import '../widgets/seleccion_variante_dialog.dart';
+import '../widgets/producto_personalizacion_dialog.dart';
 
 class MesaProductosScreen extends ConsumerStatefulWidget {
   final Mesa mesa;
@@ -746,14 +745,18 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
       await ref.read(mesasProvider.notifier).ocupar(widget.mesa.id, pedidoId);
     }
 
-    final tieneOpciones =
+    final esConfigurable =
+        producto.esVariable ||
         (producto.ingredientes?.isNotEmpty ?? false) ||
         (producto.extras?.isNotEmpty ?? false);
 
-    if (tieneOpciones) {
+    if (esConfigurable) {
       final resultado = await showDialog<PedidoItem>(
         context: context,
-        builder: (ctx) => SeleccionExtrasDialog(producto: producto),
+        builder: (ctx) => ProductoPersonalizacionDialog(
+          producto: producto,
+          onConfirm: (item) => Navigator.pop(ctx, item),
+        ),
       );
 
       if (resultado != null) {
@@ -767,22 +770,6 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
       return;
     }
 
-    if (producto.esVariable && (producto.variantes?.isNotEmpty ?? false)) {
-      showDialog(
-        context: context,
-        builder: (ctx) => SeleccionVarianteDialog(
-          producto: producto,
-          onVarianteSeleccionada: (vari) async {
-            await ref
-                .read(pedidosProvider.notifier)
-                .agregarItem(pedidoId, producto, cantidad: 1, variante: vari);
-            _mostrarMensaje('${producto.nombre} - ${vari.nombre} añadido');
-            setState(() {});
-          },
-        ),
-      );
-      return;
-    }
     await ref
         .read(pedidosProvider.notifier)
         .agregarItem(pedidoId, producto, cantidad: 1);

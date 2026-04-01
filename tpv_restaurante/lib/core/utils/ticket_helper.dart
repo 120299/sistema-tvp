@@ -126,19 +126,57 @@ class TicketHelper {
                 ...pedido.items.map(
                   (item) => pw.Padding(
                     padding: const pw.EdgeInsets.symmetric(vertical: 2),
-                    child: pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Expanded(
-                          child: pw.Text(
-                            '${item.cantidad}x ${item.productoNombre}',
-                            style: const pw.TextStyle(fontSize: 9),
+                        pw.Row(
+                          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                          children: [
+                            pw.Expanded(
+                              child: pw.Text(
+                                '${item.cantidad}x ${item.productoNombre}',
+                                style: pw.TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: pw.FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            pw.Text(
+                              '${item.subtotal.toStringAsFixed(2)} EUR',
+                              style: const pw.TextStyle(fontSize: 9),
+                            ),
+                          ],
+                        ),
+                        if (item.ingredientesQuitados?.isNotEmpty ?? false)
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.only(left: 15),
+                            child: pw.Text(
+                              'Sin ${item.ingredientesQuitados!.join(", ")}',
+                              style: const pw.TextStyle(
+                                fontSize: 8,
+                                color: PdfColors.grey600,
+                              ),
+                            ),
                           ),
-                        ),
-                        pw.Text(
-                          '${(item.cantidad * item.precioUnitario).toStringAsFixed(2)} EUR',
-                          style: const pw.TextStyle(fontSize: 9),
-                        ),
+                        if (item.extrasSeleccionados?.isNotEmpty ?? false)
+                          ...item.extrasSeleccionados!.map(
+                            (extra) => pw.Padding(
+                              padding: const pw.EdgeInsets.only(left: 15),
+                              child: pw.Row(
+                                children: [
+                                  pw.Text(
+                                    '+${extra.nombre}',
+                                    style: const pw.TextStyle(fontSize: 8),
+                                  ),
+                                  pw.Spacer(),
+                                  pw.Text(
+                                    '+${extra.precio.toStringAsFixed(2)} EUR',
+                                    style: const pw.TextStyle(fontSize: 8),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),

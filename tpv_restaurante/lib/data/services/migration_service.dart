@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -10,11 +11,16 @@ import 'image_storage_service.dart';
 class MigrationService {
   static const _uuid = Uuid();
 
-  static Future<String> migrateFromOldData(String oldDataPath) async {
+  static Future<String> migrateFromOldData(
+    String oldDataPath,
+    String targetPath,
+  ) async {
     final StringBuffer log = StringBuffer();
 
     try {
       log.writeln('=== Iniciando migración de datos ===');
+      log.writeln('Origen: $oldDataPath');
+      log.writeln('Destino: $targetPath');
 
       await Hive.initFlutter();
       _registerAdapters();
@@ -37,6 +43,20 @@ class MigrationService {
       log.writeln('Productos encontrados: ${oldProductosBox.length}');
       log.writeln('Imágenes encontradas: ${oldImagesBox.length}');
 
+      final targetDir = Directory(targetPath);
+      if (!await targetDir.exists()) {
+        await targetDir.create(recursive: true);
+      }
+
+      final newCategoriasBox = await Hive.openBox<CategoriaProducto>(
+        'categorias',
+        path: targetPath,
+      );
+      final newProductosBox = await Hive.openBox<Producto>(
+        'productos',
+        path: targetPath,
+      );
+
       final categoryMapping = <String, String>{};
 
       for (var i = 0; i < oldCategoriasBox.length; i++) {
@@ -55,12 +75,11 @@ class MigrationService {
             orden: oldCatMap['orden'] ?? i,
           );
 
-          await DatabaseService().categoriasBox.add(newCat);
+          await newCategoriasBox.add(newCat);
           log.writeln('  Categoría migrada: ${newCat.nombre}');
         }
       }
 
-      final newProductosBox = DatabaseService().productosBox;
       int productosMigrados = 0;
 
       for (var i = 0; i < oldProductosBox.length; i++) {
