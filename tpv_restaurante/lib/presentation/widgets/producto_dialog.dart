@@ -7,7 +7,6 @@ import 'package:uuid/uuid.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../../data/services/image_storage_service.dart';
-import '../../data/services/ingredientes_extras_service.dart';
 import '../providers/providers.dart';
 import 'ingrediente_dialog.dart';
 import 'extra_dialog.dart';

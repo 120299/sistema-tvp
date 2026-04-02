@@ -1,1 +1,1 @@
-Future<void> _initWindowManagerDesktop() async {}
+// Stub para web - no hace nada

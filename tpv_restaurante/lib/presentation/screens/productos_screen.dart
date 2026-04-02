@@ -258,8 +258,9 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                         FiltroDisponibilidad.todos;
                     ref.read(filtroTipoProvider.notifier).state =
                         FiltroTipo.todos;
-                    ref.read(ordenProductoProvider.notifier).state =
-                        const OrdenProducto();
+                    ref
+                        .read(ordenProductoProvider.notifier)
+                        .actualizarOrden(const OrdenProducto());
                     ref.read(busquedaCompartidaProvider.notifier).state = '';
                     ref.read(busquedaProductoProvider.notifier).state = '';
                     _busquedaController.clear();
@@ -493,7 +494,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
           final actual = ref.read(ordenProductoProvider);
 
           void actualizarOrden(OrdenProducto nuevo) {
-            ref.read(ordenProductoProvider.notifier).state = nuevo;
+            ref.read(ordenProductoProvider.notifier).actualizarOrden(nuevo);
             setDialogState(() {});
           }
 
@@ -721,55 +722,6 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     );
   }
 
-  Widget _buildFilterChip({
-    required IconData icon,
-    required String label,
-    required String value,
-    required VoidCallback onTap,
-    required bool isActive,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.primary.withOpacity(0.1)
-              : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isActive ? AppColors.primary : Colors.grey.shade300,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: isActive ? AppColors.primary : Colors.grey.shade600,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              '$label: $value',
-              style: TextStyle(
-                fontSize: 12,
-                color: isActive ? AppColors.primary : Colors.grey.shade700,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(
-              Icons.arrow_drop_down,
-              size: 18,
-              color: isActive ? AppColors.primary : Colors.grey.shade600,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildCategoriasToolbar(
     String? categoriaSeleccionada,
     List<CategoriaProducto> categorias,
@@ -992,12 +944,10 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
           child: Container(
             decoration: BoxDecoration(
               color: isSelected
-                  ? (cat.color ?? AppColors.primary).withOpacity(0.15)
+                  ? cat.color.withOpacity(0.15)
                   : Colors.grey.shade50,
               border: Border.all(
-                color: isSelected
-                    ? (cat.color ?? AppColors.primary)
-                    : Colors.grey.shade300,
+                color: isSelected ? cat.color : Colors.grey.shade300,
                 width: isSelected ? 2 : 1,
               ),
               borderRadius: BorderRadius.circular(8),
@@ -1016,9 +966,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                       fontWeight: isSelected
                           ? FontWeight.bold
                           : FontWeight.normal,
-                      color: isSelected
-                          ? (cat.color ?? AppColors.primary)
-                          : Colors.grey.shade700,
+                      color: isSelected ? cat.color : Colors.grey.shade700,
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 2,
@@ -1110,14 +1058,12 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color: (cat.color ?? Colors.grey).withOpacity(
-                                  0.2,
-                                ),
+                                color: cat.color.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Center(
                                 child: Text(
-                                  cat.icono ?? '🍽️',
+                                  cat.icono,
                                   style: const TextStyle(fontSize: 20),
                                 ),
                               ),
@@ -1142,7 +1088,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                               width: 24,
                               height: 24,
                               decoration: BoxDecoration(
-                                color: cat.color ?? Colors.grey,
+                                color: cat.color,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
@@ -1433,17 +1379,20 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
   }
 
   Widget _buildPlaceholder(CategoriaProducto categoria) {
-    final color = categoria.color ?? Colors.grey;
-    final icono = categoria.icono ?? '🍽️';
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color.withOpacity(0.2), color.withOpacity(0.05)],
+          colors: [
+            categoria.color.withOpacity(0.2),
+            categoria.color.withOpacity(0.05),
+          ],
         ),
       ),
-      child: Center(child: Text(icono, style: const TextStyle(fontSize: 36))),
+      child: Center(
+        child: Text(categoria.icono, style: const TextStyle(fontSize: 36)),
+      ),
     );
   }
 
@@ -1485,14 +1434,10 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
   }
 
   Widget _buildCategoryIcon(CategoriaProducto cat) {
-    if (cat.icono != null && cat.icono!.isNotEmpty) {
-      return Text(cat.icono!, style: const TextStyle(fontSize: 28));
+    if (cat.icono.isNotEmpty) {
+      return Text(cat.icono, style: const TextStyle(fontSize: 28));
     }
-    return Icon(
-      Icons.category,
-      size: 28,
-      color: cat.color ?? AppColors.primary,
-    );
+    return Icon(Icons.category, size: 28, color: cat.color);
   }
 
   void _editarProducto(BuildContext context, Producto producto) {
@@ -1611,109 +1556,6 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     return Text(
       '${producto.precio.toStringAsFixed(2)} EUR',
       style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color),
-    );
-  }
-
-  void _mostrarOpcionesOrden() {
-    final ordenActual = ref.read(ordenProductoProvider);
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Ordenar Productos'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Ordenar por:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              children: [
-                ChoiceChip(
-                  label: const Text('Nombre'),
-                  selected: ordenActual.campo == TipoOrdenProducto.nombre,
-                  onSelected: (selected) {
-                    if (selected) {
-                      ref.read(ordenProductoProvider.notifier).state =
-                          ordenActual.copyWith(campo: TipoOrdenProducto.nombre);
-                    }
-                  },
-                ),
-                ChoiceChip(
-                  label: const Text('Precio'),
-                  selected: ordenActual.campo == TipoOrdenProducto.precio,
-                  onSelected: (selected) {
-                    if (selected) {
-                      ref.read(ordenProductoProvider.notifier).state =
-                          ordenActual.copyWith(campo: TipoOrdenProducto.precio);
-                    }
-                  },
-                ),
-                ChoiceChip(
-                  label: const Text('Disponibilidad'),
-                  selected: ordenActual.campo == TipoOrdenProducto.disponible,
-                  onSelected: (selected) {
-                    if (selected) {
-                      ref
-                          .read(ordenProductoProvider.notifier)
-                          .state = ordenActual.copyWith(
-                        campo: TipoOrdenProducto.disponible,
-                      );
-                    }
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Dirección:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              children: [
-                ChoiceChip(
-                  label: const Text('A-Z / Menor precio'),
-                  selected: ordenActual.direccion == DireccionOrden.ascendente,
-                  onSelected: (selected) {
-                    if (selected) {
-                      ref
-                          .read(ordenProductoProvider.notifier)
-                          .state = ordenActual.copyWith(
-                        direccion: DireccionOrden.ascendente,
-                      );
-                    }
-                  },
-                ),
-                ChoiceChip(
-                  label: const Text('Z-A / Mayor precio'),
-                  selected: ordenActual.direccion == DireccionOrden.descendente,
-                  onSelected: (selected) {
-                    if (selected) {
-                      ref
-                          .read(ordenProductoProvider.notifier)
-                          .state = ordenActual.copyWith(
-                        direccion: DireccionOrden.descendente,
-                      );
-                    }
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cerrar'),
-          ),
-        ],
-      ),
     );
   }
 }

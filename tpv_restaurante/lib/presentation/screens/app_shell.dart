@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/widgets/app_keyboard_overlay.dart';
 import '../../data/models/models.dart';
 import '../providers/providers.dart';
 import 'venta_libre_screen.dart';
@@ -14,11 +13,6 @@ import 'configuracion_screen.dart';
 import 'caja_screen.dart';
 import 'clientes_screen.dart';
 import 'usuarios_screen.dart';
-import 'package:window_manager/window_manager.dart';
-
-void unfocusKeyboard() {
-  FocusManager.instance.primaryFocus?.unfocus();
-}
 
 class AppShell extends ConsumerStatefulWidget {
   final VoidCallback? onLogout;
@@ -43,44 +37,26 @@ class _AppShellState extends ConsumerState<AppShell> {
         final isMedium =
             constraints.maxWidth > 600 && constraints.maxWidth <= 900;
 
-        return AppKeyboardOverlay(
-          child: Scaffold(
-            body: Row(
-              children: [
-                _buildMenuVertical(
-                  context,
-                  ref,
-                  indiceActual,
-                  cajeroActual,
-                  isWide: isWide,
-                  isMedium: isMedium,
+        return Scaffold(
+          body: Row(
+            children: [
+              _buildMenuVertical(
+                context,
+                ref,
+                indiceActual,
+                cajeroActual,
+                isWide: isWide,
+                isMedium: isMedium,
+              ),
+              Expanded(
+                child: Column(
+                  children: [
+                    _buildHeader(context, ref, negocio, caja, cajeroActual),
+                    Expanded(child: _buildContenido(indiceActual)),
+                  ],
                 ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      _buildHeader(context, ref, negocio, caja, cajeroActual),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            final focus = FocusScope.of(context);
-                            final focusedWidget =
-                                focus.focusedChild?.context?.widget;
-
-                            if (focusedWidget is! EditableText &&
-                                focusedWidget is! TextField &&
-                                focusedWidget is! TextFormField) {
-                              unfocusKeyboard();
-                            }
-                          },
-                          behavior: HitTestBehavior.translucent,
-                          child: _buildContenido(indiceActual),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
@@ -311,7 +287,6 @@ class _AppShellState extends ConsumerState<AppShell> {
             label: 'Venta',
             isSelected: indiceActual == 0,
             onTap: () {
-              unfocusKeyboard();
               ref.read(indiceNavegacionProvider.notifier).state = 0;
             },
             mostrarTexto: mostrarTexto,
@@ -321,7 +296,6 @@ class _AppShellState extends ConsumerState<AppShell> {
             label: 'Productos',
             isSelected: indiceActual == 1,
             onTap: () {
-              unfocusKeyboard();
               ref.read(indiceNavegacionProvider.notifier).state = 1;
             },
             mostrarTexto: mostrarTexto,
@@ -331,7 +305,6 @@ class _AppShellState extends ConsumerState<AppShell> {
             label: 'Mesas',
             isSelected: indiceActual == 2,
             onTap: () {
-              unfocusKeyboard();
               ref.read(indiceNavegacionProvider.notifier).state = 2;
             },
             mostrarTexto: mostrarTexto,
@@ -341,7 +314,6 @@ class _AppShellState extends ConsumerState<AppShell> {
             label: 'Clientes',
             isSelected: indiceActual == 3,
             onTap: () {
-              unfocusKeyboard();
               ref.read(indiceNavegacionProvider.notifier).state = 3;
             },
             mostrarTexto: mostrarTexto,
@@ -352,7 +324,6 @@ class _AppShellState extends ConsumerState<AppShell> {
             label: 'Caja',
             isSelected: indiceActual == 4,
             onTap: () {
-              unfocusKeyboard();
               ref.read(indiceNavegacionProvider.notifier).state = 4;
             },
             mostrarTexto: mostrarTexto,
@@ -363,7 +334,6 @@ class _AppShellState extends ConsumerState<AppShell> {
               label: 'Usuarios',
               isSelected: indiceActual == 5,
               onTap: () {
-                unfocusKeyboard();
                 ref.read(indiceNavegacionProvider.notifier).state = 5;
               },
               mostrarTexto: mostrarTexto,
@@ -373,7 +343,6 @@ class _AppShellState extends ConsumerState<AppShell> {
             label: 'Informes',
             isSelected: indiceActual == 6,
             onTap: () {
-              unfocusKeyboard();
               ref.read(indiceNavegacionProvider.notifier).state = 6;
             },
             mostrarTexto: mostrarTexto,
@@ -383,7 +352,6 @@ class _AppShellState extends ConsumerState<AppShell> {
             label: 'Config',
             isSelected: indiceActual == 7,
             onTap: () {
-              unfocusKeyboard();
               ref.read(indiceNavegacionProvider.notifier).state = 7;
             },
             mostrarTexto: mostrarTexto,

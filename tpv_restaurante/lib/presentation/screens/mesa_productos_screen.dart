@@ -6,7 +6,6 @@ import '../../data/models/models.dart';
 import '../../data/services/image_storage_service.dart';
 import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
-import '../widgets/producto_dialog.dart';
 import '../widgets/producto_personalizacion_dialog.dart';
 
 class MesaProductosScreen extends ConsumerStatefulWidget {

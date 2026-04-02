@@ -5,7 +5,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../models/models.dart';
 import '../adapters/hive_adapters.dart';
-import 'database_service.dart';
 import 'image_storage_service.dart';
 
 class MigrationService {

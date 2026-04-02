@@ -5,7 +5,6 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../../data/services/image_storage_service.dart';
 import '../../data/services/print_service.dart';
-import '../widgets/producto_dialog.dart';
 import '../widgets/producto_personalizacion_dialog.dart';
 import '../providers/providers.dart';
 import 'cobro_sheet.dart';
@@ -21,8 +20,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
   final List<PedidoItem> _carrito = [];
   String? _mesaAsignada;
   final TextEditingController _buscadorController = TextEditingController();
-  String _textoBusqueda = '';
-  bool _isProcessing = false;
   bool _mesaCargada = false;
 
   @override
@@ -62,7 +59,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       ..sort((a, b) => a.orden.compareTo(b.orden));
     final categoriaSeleccionada = ref.watch(categoriaSeleccionadaProvider);
     final todasMesas = ref.watch(mesasProvider);
-    final busquedaCompartida = ref.watch(busquedaCompartidaProvider);
 
     final mesasDisponibles = todasMesas
         .where((m) => m.estado == EstadoMesa.libre)
@@ -620,12 +616,10 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           child: Container(
             decoration: BoxDecoration(
               color: isSelected
-                  ? (cat.color ?? AppColors.primary).withOpacity(0.15)
+                  ? cat.color.withOpacity(0.15)
                   : Colors.grey.shade50,
               border: Border.all(
-                color: isSelected
-                    ? (cat.color ?? AppColors.primary)
-                    : Colors.grey.shade300,
+                color: isSelected ? cat.color : Colors.grey.shade300,
                 width: isSelected ? 2 : 1,
               ),
               borderRadius: BorderRadius.circular(8),
@@ -633,15 +627,13 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (cat.icono != null)
-                  Text(cat.icono!, style: const TextStyle(fontSize: 28))
+                if (cat.icono.isNotEmpty)
+                  Text(cat.icono, style: const TextStyle(fontSize: 28))
                 else
                   Icon(
                     Icons.category,
                     size: 28,
-                    color: isSelected
-                        ? (cat.color ?? AppColors.primary)
-                        : Colors.grey,
+                    color: isSelected ? cat.color : Colors.grey,
                   ),
                 const SizedBox(height: 6),
                 Padding(
@@ -653,9 +645,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                       fontWeight: isSelected
                           ? FontWeight.bold
                           : FontWeight.normal,
-                      color: isSelected
-                          ? (cat.color ?? AppColors.primary)
-                          : Colors.grey.shade700,
+                      color: isSelected ? cat.color : Colors.grey.shade700,
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 2,
@@ -734,7 +724,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                           _buscadorController.clear();
                           ref.read(busquedaCompartidaProvider.notifier).state =
                               '';
-                          setState(() => _textoBusqueda = '');
+                          setState(() {});
                         },
                       )
                     : null,
@@ -747,7 +737,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               ),
               onChanged: (value) {
                 ref.read(busquedaCompartidaProvider.notifier).state = value;
-                setState(() => _textoBusqueda = value);
               },
             ),
           ),
@@ -1602,60 +1591,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     );
   }
 
-  Future<void> _agregarItemBDConVar(
-    PedidoItem item,
-    VarianteProducto variante,
-  ) async {
-    if (_mesaAsignada == null) return;
-
-    final mesaActual = ref
-        .read(mesasProvider)
-        .where((m) => m.id == _mesaAsignada)
-        .firstOrNull;
-    if (mesaActual == null) return;
-
-    String pedidoId = mesaActual.pedidoActualId ?? '';
-
-    // Verificar si el pedido existe en Hive
-    if (pedidoId.isNotEmpty) {
-      final pedidoExiste = ref
-          .read(pedidosProvider)
-          .any((p) => p.id == pedidoId);
-      if (!pedidoExiste) {
-        await ref.read(mesasProvider.notifier).liberar(_mesaAsignada!);
-        pedidoId = '';
-      }
-    }
-
-    if (pedidoId.isEmpty) {
-      final cajeroActual = ref.read(cajeroActualProvider);
-      final cajaActual = ref.read(cajaProvider);
-      pedidoId = await ref
-          .read(pedidosProvider.notifier)
-          .crear(
-            _mesaAsignada!,
-            cajeroId: cajeroActual?.id,
-            cajeroNombre: cajeroActual?.nombre,
-            cajaId: cajaActual?.id,
-          );
-      await ref.read(mesasProvider.notifier).ocupar(_mesaAsignada!, pedidoId);
-    }
-
-    final baseName = item.productoNombre.split(' - ').first;
-    await ref
-        .read(pedidosProvider.notifier)
-        .agregarItem(
-          pedidoId,
-          Producto(
-            id: item.productoId,
-            nombre: baseName,
-            precio: item.precioUnitario,
-            categoriaId: '',
-          ),
-          cantidad: item.cantidad,
-        );
-  }
-
   Future<void> _agregarItemBD(PedidoItem item) async {
     if (_mesaAsignada == null) return;
 
@@ -1987,7 +1922,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           Navigator.pop(ctx);
 
           if (!mounted) return;
-          setState(() => _isProcessing = true);
+          setState(() {});
 
           try {
             final caja = ref.read(cajaProvider);
@@ -2098,7 +2033,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               setState(() {
                 _carrito.clear();
                 _mesaAsignada = null;
-                _isProcessing = false;
               });
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -2110,7 +2044,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             }
           } catch (e) {
             if (mounted) {
-              setState(() => _isProcessing = false);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Error: $e'),

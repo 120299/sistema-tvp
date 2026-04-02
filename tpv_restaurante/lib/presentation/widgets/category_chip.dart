@@ -98,8 +98,8 @@ class CategoryChip extends StatelessWidget {
   }
 
   Widget _buildIcon() {
-    if (categoria.icono != null && categoria.icono!.isNotEmpty) {
-      return Text(categoria.icono!, style: const TextStyle(fontSize: 16));
+    if (categoria.icono.isNotEmpty) {
+      return Text(categoria.icono, style: const TextStyle(fontSize: 16));
     }
     return Icon(
       Icons.category,

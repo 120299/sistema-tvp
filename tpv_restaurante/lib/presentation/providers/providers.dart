@@ -247,16 +247,13 @@ class ProductosNotifier extends StateNotifier<List<Producto>> {
 
   Future<void> actualizar(Producto producto) async {
     try {
-      // Buscar el producto existente por ID
       final box = _db.productosBox;
       dynamic keyEncontrada;
-      Producto? productoExistente;
 
       for (int i = 0; i < box.length; i++) {
         final p = box.getAt(i);
         if (p != null && p.id == producto.id) {
           keyEncontrada = box.keyAt(i);
-          productoExistente = p;
           break;
         }
       }
@@ -487,6 +484,10 @@ class OrdenProducto {
 
 class OrdenProductoNotifier extends StateNotifier<OrdenProducto> {
   OrdenProductoNotifier() : super(_cargarOrdenProductoInicial());
+
+  void actualizarOrden(OrdenProducto orden) {
+    state = orden;
+  }
 
   Future<void> setOrden(OrdenProducto orden) async {
     state = orden;
@@ -1181,50 +1182,3 @@ final deviceInputInfoProvider = FutureProvider<DeviceInputInfo>((ref) async {
   final service = ref.watch(deviceInputServiceProvider);
   return await service.getDeviceInputInfo();
 });
-
-final keyboardSettingsProvider =
-    StateNotifierProvider<KeyboardSettingsNotifier, KeyboardSettings>((ref) {
-      return KeyboardSettingsNotifier();
-    });
-
-class KeyboardSettingsNotifier extends StateNotifier<KeyboardSettings> {
-  KeyboardSettingsNotifier() : super(const KeyboardSettings());
-
-  void setUseVirtualKeyboard(bool value) {
-    state = state.copyWith(useVirtualKeyboard: value);
-  }
-
-  void setShowAlways(bool value) {
-    state = state.copyWith(showAlways: value);
-  }
-
-  void setKeyboardSize(KeyboardSize size) {
-    state = state.copyWith(keyboardSize: size);
-  }
-}
-
-class KeyboardSettings {
-  final bool useVirtualKeyboard;
-  final bool showAlways;
-  final KeyboardSize keyboardSize;
-
-  const KeyboardSettings({
-    this.useVirtualKeyboard = true,
-    this.showAlways = false,
-    this.keyboardSize = KeyboardSize.medium,
-  });
-
-  KeyboardSettings copyWith({
-    bool? useVirtualKeyboard,
-    bool? showAlways,
-    KeyboardSize? keyboardSize,
-  }) {
-    return KeyboardSettings(
-      useVirtualKeyboard: useVirtualKeyboard ?? this.useVirtualKeyboard,
-      showAlways: showAlways ?? this.showAlways,
-      keyboardSize: keyboardSize ?? this.keyboardSize,
-    );
-  }
-}
-
-enum KeyboardSize { small, medium, large }

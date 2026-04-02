@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
-import 'core/services/windows_keyboard_service.dart';
 import 'data/services/database_service.dart';
 import 'presentation/screens/app_shell.dart';
 import 'presentation/screens/login_screen.dart';
@@ -17,7 +16,6 @@ Future<void> main() async {
 
   if (!kIsWeb) {
     if (Platform.isWindows) {
-      final mutexName = 'TPV_Restaurante_SingleInstance';
       try {
         final result = await Process.run('tasklist', [
           '/FI',
@@ -60,10 +58,6 @@ class _TPVRestauranteAppState extends ConsumerState<TPVRestauranteApp> {
     _dbService = DatabaseService();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _dbService.initialize();
-
-      if (!kIsWeb && Platform.isWindows) {
-        await WindowsKeyboardService.preventOskFromShowing();
-      }
 
       if (mounted) setState(() => _isInitialized = true);
     });

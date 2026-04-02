@@ -23,3 +23,5 @@ Future<void> _initWindowManagerDesktop() async {
     });
   }
 }
+
+void initDesktop() => _initWindowManagerDesktop();

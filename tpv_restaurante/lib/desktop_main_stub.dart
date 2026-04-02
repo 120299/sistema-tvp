@@ -1,1 +1,1 @@
-Future<void> _initWindowManagerDesktop() async {}
+void initDesktop() {}

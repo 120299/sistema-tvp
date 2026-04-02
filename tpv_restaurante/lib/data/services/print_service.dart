@@ -250,7 +250,6 @@ class PrintService {
     DateTime? fechaVenta,
   }) async {
     final pdf = pw.Document();
-    final fechaActual = fechaVenta ?? DateTime.now();
     final totalConIva = subtotal;
     final baseImponible = totalConIva / (1 + ivaPorcentaje / 100);
     final importeIva = totalConIva - baseImponible;
@@ -955,7 +954,7 @@ class PrintService {
           pw.Text(negocio.razonSocial!, style: const pw.TextStyle(fontSize: 9)),
         pw.Text(negocio.direccion, style: const pw.TextStyle(fontSize: 9)),
         pw.Text(negocio.ciudad, style: const pw.TextStyle(fontSize: 9)),
-        if (negocio.telefono != null && negocio.telefono!.isNotEmpty)
+        if (negocio.telefono.isNotEmpty)
           pw.Text(
             'Tel: ${negocio.telefono}',
             style: const pw.TextStyle(fontSize: 9),
@@ -985,22 +984,6 @@ class PrintService {
           style: const pw.TextStyle(fontSize: 9),
         ),
       ],
-    );
-  }
-
-  static pw.Widget _buildMetodoPago(String metodoPago) {
-    return pw.Center(
-      child: pw.Container(
-        padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: pw.BoxDecoration(
-          border: pw.Border.all(width: 1),
-          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
-        ),
-        child: pw.Text(
-          'PAGO: ${metodoPago.toUpperCase()}',
-          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-        ),
-      ),
     );
   }
 

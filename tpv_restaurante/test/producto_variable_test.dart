@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tpv_restaurante/data/models/models.dart'; // adjust package name if needed
-import 'dart:convert';
+import 'package:tpv_restaurante/data/models/models.dart';
 
 void main() {
   test('Producto con variantes se serializa/deserializa correctamente', () {
