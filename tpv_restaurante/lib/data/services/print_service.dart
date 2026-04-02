@@ -1013,9 +1013,9 @@ class PrintService {
               ),
             ),
             pw.SizedBox(
-              width: 45,
+              width: 40,
               child: pw.Text(
-                'PRECIO',
+                'IMPORTE',
                 style: pw.TextStyle(
                   fontSize: 8,
                   fontWeight: pw.FontWeight.bold,
@@ -1053,6 +1053,7 @@ class PrintService {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.SizedBox(
                       width: 20,
@@ -1071,9 +1072,9 @@ class PrintService {
                       ),
                     ),
                     pw.SizedBox(
-                      width: 45,
+                      width: 40,
                       child: pw.Text(
-                        precioConExtras.toStringAsFixed(2),
+                        item.precioUnitario.toStringAsFixed(2),
                         style: const pw.TextStyle(fontSize: 9),
                         textAlign: pw.TextAlign.right,
                       ),

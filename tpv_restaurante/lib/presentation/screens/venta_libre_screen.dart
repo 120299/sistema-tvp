@@ -580,15 +580,15 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Row(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     Icons.apps,
-                    size: 32,
+                    size: 36,
                     color: isSelected ? AppColors.primary : Colors.grey,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(height: 6),
                   Text(
                     'Todos',
                     style: TextStyle(
@@ -625,11 +625,11 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               ),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Row(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (cat.imagenUrl != null && cat.imagenUrl!.isNotEmpty)
-                  CategoryAvatar(categoria: cat, width: 80, height: 50)
+                  CategoryAvatar(categoria: cat, width: 70, height: 45)
                 else if (cat.icono.isNotEmpty)
                   Text(cat.icono, style: const TextStyle(fontSize: 32))
                 else
@@ -638,7 +638,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     size: 32,
                     color: isSelected ? cat.color : Colors.grey,
                   ),
-                const SizedBox(width: 8),
+                const SizedBox(height: 6),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),

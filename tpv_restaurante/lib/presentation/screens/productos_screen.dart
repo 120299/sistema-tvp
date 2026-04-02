@@ -907,15 +907,15 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Row(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     Icons.apps,
-                    size: 32,
+                    size: 36,
                     color: isSelected ? AppColors.primary : Colors.grey,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(height: 6),
                   Text(
                     'Todos',
                     style: TextStyle(
@@ -952,27 +952,25 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
               ),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Row(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildCategoryImage(cat, 60, 45),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Text(
-                      cat.nombre,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: isSelected ? cat.color : Colors.grey.shade700,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                _buildCategoryImage(cat, 70, 45),
+                const SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    cat.nombre,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: isSelected ? cat.color : Colors.grey.shade700,
                     ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
