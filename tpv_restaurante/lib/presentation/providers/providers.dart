@@ -1284,3 +1284,71 @@ final deviceInputInfoProvider = FutureProvider<DeviceInputInfo>((ref) async {
   final service = ref.watch(deviceInputServiceProvider);
   return await service.getDeviceInputInfo();
 });
+
+final ingredientesGlobalesProvider =
+    StateNotifierProvider<
+      IngredientesGlobalesNotifier,
+      List<IngredienteProducto>
+    >((ref) {
+      final db = ref.watch(databaseServiceProvider);
+      return IngredientesGlobalesNotifier(db);
+    });
+
+class IngredientesGlobalesNotifier
+    extends StateNotifier<List<IngredienteProducto>> {
+  final DatabaseService _db;
+
+  IngredientesGlobalesNotifier(this._db)
+    : super(_db.ingredientesExtrasService.getIngredientes());
+
+  void _refresh() {
+    state = _db.ingredientesExtrasService.getIngredientes();
+  }
+
+  Future<void> agregar(IngredienteProducto ingrediente) async {
+    await _db.ingredientesExtrasService.agregarIngrediente(ingrediente);
+    _refresh();
+  }
+
+  Future<void> actualizar(IngredienteProducto ingrediente) async {
+    await _db.ingredientesExtrasService.actualizarIngrediente(ingrediente);
+    _refresh();
+  }
+
+  Future<void> eliminar(String id) async {
+    await _db.ingredientesExtrasService.eliminarIngrediente(id);
+    _refresh();
+  }
+}
+
+final extrasGlobalesProvider =
+    StateNotifierProvider<ExtrasGlobalesNotifier, List<ExtraProducto>>((ref) {
+      final db = ref.watch(databaseServiceProvider);
+      return ExtrasGlobalesNotifier(db);
+    });
+
+class ExtrasGlobalesNotifier extends StateNotifier<List<ExtraProducto>> {
+  final DatabaseService _db;
+
+  ExtrasGlobalesNotifier(this._db)
+    : super(_db.ingredientesExtrasService.getExtras());
+
+  void _refresh() {
+    state = _db.ingredientesExtrasService.getExtras();
+  }
+
+  Future<void> agregar(ExtraProducto extra) async {
+    await _db.ingredientesExtrasService.agregarExtra(extra);
+    _refresh();
+  }
+
+  Future<void> actualizar(ExtraProducto extra) async {
+    await _db.ingredientesExtrasService.actualizarExtra(extra);
+    _refresh();
+  }
+
+  Future<void> eliminar(String id) async {
+    await _db.ingredientesExtrasService.eliminarExtra(id);
+    _refresh();
+  }
+}

@@ -1,11 +1,14 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
 import '../../data/services/print_service.dart';
+import '../../data/services/image_storage_service.dart';
 import '../widgets/producto_personalizacion_dialog.dart';
 import '../widgets/product_image_widget.dart';
 import '../widgets/category_avatar.dart';
+import '../widgets/categoria_dialog.dart';
 import '../providers/providers.dart';
 import 'cobro_sheet.dart';
 
@@ -490,6 +493,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     String? categoriaSeleccionada,
     List<CategoriaProducto> categorias,
   ) {
+    bool modoGestion = false;
+
     showDialog(
       context: context,
       builder: (ctx) {
@@ -498,6 +503,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             final cats = ref.watch(categoriasProvider);
             final sorted = List<CategoriaProducto>.from(cats)
               ..sort((a, b) => a.orden.compareTo(b.orden));
+            final productos = ref.watch(productosProvider);
 
             return Dialog(
               shape: RoundedRectangleBorder(
@@ -516,14 +522,28 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                       children: [
                         const Icon(Icons.category, color: AppColors.primary),
                         const SizedBox(width: 8),
-                        const Text(
-                          'Categorías',
-                          style: TextStyle(
+                        Text(
+                          modoGestion ? 'Gestionar Categorías' : 'Categorías',
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const Spacer(),
+                        if (!modoGestion)
+                          TextButton.icon(
+                            onPressed: () =>
+                                setModalState(() => modoGestion = true),
+                            icon: const Icon(Icons.settings, size: 18),
+                            label: const Text('Gestionar'),
+                          )
+                        else
+                          TextButton.icon(
+                            onPressed: () =>
+                                setModalState(() => modoGestion = false),
+                            icon: const Icon(Icons.grid_view, size: 18),
+                            label: const Text('Seleccionar'),
+                          ),
                         IconButton(
                           onPressed: () => Navigator.pop(ctx),
                           icon: const Icon(Icons.close),
@@ -532,11 +552,18 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     ),
                     const SizedBox(height: 12),
                     Expanded(
-                      child: _buildGridCategorias(
-                        ctx,
-                        categoriaSeleccionada,
-                        sorted,
-                      ),
+                      child: modoGestion
+                          ? _buildGestionCategorias(
+                              ctx,
+                              sorted,
+                              productos,
+                              setModalState,
+                            )
+                          : _buildGridCategorias(
+                              ctx,
+                              categoriaSeleccionada,
+                              sorted,
+                            ),
                     ),
                   ],
                 ),
@@ -546,6 +573,211 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         );
       },
     );
+  }
+
+  Widget _buildGestionCategorias(
+    BuildContext ctx,
+    List<CategoriaProducto> categorias,
+    List<Producto> productos,
+    StateSetter setModalState,
+  ) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Arrastra para reordenar',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: () async {
+                await showDialog(
+                  context: ctx,
+                  builder: (context) => const CategoriaDialog(),
+                );
+                setModalState(() {});
+              },
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Nueva'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: categorias.isEmpty
+              ? const Center(
+                  child: Text(
+                    'No hay categorías',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                )
+              : ReorderableListView.builder(
+                  buildDefaultDragHandles: false,
+                  onReorder: (oldIndex, newIndex) async {
+                    await ref
+                        .read(categoriasProvider.notifier)
+                        .reorderFromList(categorias, oldIndex, newIndex);
+                    setModalState(() {});
+                  },
+                  itemCount: categorias.length,
+                  itemBuilder: (context, index) {
+                    final cat = categorias[index];
+                    final count = productos
+                        .where((p) => p.categoriaId == cat.id)
+                        .length;
+                    return Card(
+                      key: ValueKey(cat.id),
+                      margin: const EdgeInsets.only(bottom: 6),
+                      child: ListTile(
+                        leading: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ReorderableDragStartListener(
+                              index: index,
+                              child: Icon(
+                                Icons.drag_handle,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: cat.color.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Center(
+                                child:
+                                    cat.imagenUrl != null &&
+                                        cat.imagenUrl!.isNotEmpty
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: _buildCategoryImage(cat, 36, 36),
+                                      )
+                                    : Text(
+                                        cat.icono,
+                                        style: const TextStyle(fontSize: 20),
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        title: Text(
+                          cat.nombre,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                        subtitle: Text(
+                          '$count productos',
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: cat.color,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.edit, size: 18),
+                              onPressed: () async {
+                                await showDialog(
+                                  context: ctx,
+                                  builder: (context) =>
+                                      CategoriaDialog(categoria: cat),
+                                );
+                                setModalState(() {});
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCategoryImage(
+    CategoriaProducto cat, [
+    double width = 50,
+    double height = 50,
+  ]) {
+    final imagenUrl = cat.imagenUrl;
+    if (imagenUrl != null && imagenUrl.isNotEmpty) {
+      if (imagenUrl.startsWith('data:')) {
+        final base64Match = RegExp(r'base64,(.+)').firstMatch(imagenUrl);
+        if (base64Match != null) {
+          try {
+            final base64Data = base64Match.group(1)!;
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.memory(
+                base64Decode(base64Data),
+                width: width,
+                height: height,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildCategoryIcon(cat, width),
+              ),
+            );
+          } catch (_) {
+            return _buildCategoryIcon(cat, width);
+          }
+        }
+      }
+      if (imagenUrl.startsWith('http')) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            imagenUrl,
+            width: width,
+            height: height,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _buildCategoryIcon(cat, width),
+          ),
+        );
+      }
+      if (imagenUrl.startsWith('categories/')) {
+        final base64 = imageStorageService.getBase64FromPath(imagenUrl);
+        if (base64.isNotEmpty) {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.memory(
+              base64Decode(base64),
+              width: width,
+              height: height,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _buildCategoryIcon(cat, width),
+            ),
+          );
+        }
+      }
+    }
+    return _buildCategoryIcon(cat, width);
+  }
+
+  Widget _buildCategoryIcon(CategoriaProducto cat, [double size = 28]) {
+    if (cat.icono.isNotEmpty) {
+      return Text(cat.icono, style: TextStyle(fontSize: size));
+    }
+    return Icon(Icons.category, size: size, color: cat.color);
   }
 
   Widget _buildGridCategorias(

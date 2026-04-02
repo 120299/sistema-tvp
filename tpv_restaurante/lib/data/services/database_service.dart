@@ -43,6 +43,7 @@ class DatabaseService {
   late PedidoRepositorio pedidoRepositorio;
   late CajaRepositorio cajaRepositorio;
   late MovimientoRepositorio movimientoRepositorio;
+  late IngredientesExtrasService ingredientesExtrasService;
 
   final _changeController = StreamController<String>.broadcast();
 
@@ -123,6 +124,7 @@ class DatabaseService {
 
     final ingredientesExtrasSvc = IngredientesExtrasService();
     await ingredientesExtrasSvc.init();
+    ingredientesExtrasService = ingredientesExtrasSvc;
 
     _initialized = true;
   }

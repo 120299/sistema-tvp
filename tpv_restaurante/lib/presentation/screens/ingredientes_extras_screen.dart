@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
-import '../../data/services/ingredientes_extras_service.dart';
 import '../providers/providers.dart';
 
 class IngredientesExtrasScreen extends ConsumerStatefulWidget {
