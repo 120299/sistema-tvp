@@ -452,7 +452,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                       Icons.category,
                       cat.icono,
                       cat.color,
-                      CategoryAvatar(categoria: cat, size: 18),
+                      CategoryAvatar(categoria: cat, width: 28, height: 20),
                     ),
                   ),
                 ),
@@ -558,7 +558,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         crossAxisCount: 6,
         mainAxisSpacing: 8,
         crossAxisSpacing: 8,
-        childAspectRatio: 1.3,
+        childAspectRatio: 1.8,
       ),
       itemCount: categorias.length + 1,
       itemBuilder: (context, index) {
@@ -580,15 +580,15 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Column(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     Icons.apps,
-                    size: 28,
+                    size: 32,
                     color: isSelected ? AppColors.primary : Colors.grey,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(width: 8),
                   Text(
                     'Todos',
                     style: TextStyle(
@@ -625,34 +625,36 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               ),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Column(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (cat.imagenUrl != null && cat.imagenUrl!.isNotEmpty)
-                  CategoryAvatar(categoria: cat, size: 48)
+                  CategoryAvatar(categoria: cat, size: 60)
                 else if (cat.icono.isNotEmpty)
-                  Text(cat.icono, style: const TextStyle(fontSize: 28))
+                  Text(cat.icono, style: const TextStyle(fontSize: 32))
                 else
                   Icon(
                     Icons.category,
-                    size: 28,
+                    size: 32,
                     color: isSelected ? cat.color : Colors.grey,
                   ),
-                const SizedBox(height: 6),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    cat.nombre,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: isSelected ? cat.color : Colors.grey.shade700,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(
+                      cat.nombre,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isSelected ? cat.color : Colors.grey.shade700,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

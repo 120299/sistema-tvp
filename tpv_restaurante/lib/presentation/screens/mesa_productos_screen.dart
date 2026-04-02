@@ -218,7 +218,11 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
             padding: const EdgeInsets.only(right: 8),
             child: FilterChip(
               selected: isSelected,
-              avatar: CategoryAvatar(categoria: categoria, size: 20),
+              avatar: CategoryAvatar(
+                categoria: categoria,
+                width: 28,
+                height: 20,
+              ),
               label: Text(categoria.nombre),
               onSelected: (_) {
                 ref.read(categoriaSeleccionadaProvider.notifier).state =

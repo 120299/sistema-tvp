@@ -6,18 +6,24 @@ import '../../data/services/image_storage_service.dart';
 class CategoryAvatar extends StatelessWidget {
   final CategoriaProducto categoria;
   final double size;
+  final double? width;
+  final double? height;
   final BorderRadius? borderRadius;
 
   const CategoryAvatar({
     super.key,
     required this.categoria,
     this.size = 24,
+    this.width,
+    this.height,
     this.borderRadius,
   });
 
   @override
   Widget build(BuildContext context) {
     final imagenUrl = categoria.imagenUrl;
+    final imageWidth = width ?? size;
+    final imageHeight = height ?? size;
 
     if (imagenUrl != null && imagenUrl.isNotEmpty) {
       if (imagenUrl.startsWith('data:')) {
@@ -29,8 +35,8 @@ class CategoryAvatar extends StatelessWidget {
               borderRadius: borderRadius ?? BorderRadius.circular(4),
               child: Image.memory(
                 base64Decode(base64Data),
-                width: size,
-                height: size,
+                width: imageWidth,
+                height: imageHeight,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => _buildFallback(),
               ),
@@ -45,8 +51,8 @@ class CategoryAvatar extends StatelessWidget {
           borderRadius: borderRadius ?? BorderRadius.circular(4),
           child: Image.network(
             imagenUrl,
-            width: size,
-            height: size,
+            width: imageWidth,
+            height: imageHeight,
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => _buildFallback(),
           ),
@@ -59,8 +65,8 @@ class CategoryAvatar extends StatelessWidget {
             borderRadius: borderRadius ?? BorderRadius.circular(4),
             child: Image.memory(
               base64Decode(base64),
-              width: size,
-              height: size,
+              width: imageWidth,
+              height: imageHeight,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => _buildFallback(),
             ),

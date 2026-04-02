@@ -885,7 +885,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
         crossAxisCount: 6,
         mainAxisSpacing: 8,
         crossAxisSpacing: 8,
-        childAspectRatio: 1.3,
+        childAspectRatio: 1.8,
       ),
       itemCount: categorias.length + 1,
       itemBuilder: (context, index) {
@@ -907,15 +907,15 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Column(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     Icons.apps,
-                    size: 28,
+                    size: 32,
                     color: isSelected ? AppColors.primary : Colors.grey,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(width: 8),
                   Text(
                     'Todos',
                     style: TextStyle(
@@ -952,25 +952,27 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
               ),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Column(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildCategoryImage(cat),
-                const SizedBox(height: 6),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    cat.nombre,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: isSelected ? cat.color : Colors.grey.shade700,
+                _buildCategoryImage(cat, 60, 45),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(
+                      cat.nombre,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isSelected ? cat.color : Colors.grey.shade700,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -1400,15 +1402,19 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     showDialog(context: context, builder: (context) => const ProductoDialog());
   }
 
-  Widget _buildCategoryImage(CategoriaProducto cat) {
+  Widget _buildCategoryImage(
+    CategoriaProducto cat, [
+    double width = 50,
+    double height = 50,
+  ]) {
     if (cat.imagenUrl != null && cat.imagenUrl!.isNotEmpty) {
       if (cat.imagenUrl!.startsWith('http')) {
         return ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Image.network(
             cat.imagenUrl!,
-            width: 50,
-            height: 50,
+            width: width,
+            height: height,
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => _buildCategoryIcon(cat),
           ),
@@ -1421,8 +1427,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
             borderRadius: BorderRadius.circular(8),
             child: Image.memory(
               base64Decode(base64),
-              width: 50,
-              height: 50,
+              width: width,
+              height: height,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => _buildCategoryIcon(cat),
             ),
@@ -1430,14 +1436,14 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
         }
       }
     }
-    return _buildCategoryIcon(cat);
+    return _buildCategoryIcon(cat, width);
   }
 
-  Widget _buildCategoryIcon(CategoriaProducto cat) {
+  Widget _buildCategoryIcon(CategoriaProducto cat, [double size = 28]) {
     if (cat.icono.isNotEmpty) {
-      return Text(cat.icono, style: const TextStyle(fontSize: 28));
+      return Text(cat.icono, style: TextStyle(fontSize: size));
     }
-    return Icon(Icons.category, size: 28, color: cat.color);
+    return Icon(Icons.category, size: size, color: cat.color);
   }
 
   void _editarProducto(BuildContext context, Producto producto) {

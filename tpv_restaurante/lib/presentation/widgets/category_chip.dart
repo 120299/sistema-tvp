@@ -77,7 +77,7 @@ class CategoryChip extends StatelessWidget {
               borderRadius: BorderRadius.circular(4),
               child: Image.memory(
                 base64Decode(base64Data),
-                width: 24,
+                width: 32,
                 height: 24,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => _buildIcon(),
@@ -93,7 +93,7 @@ class CategoryChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(4),
           child: Image.network(
             imagenUrl,
-            width: 24,
+            width: 32,
             height: 24,
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => _buildIcon(),
@@ -107,7 +107,7 @@ class CategoryChip extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
             child: Image.memory(
               base64Decode(base64),
-              width: 24,
+              width: 32,
               height: 24,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => _buildIcon(),

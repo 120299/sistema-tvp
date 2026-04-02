@@ -35,16 +35,36 @@ class TicketWidget extends StatelessWidget {
     final totalConPropina = total * (1 + porcentajePropina / 100);
 
     final itemsHtml = items
-        .map(
-          (item) =>
-              '''
+        .map((item) {
+          final extrasTotal =
+              item.extrasSeleccionados?.fold<double>(
+                0,
+                (sum, extra) => sum + extra.precio,
+              ) ??
+              0;
+          final precioConExtras = item.precioUnitario + extrasTotal;
+          final lineaTotal = precioConExtras * item.cantidad;
+
+          String extrasHtml = '';
+          if (item.extrasSeleccionados != null &&
+              item.extrasSeleccionados!.isNotEmpty) {
+            extrasHtml = item.extrasSeleccionados!
+                .map(
+                  (extra) =>
+                      '<div style="padding-left: 15px; font-size: 8px;">+ ${extra.nombre} (${extra.precio.toStringAsFixed(2)} EUR)</div>',
+                )
+                .join('');
+          }
+
+          return '''
       <div class="row">
         <span>${item.cantidad}x ${item.productoNombre}</span>
-        <span>${item.precioUnitario.toStringAsFixed(2)} EUR</span>
-        <span>${item.subtotal.toStringAsFixed(2)} EUR</span>
+        <span>${lineaTotal.toStringAsFixed(2)} EUR</span>
       </div>
-    ''',
-        )
+      ${extrasHtml}
+      ${item.ingredientesQuitados != null && item.ingredientesQuitados!.isNotEmpty ? '<div style="padding-left: 15px; font-size: 8px; font-style: italic;">Sin: ${item.ingredientesQuitados!.join(", ")}</div>' : ''}
+    ''';
+        })
         .join('');
 
     return '''
@@ -251,11 +271,20 @@ class TicketWidget extends StatelessWidget {
           ],
         ),
         Divider(thickness: 1, height: 1),
-        ...items.expand(
-          (item) => [
+        ...items.expand((item) {
+          final extrasTotal =
+              item.extrasSeleccionados?.fold<double>(
+                0,
+                (sum, extra) => sum + extra.precio,
+              ) ??
+              0;
+          final precioConExtras = item.precioUnitario + extrasTotal;
+
+          return [
             Padding(
               padding: EdgeInsets.symmetric(vertical: isCompact ? 1 : 2),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
                     width: isCompact ? 25 : 30,
@@ -284,21 +313,25 @@ class TicketWidget extends StatelessWidget {
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
+                        if (item.extrasSeleccionados != null &&
+                            item.extrasSeleccionados!.isNotEmpty)
+                          ...item.extrasSeleccionados!.map(
+                            (extra) => Text(
+                              '+ ${extra.nombre} (${extra.precio.toStringAsFixed(2)} EUR)',
+                              style: TextStyle(
+                                fontSize: fontSize - 1,
+                                color: Colors.grey.shade700,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                       ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: isCompact ? 40 : 45,
-                    child: Text(
-                      '${item.precioUnitario.toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: fontSize),
-                      textAlign: TextAlign.right,
                     ),
                   ),
                   SizedBox(
                     width: isCompact ? 45 : 50,
                     child: Text(
-                      '${item.subtotal.toStringAsFixed(2)}',
+                      '${precioConExtras.toStringAsFixed(2)}',
                       style: TextStyle(fontSize: fontSize),
                       textAlign: TextAlign.right,
                     ),
@@ -306,48 +339,8 @@ class TicketWidget extends StatelessWidget {
                 ],
               ),
             ),
-            if (item.extrasSeleccionados != null &&
-                item.extrasSeleccionados!.isNotEmpty)
-              ...item.extrasSeleccionados!.map(
-                (extra) => Padding(
-                  padding: EdgeInsets.only(
-                    left: isCompact ? 10 : 15,
-                    top: 0,
-                    bottom: isCompact ? 1 : 1,
-                  ),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: isCompact ? 25 : 30,
-                        child: Text('', style: TextStyle(fontSize: fontSize)),
-                      ),
-                      Expanded(
-                        child: Text(
-                          '  + ${extra.nombre}',
-                          style: TextStyle(
-                            fontSize: fontSize - 1,
-                            color: Colors.grey.shade700,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      SizedBox(
-                        width: isCompact ? 85 : 95,
-                        child: Text(
-                          '+${extra.precio.toStringAsFixed(2)} EUR',
-                          style: TextStyle(
-                            fontSize: fontSize - 1,
-                            color: Colors.grey.shade700,
-                          ),
-                          textAlign: TextAlign.right,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
+          ];
+        }),
       ],
     );
   }
