@@ -813,9 +813,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
   }
 
   Widget _buildCategoryIcon(CategoriaProducto cat, [double size = 28]) {
-    if (cat.icono.isNotEmpty) {
-      return Text(cat.icono, style: TextStyle(fontSize: size));
-    }
     return Icon(Icons.category, size: size, color: cat.color);
   }
 
@@ -826,10 +823,10 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
   ) {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 6,
+        crossAxisCount: 5,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 1.5,
+        childAspectRatio: 0.9,
       ),
       itemCount: categorias.length + 1,
       itemBuilder: (context, index) {

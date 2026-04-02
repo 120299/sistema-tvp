@@ -20,9 +20,7 @@ class CategoriaDialog extends ConsumerStatefulWidget {
 class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nombreController;
-  late TextEditingController _iconoController;
   late Color _color;
-  bool _usarImagen = false;
   String? _imagenBase64;
   String? _imagenUrlActual;
   final ImagePicker _imagePicker = ImagePicker();
@@ -48,18 +46,13 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
     _nombreController = TextEditingController(
       text: widget.categoria?.nombre ?? '',
     );
-    _iconoController = TextEditingController(
-      text: widget.categoria?.icono ?? '📦',
-    );
     _color = widget.categoria?.color ?? _coloresDisponibles.first;
-    _usarImagen = widget.categoria?.imagenUrl != null;
     _imagenUrlActual = widget.categoria?.imagenUrl;
   }
 
   @override
   void dispose() {
     _nombreController.dispose();
-    _iconoController.dispose();
     super.dispose();
   }
 
@@ -105,8 +98,6 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
                 validator: (v) => v?.isEmpty == true ? 'Obligatorio' : null,
               ),
               const SizedBox(height: 20),
-              _buildIconSelector(),
-              const SizedBox(height: 16),
               _buildColorSelector(),
               const SizedBox(height: 24),
               _buildActions(esEdicion),
@@ -126,7 +117,7 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
             color: _color.withValues(alpha: 0.2),
             borderRadius: BorderRadius.zero,
           ),
-          child: _usarImagen && _imagenBase64 != null
+          child: _imagenBase64 != null
               ? ClipRRect(
                   borderRadius: BorderRadius.zero,
                   child: Image.memory(
@@ -136,20 +127,15 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
                     fit: BoxFit.cover,
                   ),
                 )
-              : _usarImagen && _imagenUrlActual != null
+              : _imagenUrlActual != null
               ? Image.network(
                   _imagenUrlActual!,
                   width: 24,
                   height: 24,
-                  errorBuilder: (_, __, ___) => Text(
-                    _iconoController.text,
-                    style: const TextStyle(fontSize: 24),
-                  ),
+                  errorBuilder: (_, __, ___) =>
+                      Icon(Icons.category, size: 24, color: _color),
                 )
-              : Text(
-                  _iconoController.text,
-                  style: const TextStyle(fontSize: 24),
-                ),
+              : Icon(Icons.category, size: 24, color: _color),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -189,155 +175,118 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: _buildToggleButton(
-                  'Usar Icono',
-                  Icons.emoji_emotions,
-                  !_usarImagen,
-                  () => setState(() => _usarImagen = false),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildToggleButton(
-                  'Usar Imagen',
-                  Icons.image,
-                  _usarImagen,
-                  () => setState(() => _usarImagen = true),
-                ),
-              ),
-            ],
+          const Text(
+            'Imagen de la categoría',
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          if (_usarImagen) ...[
-            const SizedBox(height: 16),
-            GestureDetector(
-              onTap: _seleccionarImagen,
-              child: Container(
-                width: double.infinity,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.zero,
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: _imagenBase64 != null
-                    ? Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.zero,
-                            child: Image.memory(
-                              base64Decode(_imagenBase64!),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: IconButton(
-                              onPressed: () {
-                                setState(() => _imagenBase64 = null);
-                              },
-                              icon: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              style: IconButton.styleFrom(
-                                backgroundColor: Colors.black54,
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.add_photo_alternate,
-                            size: 40,
-                            color: Colors.grey.shade400,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Toca para seleccionar imagen',
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: _seleccionarImagen,
+            child: Container(
+              width: double.infinity,
+              height: 150,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.zero,
+                border: Border.all(color: Colors.grey.shade300),
               ),
+              child: _imagenBase64 != null
+                  ? Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.zero,
+                          child: Image.memory(
+                            base64Decode(_imagenBase64!),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: IconButton(
+                            onPressed: () {
+                              setState(() => _imagenBase64 = null);
+                            },
+                            icon: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.black54,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : _imagenUrlActual != null
+                  ? Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.network(
+                          _imagenUrlActual!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.broken_image,
+                                size: 40,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Imagen no disponible',
+                                style: TextStyle(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: IconButton(
+                            onPressed: () {
+                              setState(() => _imagenUrlActual = null);
+                            },
+                            icon: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.black54,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.add_photo_alternate,
+                          size: 40,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Toca para seleccionar imagen',
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
             ),
-          ],
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildToggleButton(
-    String label,
-    IconData icon,
-    bool selected,
-    VoidCallback onTap,
-  ) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.primary.withValues(alpha: 0.1)
-              : Colors.white,
-          borderRadius: BorderRadius.zero,
-          border: Border.all(
-            color: selected ? AppColors.primary : Colors.grey.shade300,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 18,
-              color: selected ? AppColors.primary : Colors.grey,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: selected ? AppColors.primary : Colors.grey,
-                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildIconSelector() {
-    if (_usarImagen) {
-      return const SizedBox.shrink();
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextFormField(
-          controller: _iconoController,
-          decoration: const InputDecoration(
-            labelText: 'Icono (emoji)',
-            prefixIcon: Icon(Icons.emoji_emotions),
-            border: OutlineInputBorder(),
-            hintText: 'Ej: ☕, 🍕, 🍷',
-          ),
-          onChanged: (_) => setState(() {}),
-        ),
-      ],
     );
   }
 
@@ -403,16 +352,16 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
     if (_formKey.currentState!.validate()) {
       String? imagenUrl;
 
-      if (_usarImagen && _imagenBase64 != null) {
+      if (_imagenBase64 != null) {
         imagenUrl = 'data:image/png;base64,$_imagenBase64';
-      } else if (_usarImagen && _imagenUrlActual != null) {
+      } else if (_imagenUrlActual != null) {
         imagenUrl = _imagenUrlActual;
       }
 
       final categoria = CategoriaProducto(
         id: widget.categoria?.id ?? 'cat_${const Uuid().v4()}',
         nombre: _nombreController.text.trim(),
-        icono: _usarImagen ? '' : _iconoController.text,
+        icono: '',
         color: _color,
         imagenUrl: imagenUrl,
         orden: widget.categoria?.orden ?? 0,

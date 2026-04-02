@@ -882,10 +882,10 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
   ) {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 6,
+        crossAxisCount: 5,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 1.5,
+        childAspectRatio: 0.9,
       ),
       itemCount: categorias.length + 1,
       itemBuilder: (context, index) {
@@ -1069,9 +1069,10 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                                         borderRadius: BorderRadius.circular(4),
                                         child: _buildCategoryImage(cat, 36, 36),
                                       )
-                                    : Text(
-                                        cat.icono,
-                                        style: const TextStyle(fontSize: 20),
+                                    : Icon(
+                                        Icons.category,
+                                        size: 20,
+                                        color: cat.color,
                                       ),
                               ),
                             ),
