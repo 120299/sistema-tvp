@@ -631,11 +631,11 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 if (cat.imagenUrl != null && cat.imagenUrl!.isNotEmpty)
                   CategoryAvatar(categoria: cat, width: 90, height: 60)
                 else if (cat.icono.isNotEmpty)
-                  Text(cat.icono, style: const TextStyle(fontSize: 32))
+                  Text(cat.icono, style: const TextStyle(fontSize: 28))
                 else
                   Icon(
                     Icons.category,
-                    size: 32,
+                    size: 28,
                     color: isSelected ? cat.color : Colors.black,
                   ),
                 const SizedBox(height: 6),

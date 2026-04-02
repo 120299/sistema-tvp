@@ -13,6 +13,7 @@ import 'configuracion_screen.dart';
 import 'caja_screen.dart';
 import 'clientes_screen.dart';
 import 'usuarios_screen.dart';
+import 'ingredientes_extras_screen.dart';
 
 class AppShell extends ConsumerStatefulWidget {
   final VoidCallback? onLogout;
@@ -81,7 +82,10 @@ class _AppShellState extends ConsumerState<AppShell> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.85)],
+          colors: [
+            AppColors.primary,
+            AppColors.primary.withValues(alpha: 0.85),
+          ],
         ),
         boxShadow: [
           BoxShadow(
@@ -357,6 +361,15 @@ class _AppShellState extends ConsumerState<AppShell> {
             mostrarTexto: mostrarTexto,
           ),
           _buildMenuVerticalItem(
+            icon: Icons.restaurant_menu,
+            label: 'Ing/Ext',
+            isSelected: indiceActual == 8,
+            onTap: () {
+              ref.read(indiceNavegacionProvider.notifier).state = 8;
+            },
+            mostrarTexto: mostrarTexto,
+          ),
+          _buildMenuVerticalItem(
             icon: Icons.exit_to_app,
             label: 'Salir',
             isSelected: false,
@@ -456,6 +469,8 @@ class _AppShellState extends ConsumerState<AppShell> {
         return const InformesScreen();
       case 7:
         return const ConfiguracionScreen();
+      case 8:
+        return const IngredientesExtrasScreen();
       default:
         return const VentaLibreScreen();
     }

@@ -651,7 +651,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
                       width: 200,
                       child: Row(
                         children: [
-                          Text(cat.icono, style: const TextStyle(fontSize: 18)),
+                          _buildCategoriaThumbnail(cat, 24, 20),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -1440,5 +1440,70 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
         ],
       ),
     );
+  }
+
+  Widget _buildCategoriaThumbnail(
+    CategoriaProducto cat, [
+    double width = 24,
+    double height = 24,
+  ]) {
+    final imagenUrl = cat.imagenUrl;
+    if (imagenUrl != null && imagenUrl.isNotEmpty) {
+      if (imagenUrl.startsWith('data:')) {
+        final base64Match = RegExp(r'base64,(.+)').firstMatch(imagenUrl);
+        if (base64Match != null) {
+          try {
+            final base64Data = base64Match.group(1)!;
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: Image.memory(
+                base64Decode(base64Data),
+                width: width,
+                height: height,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildCategoriaIcon(cat, width),
+              ),
+            );
+          } catch (_) {
+            return _buildCategoriaIcon(cat, width);
+          }
+        }
+      }
+      if (imagenUrl.startsWith('http')) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: Image.network(
+            imagenUrl,
+            width: width,
+            height: height,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _buildCategoriaIcon(cat, width),
+          ),
+        );
+      }
+      if (imagenUrl.startsWith('categories/')) {
+        final base64 = imageStorageService.getBase64FromPath(imagenUrl);
+        if (base64.isNotEmpty) {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: Image.memory(
+              base64Decode(base64),
+              width: width,
+              height: height,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _buildCategoriaIcon(cat, width),
+            ),
+          );
+        }
+      }
+    }
+    return _buildCategoriaIcon(cat, width);
+  }
+
+  Widget _buildCategoriaIcon(CategoriaProducto cat, [double size = 18]) {
+    if (cat.icono.isNotEmpty) {
+      return Text(cat.icono, style: TextStyle(fontSize: size));
+    }
+    return Icon(Icons.category, size: size, color: cat.color);
   }
 }
