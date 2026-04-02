@@ -206,7 +206,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -386,7 +386,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
       label: Text(label),
       selected: isSelected,
       onSelected: (_) => _cambiarPeriodo(value),
-      selectedColor: AppColors.primary.withOpacity(0.2),
+      selectedColor: AppColors.primary.withValues(alpha: 0.2),
       labelStyle: TextStyle(
         color: isSelected ? AppColors.primary : Colors.grey.shade700,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -444,7 +444,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         borderRadius: BorderRadius.zero,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -458,7 +458,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.zero,
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -495,7 +495,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.zero,
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
           ],
         ),
         child: Column(
@@ -543,7 +543,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.zero,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
         ],
       ),
       child: Column(
@@ -635,7 +635,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.zero,
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
           ],
         ),
         child: Center(
@@ -655,7 +655,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.zero,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
         ],
       ),
       child: Column(
@@ -717,7 +717,7 @@ class _InformesScreenState extends ConsumerState<InformesScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.zero,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
         ],
       ),
       child: Column(

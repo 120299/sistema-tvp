@@ -38,7 +38,7 @@ class _ProductoImportDialogState extends ConsumerState<ProductoImportDialog> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.zero,
                   ),
                   child: const Icon(
@@ -79,8 +79,8 @@ class _ProductoImportDialogState extends ConsumerState<ProductoImportDialog> {
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
                   color: _esError
-                      ? AppColors.error.withOpacity(0.1)
-                      : AppColors.success.withOpacity(0.1),
+                      ? AppColors.error.withValues(alpha: 0.1)
+                      : AppColors.success.withValues(alpha: 0.1),
                   border: Border.all(
                     color: _esError ? AppColors.error : AppColors.success,
                   ),

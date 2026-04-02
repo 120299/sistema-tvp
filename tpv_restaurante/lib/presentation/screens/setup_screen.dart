@@ -120,7 +120,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                   borderRadius: BorderRadius.zero,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -298,7 +298,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: AppColors.error.withOpacity(0.1),
+                                  color: AppColors.error.withValues(alpha: 0.1),
                                   border: Border.all(color: AppColors.error),
                                 ),
                                 child: Text(

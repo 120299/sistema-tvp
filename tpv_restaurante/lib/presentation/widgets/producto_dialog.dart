@@ -23,8 +23,7 @@ class ProductoDialog extends ConsumerStatefulWidget {
 class _VarianteDialog extends StatefulWidget {
   final VarianteProducto? variante;
   final ValueChanged<VarianteProducto> onGuardar;
-  const _VarianteDialog({Key? key, this.variante, required this.onGuardar})
-    : super(key: key);
+  const _VarianteDialog({this.variante, required this.onGuardar});
 
   @override
   State<_VarianteDialog> createState() => _VarianteDialogState();
@@ -110,7 +109,7 @@ class _VarianteDialogState extends State<_VarianteDialog> {
 
 class VarianteDialog extends StatefulWidget {
   final ValueChanged<VarianteProducto> onGuardar;
-  const VarianteDialog({Key? key, required this.onGuardar}) : super(key: key);
+  const VarianteDialog({super.key, required this.onGuardar});
 
   @override
   State<VarianteDialog> createState() => _VarianteDialogStatePublic();
@@ -389,7 +388,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.zero,
             ),
             child: Icon(
@@ -636,7 +635,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
             Expanded(
               flex: 2,
               child: DropdownButtonFormField<String>(
-                value: _categoriaId,
+                initialValue: _categoriaId,
                 decoration: const InputDecoration(
                   labelText: 'Categoría',
                   prefixIcon: Icon(Icons.category),
@@ -735,11 +734,11 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: _controlStock
-            ? Colors.orange.withOpacity(0.05)
+            ? Colors.orange.withValues(alpha: 0.05)
             : Colors.grey.shade50,
         border: Border.all(
           color: _controlStock
-              ? Colors.orange.withOpacity(0.3)
+              ? Colors.orange.withValues(alpha: 0.3)
               : Colors.grey.shade300,
         ),
         borderRadius: BorderRadius.zero,
@@ -778,7 +777,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
               Switch(
                 value: _controlStock,
                 onChanged: (value) => setState(() => _controlStock = value),
-                activeThumbColor: Colors.orange,
+                activeColor: Colors.orange,
               ),
             ],
           ),
@@ -893,7 +892,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
                       value: _esAlergenico,
                       onChanged: (value) =>
                           setState(() => _esAlergenico = value),
-                      activeThumbColor: AppColors.warning,
+                      activeColor: AppColors.warning,
                     ),
                   ],
                 ),
@@ -912,11 +911,11 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: _esVariable
-            ? AppColors.primary.withOpacity(0.05)
+            ? AppColors.primary.withValues(alpha: 0.05)
             : Colors.grey.shade50,
         border: Border.all(
           color: _esVariable
-              ? AppColors.primary.withOpacity(0.3)
+              ? AppColors.primary.withValues(alpha: 0.3)
               : Colors.grey.shade300,
         ),
         borderRadius: BorderRadius.zero,
@@ -960,7 +959,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
                     _variantes.clear();
                   }
                 }),
-                activeThumbColor: AppColors.primary,
+                activeColor: AppColors.primary,
               ),
             ],
           ),
@@ -1052,8 +1051,8 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.05),
-        border: Border.all(color: Colors.green.withOpacity(0.3)),
+        color: Colors.green.withValues(alpha: 0.05),
+        border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.zero,
       ),
       child: Column(
@@ -1135,8 +1134,8 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.purple.withOpacity(0.05),
-        border: Border.all(color: Colors.purple.withOpacity(0.3)),
+        color: Colors.purple.withValues(alpha: 0.05),
+        border: Border.all(color: Colors.purple.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.zero,
       ),
       child: Column(
@@ -1262,7 +1261,7 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
         borderRadius: BorderRadius.zero,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),

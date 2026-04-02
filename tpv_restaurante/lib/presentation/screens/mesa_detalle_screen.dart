@@ -82,7 +82,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
         color: estadoData.color,
         boxShadow: [
           BoxShadow(
-            color: estadoData.color.withOpacity(0.3),
+            color: estadoData.color.withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -95,7 +95,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.zero,
               ),
               child: Icon(estadoData.icono, color: Colors.white, size: 24),
@@ -190,7 +190,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.secondary.withOpacity(0.15),
+                    color: AppColors.secondary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.zero,
                   ),
                   child: const Icon(
@@ -227,7 +227,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.secondary.withOpacity(0.15),
+                    color: AppColors.secondary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.zero,
                   ),
                   child: Text(
@@ -255,7 +255,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                           width: 24,
                           height: 24,
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.zero,
                           ),
                           child: Center(
@@ -414,7 +414,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
     Color color,
   ) {
     return Material(
-      color: color.withOpacity(0.1),
+      color: color.withValues(alpha: 0.1),
       borderRadius: BorderRadius.zero,
       child: InkWell(
         onTap: onTap,
@@ -455,7 +455,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
+                color: color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.zero,
               ),
               child: Icon(Icons.timer, color: color, size: 20),
@@ -486,7 +486,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
+                color: color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.zero,
               ),
               child: Row(
@@ -652,7 +652,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: (esEfectivo ? AppColors.success : AppColors.primary)
-                      .withOpacity(0.1),
+                      .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.zero,
                 ),
                 child: Icon(
@@ -959,7 +959,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.zero,
                     ),
                     child: const Icon(Icons.receipt, color: AppColors.primary),
@@ -996,7 +996,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
+                          color: AppColors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.zero,
                         ),
                         child: Center(
@@ -1065,7 +1065,7 @@ class _MesaDetalleScreenState extends ConsumerState<MesaDetalleScreen>
                       (pedido.metodoPago == 'Efectivo'
                               ? AppColors.success
                               : AppColors.primary)
-                          .withOpacity(0.1),
+                          .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.zero,
                 ),
                 child: Row(
@@ -1222,7 +1222,7 @@ class _CobroDialogState extends State<_CobroDialog> {
   ) {
     final selected = _metodoPago == valor;
     return Material(
-      color: selected ? color : color.withOpacity(0.1),
+      color: selected ? color : color.withValues(alpha: 0.1),
       borderRadius: BorderRadius.zero,
       child: InkWell(
         onTap: () => setState(() => _metodoPago = valor),

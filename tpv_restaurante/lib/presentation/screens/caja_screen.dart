@@ -110,7 +110,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.warning.withOpacity(0.1),
+                      color: AppColors.warning.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.zero,
                     ),
                     child: const Icon(
@@ -164,9 +164,9 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                             margin: const EdgeInsets.only(bottom: 20),
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.05),
+                              color: AppColors.primary.withValues(alpha: 0.05),
                               border: Border.all(
-                                color: AppColors.primary.withOpacity(0.1),
+                                color: AppColors.primary.withValues(alpha: 0.1),
                               ),
                               borderRadius: BorderRadius.zero,
                             ),
@@ -427,7 +427,10 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColors.primary, AppColors.primary.withOpacity(0.85)],
+              colors: [
+                AppColors.primary,
+                AppColors.primary.withValues(alpha: 0.85),
+              ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -437,7 +440,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.zero,
                 ),
                 child: Icon(Icons.lock_open, color: Colors.white, size: 24),
@@ -458,7 +461,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                     Text(
                       '${caja.cajeroNombre ?? 'Cajero'} • ${horas}h ${minutos}m',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 12,
                       ),
                     ),
@@ -470,7 +473,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                 icon: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.zero,
                   ),
                   child: Icon(Icons.history, color: Colors.white, size: 20),
@@ -750,7 +753,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                                           (esIngreso
                                                   ? AppColors.success
                                                   : AppColors.error)
-                                              .withOpacity(0.1),
+                                              .withValues(alpha: 0.1),
                                       shape: BoxShape.rectangle,
                                     ),
                                     child: Icon(
@@ -947,7 +950,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                           borderRadius: BorderRadius.zero,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withValues(alpha: 0.05),
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
@@ -963,7 +966,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                                 gradient: LinearGradient(
                                   colors: [
                                     AppColors.primary,
-                                    AppColors.primary.withOpacity(0.8),
+                                    AppColors.primary.withValues(alpha: 0.8),
                                   ],
                                 ),
                               ),
@@ -972,7 +975,9 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                                   Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.2,
+                                      ),
                                       borderRadius: BorderRadius.zero,
                                     ),
                                     child: const Icon(
@@ -1001,8 +1006,8 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                                         Text(
                                           '${DateFormat('HH:mm').format(cajaHist.fechaApertura)} - ${cajaHist.fechaCierre != null ? DateFormat('HH:mm').format(cajaHist.fechaCierre!) : 'Abierta'}',
                                           style: TextStyle(
-                                            color: Colors.white.withOpacity(
-                                              0.8,
+                                            color: Colors.white.withValues(
+                                              alpha: 0.8,
                                             ),
                                             fontSize: 12,
                                           ),
@@ -1013,7 +1018,9 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
                                   Text(
                                     cajaHist.cajeroNombre ?? 'Sistema',
                                     style: TextStyle(
-                                      color: Colors.white.withOpacity(0.9),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.9,
+                                      ),
                                       fontSize: 12,
                                     ),
                                   ),
@@ -1149,16 +1156,16 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.zero,
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.zero,
             ),
             child: Icon(icono, color: color, size: 20),
@@ -1198,7 +1205,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> {
       label: Text(label),
       selected: isSelected,
       onSelected: (_) => _cambiarPeriodoFiltro(value),
-      selectedColor: AppColors.primary.withOpacity(0.2),
+      selectedColor: AppColors.primary.withValues(alpha: 0.2),
       labelStyle: TextStyle(
         color: isSelected ? AppColors.primary : Colors.grey.shade700,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,

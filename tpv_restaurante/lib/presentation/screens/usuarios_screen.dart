@@ -60,7 +60,7 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
         ),
       ),
       child: SafeArea(
@@ -72,7 +72,7 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.zero,
                   ),
                   child: const Icon(
@@ -120,7 +120,7 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.zero,
               ),
               child: Row(
@@ -212,8 +212,8 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                 height: 48,
                 decoration: BoxDecoration(
                   color: cajero.isAdministrador
-                      ? AppColors.warning.withOpacity(0.2)
-                      : AppColors.primary.withOpacity(0.1),
+                      ? AppColors.warning.withValues(alpha: 0.2)
+                      : AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.zero,
                 ),
                 alignment: Alignment.center,
@@ -249,8 +249,8 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: cajero.isAdministrador
-                                ? AppColors.warning.withOpacity(0.2)
-                                : AppColors.primary.withOpacity(0.1),
+                                ? AppColors.warning.withValues(alpha: 0.2)
+                                : AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.zero,
                           ),
                           child: Text(
@@ -313,7 +313,7 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.zero,
                   ),
                   child: Row(
@@ -390,7 +390,7 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     color: rolSeleccionado == RolCajero.cajero
-                                        ? AppColors.primary.withOpacity(0.1)
+                                        ? AppColors.primary.withValues(alpha: 0.1)
                                         : Colors.grey.shade100,
                                     borderRadius: BorderRadius.zero,
                                     border: Border.all(
@@ -439,7 +439,7 @@ class _UsuariosScreenState extends ConsumerState<UsuariosScreen> {
                                     color:
                                         rolSeleccionado ==
                                             RolCajero.administrador
-                                        ? AppColors.warning.withOpacity(0.2)
+                                        ? AppColors.warning.withValues(alpha: 0.2)
                                         : Colors.grey.shade100,
                                     borderRadius: BorderRadius.zero,
                                     border: Border.all(

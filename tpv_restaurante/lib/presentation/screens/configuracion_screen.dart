@@ -361,7 +361,7 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
             borderRadius: BorderRadius.zero,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -517,7 +517,7 @@ class _ConfiguracionScreenState extends ConsumerState<ConfiguracionScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: color),
           ),

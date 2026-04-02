@@ -6,6 +6,7 @@ import '../../data/models/models.dart';
 import '../../data/services/image_storage_service.dart';
 import '../../data/services/print_service.dart';
 import '../widgets/producto_personalizacion_dialog.dart';
+import '../widgets/product_image_widget.dart';
 import '../providers/providers.dart';
 import 'cobro_sheet.dart';
 
@@ -120,7 +121,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         color: AppColors.primary,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -133,7 +134,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.zero,
               ),
               child: Row(
@@ -214,7 +215,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
         ),
       ),
       child: Column(
@@ -224,7 +225,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.zero,
                 ),
                 child: const Icon(
@@ -469,7 +470,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -571,7 +572,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             child: Container(
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.primary.withOpacity(0.15)
+                    ? AppColors.primary.withValues(alpha: 0.15)
                     : Colors.grey.shade50,
                 border: Border.all(
                   color: isSelected ? AppColors.primary : Colors.grey.shade300,
@@ -616,7 +617,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           child: Container(
             decoration: BoxDecoration(
               color: isSelected
-                  ? cat.color.withOpacity(0.15)
+                  ? cat.color.withValues(alpha: 0.15)
                   : Colors.grey.shade50,
               border: Border.all(
                 color: isSelected ? cat.color : Colors.grey.shade300,
@@ -684,7 +685,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         ),
       ),
       backgroundColor: selected
-          ? (color ?? AppColors.primary).withOpacity(0.15)
+          ? (color ?? AppColors.primary).withValues(alpha: 0.15)
           : Colors.grey.shade100,
       side: BorderSide(
         color: selected ? (color ?? AppColors.primary) : Colors.grey.shade300,
@@ -746,7 +747,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -909,27 +910,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
   }
 
   Widget _buildProductImage(Producto producto, CategoriaProducto? categoria) {
-    if (producto.imagenUrl != null && producto.imagenUrl!.isNotEmpty) {
-      if (producto.imagenUrl!.startsWith('products/')) {
-        final base64 = imageStorageService.getBase64FromPath(
-          producto.imagenUrl!,
-        );
-        if (base64.isNotEmpty) {
-          return Image.memory(
-            base64Decode(base64),
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => _buildPlaceholder(categoria),
-          );
-        }
-      } else if (producto.imagenUrl!.startsWith('http')) {
-        return Image.network(
-          producto.imagenUrl!,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildPlaceholder(categoria),
-        );
-      }
-    }
-    return _buildPlaceholder(categoria);
+    return ProductImageWidget(producto: producto, categoria: categoria);
   }
 
   Widget _buildPrecioProducto(Producto producto) {
@@ -985,8 +966,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            (categoria?.color ?? AppColors.primary).withOpacity(0.2),
-            (categoria?.color ?? AppColors.primary).withOpacity(0.05),
+            (categoria?.color ?? AppColors.primary).withValues(alpha: 0.2),
+            (categoria?.color ?? AppColors.primary).withValues(alpha: 0.05),
           ],
         ),
       ),
@@ -1063,7 +1044,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.zero,
                     ),
                     child: Row(
@@ -1089,7 +1070,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 if (caja != null && caja.estado == EstadoCaja.abierta)
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.zero,
                     ),
                     child: IconButton(
@@ -1324,7 +1305,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.zero,
               ),
               alignment: Alignment.center,
@@ -1375,7 +1356,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: AppColors.error.withOpacity(0.1),
+                      color: AppColors.error.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.zero,
                     ),
                     alignment: Alignment.center,
@@ -1399,7 +1380,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: AppColors.success.withOpacity(0.1),
+                      color: AppColors.success.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.zero,
                     ),
                     alignment: Alignment.center,
@@ -1419,7 +1400,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.zero,
                 ),
                 alignment: Alignment.center,
@@ -1437,7 +1418,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(
-                  color: AppColors.error.withOpacity(0.1),
+                  color: AppColors.error.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.zero,
                 ),
                 alignment: Alignment.center,
@@ -1593,6 +1574,13 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
   Future<void> _agregarItemBD(PedidoItem item) async {
     if (_mesaAsignada == null) return;
 
+    // Verificar que la caja esté abierta
+    final caja = ref.read(cajaProvider);
+    if (caja == null || caja.estado != EstadoCaja.abierta) {
+      _mostrarAlertaCajaCerrada();
+      return;
+    }
+
     final mesaActual = ref
         .read(mesasProvider)
         .where((m) => m.id == _mesaAsignada)
@@ -1639,22 +1627,34 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       }
     }
 
-    await ref
-        .read(pedidosProvider.notifier)
-        .agregarItem(
-          pedidoId,
-          Producto(
-            id: item.productoId,
-            nombre: item.productoNombre.split(' - ').first,
-            precio: item.precioUnitario,
-            categoriaId: '',
+    try {
+      await ref
+          .read(pedidosProvider.notifier)
+          .agregarItem(
+            pedidoId,
+            Producto(
+              id: item.productoId,
+              nombre: item.productoNombre.split(' - ').first,
+              precio: item.precioUnitario,
+              categoriaId: '',
+            ),
+            cantidad: item.cantidad,
+            variante: variante,
+            notas: item.notas,
+            ingredientesQuitados: item.ingredientesQuitados,
+            extrasSeleccionados: item.extrasSeleccionados,
+          );
+    } catch (e) {
+      debugPrint('Error al agregar item a BD: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al agregar producto: $e'),
+            backgroundColor: AppColors.error,
           ),
-          cantidad: item.cantidad,
-          variante: variante,
-          notas: item.notas,
-          ingredientesQuitados: item.ingredientesQuitados,
-          extrasSeleccionados: item.extrasSeleccionados,
         );
+      }
+    }
   }
 
   Future<void> _actualizarItemBD(PedidoItem item, int nuevaCantidad) async {
@@ -1675,13 +1675,17 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     // Buscar el item por su ID exacto
     final itemEnPedido = pedido.items.where((i) => i.id == item.id).firstOrNull;
     if (itemEnPedido != null) {
-      await ref
-          .read(pedidosProvider.notifier)
-          .actualizarCantidad(
-            mesaActual.pedidoActualId!,
-            itemEnPedido.id,
-            nuevaCantidad,
-          );
+      try {
+        await ref
+            .read(pedidosProvider.notifier)
+            .actualizarCantidad(
+              mesaActual.pedidoActualId!,
+              itemEnPedido.id,
+              nuevaCantidad,
+            );
+      } catch (e) {
+        debugPrint('Error al actualizar cantidad: $e');
+      }
     }
   }
 
@@ -1701,23 +1705,27 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           .firstOrNull
           ?.pedidoActualId;
       if (pedidoId != null) {
-        await ref
-            .read(pedidosProvider.notifier)
-            .eliminarItem(pedidoId, item.id);
-
-        ref.read(pedidosProvider.notifier).actualizarLista();
-        final pedidoActualizado = ref
-            .read(pedidosProvider)
-            .where((p) => p.id == pedidoId)
-            .firstOrNull;
-        if (pedidoActualizado != null && pedidoActualizado.items.isEmpty) {
+        try {
           await ref
               .read(pedidosProvider.notifier)
-              .eliminar(pedidoActualizado.id);
-          await ref.read(mesasProvider.notifier).liberar(_mesaAsignada!);
-          setState(() {
-            _mesaAsignada = null;
-          });
+              .eliminarItem(pedidoId, item.id);
+
+          ref.read(pedidosProvider.notifier).actualizarLista();
+          final pedidoActualizado = ref
+              .read(pedidosProvider)
+              .where((p) => p.id == pedidoId)
+              .firstOrNull;
+          if (pedidoActualizado != null && pedidoActualizado.items.isEmpty) {
+            await ref
+                .read(pedidosProvider.notifier)
+                .eliminar(pedidoActualizado.id);
+            await ref.read(mesasProvider.notifier).liberar(_mesaAsignada!);
+            setState(() {
+              _mesaAsignada = null;
+            });
+          }
+        } catch (e) {
+          debugPrint('Error al eliminar item: $e');
         }
       }
     }
@@ -1811,7 +1819,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.1),
+                color: AppColors.warning.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.zero,
               ),
               child: const Icon(Icons.warning_amber, color: AppColors.warning),

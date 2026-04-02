@@ -94,7 +94,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
         ),
       ),
       child: SafeArea(
@@ -107,7 +107,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.zero,
                   ),
                   child: const Icon(
@@ -316,7 +316,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
           color: isActive
-              ? AppColors.primary.withOpacity(0.08)
+              ? AppColors.primary.withValues(alpha: 0.08)
               : Colors.grey.shade50,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
@@ -616,7 +616,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withOpacity(0.1)
+              ? AppColors.primary.withValues(alpha: 0.1)
               : Colors.grey.shade50,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
@@ -659,7 +659,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.secondary.withOpacity(0.1)
+              ? AppColors.secondary.withValues(alpha: 0.1)
               : Colors.grey.shade50,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
@@ -773,7 +773,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -899,7 +899,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
             child: Container(
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.primary.withOpacity(0.15)
+                    ? AppColors.primary.withValues(alpha: 0.15)
                     : Colors.grey.shade50,
                 border: Border.all(
                   color: isSelected ? AppColors.primary : Colors.grey.shade300,
@@ -944,7 +944,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
           child: Container(
             decoration: BoxDecoration(
               color: isSelected
-                  ? cat.color.withOpacity(0.15)
+                  ? cat.color.withValues(alpha: 0.15)
                   : Colors.grey.shade50,
               border: Border.all(
                 color: isSelected ? cat.color : Colors.grey.shade300,
@@ -1058,7 +1058,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color: cat.color.withOpacity(0.2),
+                                color: cat.color.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Center(
@@ -1138,7 +1138,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
         ),
       ),
       backgroundColor: selected
-          ? (color ?? AppColors.primary).withOpacity(0.15)
+          ? (color ?? AppColors.primary).withValues(alpha: 0.15)
           : Colors.grey.shade100,
       side: BorderSide(
         color: selected ? (color ?? AppColors.primary) : Colors.grey.shade300,
@@ -1160,7 +1160,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               shape: BoxShape.rectangle,
             ),
             child: Icon(
@@ -1385,8 +1385,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            categoria.color.withOpacity(0.2),
-            categoria.color.withOpacity(0.05),
+            categoria.color.withValues(alpha: 0.2),
+            categoria.color.withValues(alpha: 0.05),
           ],
         ),
       ),

@@ -123,7 +123,7 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: _color.withOpacity(0.2),
+            color: _color.withValues(alpha: 0.2),
             borderRadius: BorderRadius.zero,
           ),
           child: _usarImagen && _imagenBase64 != null
@@ -289,7 +289,7 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary.withOpacity(0.1) : Colors.white,
+          color: selected ? AppColors.primary.withValues(alpha: 0.1) : Colors.white,
           borderRadius: BorderRadius.zero,
           border: Border.all(
             color: selected ? AppColors.primary : Colors.grey.shade300,

@@ -30,7 +30,7 @@ class ProductCard extends ConsumerWidget {
           borderRadius: BorderRadius.zero,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -242,7 +242,7 @@ class ProductCard extends ConsumerWidget {
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,
-            errorBuilder: (_, __, ___) => _buildPlaceholder(),
+            errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
           );
         }
       } else if (producto.imagenUrl!.startsWith('http')) {
@@ -251,7 +251,7 @@ class ProductCard extends ConsumerWidget {
           fit: BoxFit.cover,
           width: double.infinity,
           height: double.infinity,
-          errorBuilder: (_, __, ___) => _buildPlaceholder(),
+          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
         );
       }
     }
@@ -260,7 +260,7 @@ class ProductCard extends ConsumerWidget {
 
   Widget _buildPlaceholder() {
     return Container(
-      color: AppColors.primary.withOpacity(0.1),
+      color: AppColors.primary.withValues(alpha: 0.1),
       child: const Center(
         child: Icon(Icons.restaurant, size: 40, color: AppColors.primary),
       ),

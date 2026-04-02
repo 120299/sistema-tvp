@@ -96,7 +96,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.zero,
                   ),
                   child: Row(
@@ -138,7 +138,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.zero,
                       ),
                       child: Text(
@@ -174,7 +174,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.zero,
                       ),
                       child: Text(
@@ -264,7 +264,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
         ),
       ),
       child: Column(
@@ -274,7 +274,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.zero,
                 ),
                 child: const Icon(
@@ -300,7 +300,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.zero,
                 ),
                 child: Text(
@@ -333,7 +333,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withValues(alpha: 0.15),
           borderRadius: BorderRadius.zero,
         ),
         child: Column(
@@ -411,7 +411,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [estadoData.color.withOpacity(0.1), Colors.white],
+              colors: [estadoData.color.withValues(alpha: 0.1), Colors.white],
             ),
           ),
           child: Column(
@@ -420,7 +420,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                 decoration: BoxDecoration(
-                  color: estadoData.color.withOpacity(0.2),
+                  color: estadoData.color.withValues(alpha: 0.2),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -502,7 +502,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                             vertical: 1,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.success.withOpacity(0.1),
+                            color: AppColors.success.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.zero,
                           ),
                           child: Text(
@@ -569,7 +569,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                     decoration: BoxDecoration(
                       color: _getEstadoData(
                         mesa.estado,
-                      ).color.withOpacity(0.15),
+                      ).color.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.zero,
                     ),
                     child: Icon(
@@ -678,7 +678,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
+          color: color.withValues(alpha: 0.15),
           borderRadius: BorderRadius.zero,
         ),
         child: Icon(icono, color: color, size: 20),
@@ -1078,7 +1078,7 @@ class _CobroMesaSheetState extends State<_CobroMesaSheet> {
                 gradient: LinearGradient(
                   colors: [
                     AppColors.success,
-                    AppColors.success.withOpacity(0.8),
+                    AppColors.success.withValues(alpha: 0.8),
                   ],
                 ),
                 borderRadius: BorderRadius.zero,
@@ -1131,7 +1131,7 @@ class _CobroMesaSheetState extends State<_CobroMesaSheet> {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       backgroundColor: !_dividirPago
-                          ? AppColors.primary.withOpacity(0.1)
+                          ? AppColors.primary.withValues(alpha: 0.1)
                           : null,
                     ),
                   ),
@@ -1154,7 +1154,7 @@ class _CobroMesaSheetState extends State<_CobroMesaSheet> {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       backgroundColor: _dividirPago
-                          ? AppColors.primary.withOpacity(0.1)
+                          ? AppColors.primary.withValues(alpha: 0.1)
                           : null,
                     ),
                   ),

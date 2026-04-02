@@ -455,14 +455,7 @@ class _TicketPrintDialogState extends State<_TicketPrintDialog> {
         fechaVenta: widget.fechaVenta,
       );
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('No se pudo previsualizar: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
+      debugPrint('Error al generar ticket HTML: $e');
     }
   }
 

@@ -81,11 +81,11 @@ class _AppShellState extends ConsumerState<AppShell> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.85)],
+          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.85)],
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -96,7 +96,7 @@ class _AppShellState extends ConsumerState<AppShell> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.zero,
             ),
             child: const Icon(Icons.restaurant, color: Colors.white, size: 28),
@@ -135,7 +135,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                           ? 'Caja abierta'
                           : 'Caja cerrada',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 12,
                       ),
                     ),
@@ -143,13 +143,13 @@ class _AppShellState extends ConsumerState<AppShell> {
                     Icon(
                       Icons.person,
                       size: 12,
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withValues(alpha: 0.7),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       cajeroActual?.nombre ?? 'Usuario',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         fontSize: 12,
                       ),
                     ),
@@ -171,7 +171,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
           borderRadius: BorderRadius.zero,
         ),
         child: Row(
@@ -180,7 +180,7 @@ class _AppShellState extends ConsumerState<AppShell> {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 shape: BoxShape.rectangle,
               ),
               child: Icon(
@@ -234,7 +234,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.zero,
                   ),
                   child: const Text(

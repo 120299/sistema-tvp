@@ -318,7 +318,7 @@ class _CobroSheetState extends State<CobroSheet> {
       height: teclaHeight,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.08),
+        color: AppColors.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.zero,
       ),
       child: Row(
@@ -353,8 +353,8 @@ class _CobroSheetState extends State<CobroSheet> {
               height: teclaHeight,
               margin: const EdgeInsets.symmetric(horizontal: 2),
               decoration: BoxDecoration(
-                color: Colors.indigo.withOpacity(0.07),
-                border: Border.all(color: Colors.indigo.withOpacity(0.2)),
+                color: Colors.indigo.withValues(alpha: 0.07),
+                border: Border.all(color: Colors.indigo.withValues(alpha: 0.2)),
                 borderRadius: BorderRadius.zero,
               ),
               alignment: Alignment.center,

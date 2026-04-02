@@ -77,7 +77,7 @@ class MesaCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -93,7 +93,7 @@ class MesaCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: _colorEstado.withOpacity(0.15),
+                      color: _colorEstado.withValues(alpha: 0.15),
                       shape: BoxShape.rectangle,
                     ),
                     child: Icon(_iconoEstado, color: _colorEstado, size: 36),

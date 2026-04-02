@@ -183,7 +183,7 @@ class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.lightSurface,
-        indicatorColor: AppColors.primary.withOpacity(0.15),
+        indicatorColor: AppColors.primary.withValues(alpha: 0.15),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return GoogleFonts.poppins(
@@ -207,7 +207,7 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surfaceVariant,
-        selectedColor: AppColors.primary.withOpacity(0.15),
+        selectedColor: AppColors.primary.withValues(alpha: 0.15),
         labelStyle: GoogleFonts.poppins(fontSize: 13),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
@@ -353,7 +353,7 @@ class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.darkSurface,
-        indicatorColor: AppColors.secondary.withOpacity(0.15),
+        indicatorColor: AppColors.secondary.withValues(alpha: 0.15),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return GoogleFonts.poppins(
@@ -380,7 +380,7 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.darkSurface,
-        selectedColor: AppColors.secondary.withOpacity(0.15),
+        selectedColor: AppColors.secondary.withValues(alpha: 0.15),
         labelStyle: GoogleFonts.poppins(fontSize: 13),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),

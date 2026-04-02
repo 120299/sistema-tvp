@@ -35,7 +35,7 @@ class CommonScaffold extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.zero,
               ),
               child: const Icon(Icons.restaurant, size: 20),
@@ -312,7 +312,7 @@ class _DataManagerWidget extends ConsumerWidget {
         borderRadius: BorderRadius.zero,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

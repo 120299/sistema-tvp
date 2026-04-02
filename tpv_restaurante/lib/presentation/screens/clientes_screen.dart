@@ -75,7 +75,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
         ),
       ),
       child: SafeArea(
@@ -85,7 +85,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.zero,
               ),
               child: const Icon(Icons.people, color: Colors.white, size: 24),
@@ -194,7 +194,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.zero,
                 ),
                 alignment: Alignment.center,
@@ -274,7 +274,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.secondary.withOpacity(0.1),
+                        color: AppColors.secondary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.zero,
                       ),
                       child: Text(
@@ -337,7 +337,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.zero,
                 ),
                 child: Row(
@@ -693,7 +693,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                 label: Text(label),
                 selected: isSelected,
                 onSelected: (_) => cambiarPeriodo(value),
-                selectedColor: AppColors.primary.withOpacity(0.2),
+                selectedColor: AppColors.primary.withValues(alpha: 0.2),
                 labelStyle: TextStyle(
                   color: isSelected ? AppColors.primary : Colors.grey.shade700,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -711,7 +711,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.zero,
                     ),
                     child: Column(
@@ -731,7 +731,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                               width: 48,
                               height: 48,
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
+                                color: AppColors.primary.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.zero,
                               ),
                               alignment: Alignment.center,
@@ -862,7 +862,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),

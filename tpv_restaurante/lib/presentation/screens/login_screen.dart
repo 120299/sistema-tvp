@@ -205,7 +205,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
+              colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.7)],
             ),
           ),
           child: const Center(
@@ -229,7 +229,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
+            colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.7)],
           ),
         ),
         child: SafeArea(
@@ -301,11 +301,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           Container(
             padding: EdgeInsets.all(isCompact ? 16 : 24),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               shape: BoxShape.rectangle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 30,
                   spreadRadius: 5,
                 ),
@@ -335,7 +335,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               vertical: isCompact ? 4 : 6,
             ),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.zero,
             ),
             child: Text(
@@ -423,7 +423,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         Container(
           padding: EdgeInsets.all(isCompact ? 12 : 20),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
+            color: Colors.white.withValues(alpha: 0.15),
             shape: BoxShape.rectangle,
           ),
           child: Icon(
@@ -474,7 +474,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     shape: BoxShape.rectangle,
                   ),
                   child: Icon(
@@ -733,7 +733,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               ? null
               : [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -892,7 +892,7 @@ class _UsuarioSelectorSheetState extends State<_UsuarioSelectorSheet> {
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: esSeleccionado
-                          ? AppColors.primary.withOpacity(0.2)
+                          ? AppColors.primary.withValues(alpha: 0.2)
                           : Colors.grey.shade100,
                       shape: BoxShape.rectangle,
                     ),
