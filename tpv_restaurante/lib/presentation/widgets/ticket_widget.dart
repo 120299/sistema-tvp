@@ -317,10 +317,7 @@ class TicketWidget extends StatelessWidget {
                           ...item.extrasSeleccionados!.map(
                             (extra) => Text(
                               '+ ${extra.nombre} (${extra.precio.toStringAsFixed(2)} EUR)',
-                              style: TextStyle(
-                                fontSize: fontSize - 1,
-                                color: Colors.grey.shade700,
-                              ),
+                              style: TextStyle(fontSize: fontSize - 1),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),

@@ -883,9 +883,9 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 6,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-        childAspectRatio: 1.8,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.5,
       ),
       itemCount: categorias.length + 1,
       itemBuilder: (context, index) {
@@ -912,8 +912,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                 children: [
                   Icon(
                     Icons.apps,
-                    size: 36,
-                    color: isSelected ? AppColors.primary : Colors.grey,
+                    size: 40,
+                    color: isSelected ? AppColors.primary : Colors.black,
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -923,9 +923,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                       fontWeight: isSelected
                           ? FontWeight.bold
                           : FontWeight.normal,
-                      color: isSelected
-                          ? AppColors.primary
-                          : Colors.grey.shade700,
+                      color: isSelected ? AppColors.primary : Colors.black,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -955,7 +953,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildCategoryImage(cat, 70, 45),
+                _buildCategoryImage(cat, 90, 60),
                 const SizedBox(height: 6),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -966,7 +964,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                       fontWeight: isSelected
                           ? FontWeight.bold
                           : FontWeight.normal,
-                      color: isSelected ? cat.color : Colors.grey.shade700,
+                      color: isSelected ? cat.color : Colors.black,
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 2,
@@ -1405,21 +1403,42 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     double width = 50,
     double height = 50,
   ]) {
-    if (cat.imagenUrl != null && cat.imagenUrl!.isNotEmpty) {
-      if (cat.imagenUrl!.startsWith('http')) {
+    final imagenUrl = cat.imagenUrl;
+    if (imagenUrl != null && imagenUrl.isNotEmpty) {
+      if (imagenUrl.startsWith('data:')) {
+        final base64Match = RegExp(r'base64,(.+)').firstMatch(imagenUrl);
+        if (base64Match != null) {
+          try {
+            final base64Data = base64Match.group(1)!;
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.memory(
+                base64Decode(base64Data),
+                width: width,
+                height: height,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildCategoryIcon(cat, width),
+              ),
+            );
+          } catch (_) {
+            return _buildCategoryIcon(cat, width);
+          }
+        }
+      }
+      if (imagenUrl.startsWith('http')) {
         return ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Image.network(
-            cat.imagenUrl!,
+            imagenUrl,
             width: width,
             height: height,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => _buildCategoryIcon(cat),
+            errorBuilder: (_, __, ___) => _buildCategoryIcon(cat, width),
           ),
         );
       }
-      if (cat.imagenUrl!.startsWith('categories/')) {
-        final base64 = imageStorageService.getBase64FromPath(cat.imagenUrl!);
+      if (imagenUrl.startsWith('categories/')) {
+        final base64 = imageStorageService.getBase64FromPath(imagenUrl);
         if (base64.isNotEmpty) {
           return ClipRRect(
             borderRadius: BorderRadius.circular(8),
@@ -1428,7 +1447,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
               width: width,
               height: height,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _buildCategoryIcon(cat),
+              errorBuilder: (_, __, ___) => _buildCategoryIcon(cat, width),
             ),
           );
         }

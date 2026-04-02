@@ -556,9 +556,9 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 6,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-        childAspectRatio: 1.8,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.5,
       ),
       itemCount: categorias.length + 1,
       itemBuilder: (context, index) {
@@ -585,8 +585,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 children: [
                   Icon(
                     Icons.apps,
-                    size: 36,
-                    color: isSelected ? AppColors.primary : Colors.grey,
+                    size: 40,
+                    color: isSelected ? AppColors.primary : Colors.black,
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -596,9 +596,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                       fontWeight: isSelected
                           ? FontWeight.bold
                           : FontWeight.normal,
-                      color: isSelected
-                          ? AppColors.primary
-                          : Colors.grey.shade700,
+                      color: isSelected ? AppColors.primary : Colors.black,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -629,14 +627,14 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (cat.imagenUrl != null && cat.imagenUrl!.isNotEmpty)
-                  CategoryAvatar(categoria: cat, width: 70, height: 45)
+                  CategoryAvatar(categoria: cat, width: 90, height: 60)
                 else if (cat.icono.isNotEmpty)
                   Text(cat.icono, style: const TextStyle(fontSize: 32))
                 else
                   Icon(
                     Icons.category,
                     size: 32,
-                    color: isSelected ? cat.color : Colors.grey,
+                    color: isSelected ? cat.color : Colors.black,
                   ),
                 const SizedBox(height: 6),
                 Expanded(
@@ -649,7 +647,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                         fontWeight: isSelected
                             ? FontWeight.bold
                             : FontWeight.normal,
-                        color: isSelected ? cat.color : Colors.grey.shade700,
+                        color: isSelected ? cat.color : Colors.black,
                       ),
                       textAlign: TextAlign.center,
                       maxLines: 2,

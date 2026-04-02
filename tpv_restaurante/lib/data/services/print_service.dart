@@ -1112,10 +1112,7 @@ class PrintService {
                     padding: const pw.EdgeInsets.only(left: 20),
                     child: pw.Text(
                       'Nota: ${item.notas}',
-                      style: const pw.TextStyle(
-                        fontSize: 8,
-                        color: PdfColors.orange,
-                      ),
+                      style: const pw.TextStyle(fontSize: 8),
                     ),
                   ),
               ],
