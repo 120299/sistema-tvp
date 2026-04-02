@@ -1919,11 +1919,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       builder: (ctx) => CobroSheet(
         total: total,
         onCobrar: (metodosPago, {Cliente? cliente}) async {
-          Navigator.pop(ctx);
-
-          if (!mounted) return;
-          setState(() {});
-
           try {
             final caja = ref.read(cajaProvider);
             final pedidoId = await ref
@@ -2003,9 +1998,11 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 .map((e) => '${e.key}: ${e.value.toStringAsFixed(2)}€')
                 .join(' + ');
 
+            if (!mounted) return;
+
             try {
               await PrintService.mostrarTicketPreview(
-                context: context,
+                context: ctx,
                 items: List.from(_carrito),
                 subtotal: subtotal,
                 ivaPorcentaje: negocio.ivaPorcentaje,
@@ -2019,29 +2016,24 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 fechaVenta: pedido?.horaApertura,
               );
             } catch (e) {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('No se pudo imprimir: $e'),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
-              }
+              debugPrint('Error al imprimir ticket: $e');
             }
 
-            if (mounted) {
-              setState(() {
-                _carrito.clear();
-                _mesaAsignada = null;
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Venta completada'),
-                  backgroundColor: AppColors.success,
-                  duration: const Duration(seconds: 1),
-                ),
-              );
-            }
+            if (!mounted) return;
+            Navigator.pop(ctx);
+
+            setState(() {
+              _carrito.clear();
+              _mesaAsignada = null;
+            });
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Venta completada'),
+                backgroundColor: AppColors.success,
+                duration: const Duration(seconds: 1),
+              ),
+            );
           } catch (e) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
