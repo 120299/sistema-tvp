@@ -18,6 +18,7 @@ class _IngredienteDialogState extends ConsumerState<IngredienteDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nombreController;
   String _busqueda = '';
+  List<IngredienteProducto> _ingredientesCache = [];
 
   @override
   void initState() {
@@ -25,6 +26,7 @@ class _IngredienteDialogState extends ConsumerState<IngredienteDialog> {
     _nombreController = TextEditingController(
       text: widget.ingrediente?.nombre ?? '',
     );
+    _ingredientesCache = ref.read(ingredientesGlobalesProvider);
   }
 
   @override
@@ -36,11 +38,11 @@ class _IngredienteDialogState extends ConsumerState<IngredienteDialog> {
   @override
   Widget build(BuildContext context) {
     final esEdicion = widget.ingrediente != null;
-    final ingredientesExistentes = ref.watch(ingredientesGlobalesProvider);
+    _ingredientesCache = ref.watch(ingredientesGlobalesProvider);
 
     final filtered = _busqueda.isEmpty
-        ? ingredientesExistentes
-        : ingredientesExistentes
+        ? _ingredientesCache
+        : _ingredientesCache
               .where(
                 (i) => i.nombre.toLowerCase().contains(_busqueda.toLowerCase()),
               )
@@ -78,7 +80,7 @@ class _IngredienteDialogState extends ConsumerState<IngredienteDialog> {
                   if (value == null || value.trim().isEmpty) {
                     return 'El nombre es obligatorio';
                   }
-                  final existe = ingredientesExistentes.any(
+                  final existe = _ingredientesCache.any(
                     (i) =>
                         i.nombre.toLowerCase() == value.trim().toLowerCase() &&
                         (widget.ingrediente == null ||
@@ -119,10 +121,7 @@ class _IngredienteDialogState extends ConsumerState<IngredienteDialog> {
                               dense: true,
                               leading: const Icon(Icons.restaurant, size: 20),
                               title: Text(ing.nombre),
-                              onTap: () {
-                                _nombreController.text = ing.nombre;
-                                setState(() => _busqueda = '');
-                              },
+                              onTap: () => Navigator.pop(context, ing),
                             );
                           },
                         ),
@@ -151,15 +150,30 @@ class _IngredienteDialogState extends ConsumerState<IngredienteDialog> {
 
   void _guardar() {
     if (_formKey.currentState?.validate() ?? false) {
-      final ingrediente = IngredienteProducto(
-        id: widget.ingrediente?.id ?? const Uuid().v4(),
-        nombre: _nombreController.text.trim(),
+      final nombreIngresado = _nombreController.text.trim().toLowerCase();
+      final existe = _ingredientesCache.any(
+        (i) => i.nombre.toLowerCase() == nombreIngresado,
       );
 
-      if (widget.ingrediente != null) {
-        ref.read(ingredientesGlobalesProvider.notifier).actualizar(ingrediente);
+      IngredienteProducto ingrediente;
+
+      if (existe) {
+        ingrediente = _ingredientesCache.firstWhere(
+          (i) => i.nombre.toLowerCase() == nombreIngresado,
+        );
       } else {
-        ref.read(ingredientesGlobalesProvider.notifier).agregar(ingrediente);
+        ingrediente = IngredienteProducto(
+          id: widget.ingrediente?.id ?? const Uuid().v4(),
+          nombre: _nombreController.text.trim(),
+        );
+
+        if (widget.ingrediente != null) {
+          ref
+              .read(ingredientesGlobalesProvider.notifier)
+              .actualizar(ingrediente);
+        } else {
+          ref.read(ingredientesGlobalesProvider.notifier).agregar(ingrediente);
+        }
       }
 
       Navigator.pop(context, ingrediente);

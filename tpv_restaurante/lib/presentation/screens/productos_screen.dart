@@ -810,10 +810,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.85,
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.7,
-                ),
+                width: MediaQuery.of(context).size.width * 0.6,
+                constraints: BoxConstraints(maxHeight: 250),
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -880,104 +878,89 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     String? categoriaSeleccionada,
     List<CategoriaProducto> categorias,
   ) {
-    return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 5,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 0.9,
-      ),
-      itemCount: categorias.length + 1,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          final isSelected = categoriaSeleccionada == null;
-          return GestureDetector(
-            onTap: () {
-              ref.read(categoriaSeleccionadaProvider.notifier).state = null;
-              Navigator.pop(ctx);
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary.withValues(alpha: 0.15)
-                    : Colors.grey.shade50,
-                border: Border.all(
-                  color: isSelected ? AppColors.primary : Colors.grey.shade300,
-                  width: isSelected ? 2 : 1,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.apps,
-                    size: 40,
-                    color: isSelected ? AppColors.primary : Colors.black,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Todos',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: isSelected ? AppColors.primary : Colors.black,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-        final cat = categorias[index - 1];
-        final isSelected = categoriaSeleccionada == cat.id;
-        return GestureDetector(
-          onTap: () {
-            ref.read(categoriaSeleccionadaProvider.notifier).state = cat.id;
-            Navigator.pop(ctx);
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? cat.color.withValues(alpha: 0.15)
-                  : Colors.grey.shade50,
-              border: Border.all(
-                color: isSelected ? cat.color : Colors.grey.shade300,
-                width: isSelected ? 2 : 1,
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildCategoryImage(cat, 90, 60),
-                const SizedBox(height: 6),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    cat.nombre,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: isSelected ? cat.color : Colors.black,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
+    return ListView(
+      scrollDirection: Axis.horizontal,
+      children: [
+        _buildCategoriaHorizontal(
+          ctx,
+          null,
+          categoriaSeleccionada,
+          'Todos',
+          Icons.apps,
+          null,
+        ),
+        ...categorias.map(
+          (cat) => _buildCategoriaHorizontal(
+            ctx,
+            cat.id,
+            categoriaSeleccionada,
+            cat.nombre,
+            Icons.category,
+            cat.color,
           ),
-        );
-      },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCategoriaHorizontal(
+    BuildContext ctx,
+    String? catId,
+    String? categoriaSeleccionada,
+    String nombre,
+    IconData icono,
+    Color? color,
+  ) {
+    final isSelected = categoriaSeleccionada == catId;
+    final displayColor = catId == null
+        ? AppColors.primary
+        : color ?? AppColors.primary;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: GestureDetector(
+        onTap: () {
+          ref.read(categoriaSeleccionadaProvider.notifier).state = catId;
+          Navigator.pop(ctx);
+        },
+        child: Container(
+          width: 120,
+          decoration: BoxDecoration(
+            color: isSelected
+                ? displayColor.withValues(alpha: 0.15)
+                : Colors.grey.shade50,
+            border: Border.all(
+              color: isSelected ? displayColor : Colors.grey.shade300,
+              width: isSelected ? 2 : 1,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icono,
+                size: 36,
+                color: isSelected ? displayColor : Colors.black54,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                nombre,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? displayColor : Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
