@@ -810,8 +810,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.6,
-                constraints: BoxConstraints(maxHeight: 250),
+                width: MediaQuery.of(context).size.width * 0.7,
+                constraints: BoxConstraints(maxHeight: 450),
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -878,76 +878,90 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     String? categoriaSeleccionada,
     List<CategoriaProducto> categorias,
   ) {
-    return ListView(
-      scrollDirection: Axis.horizontal,
-      children: [
-        _buildCategoriaHorizontal(
-          ctx,
-          null,
-          categoriaSeleccionada,
-          'Todos',
-          Icons.apps,
-          null,
+    final todosCat = CategoriaProducto(
+      id: 'todos',
+      nombre: 'Todos',
+      icono: '',
+      color: AppColors.primary,
+    );
+
+    return SizedBox(
+      height: 350,
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 5,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.0,
         ),
-        ...categorias.map(
-          (cat) => _buildCategoriaHorizontal(
+        itemCount: categorias.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return _buildCategoriaCard(
+              ctx,
+              null,
+              categoriaSeleccionada,
+              todosCat,
+            );
+          }
+          return _buildCategoriaCard(
             ctx,
-            cat.id,
+            categorias[index - 1].id,
             categoriaSeleccionada,
-            cat.nombre,
-            Icons.category,
-            cat.color,
-          ),
-        ),
-      ],
+            categorias[index - 1],
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildCategoriaHorizontal(
+  Widget _buildCategoriaCard(
     BuildContext ctx,
     String? catId,
     String? categoriaSeleccionada,
-    String nombre,
-    IconData icono,
-    Color? color,
+    CategoriaProducto categoria,
   ) {
     final isSelected = categoriaSeleccionada == catId;
     final displayColor = catId == null
         ? AppColors.primary
-        : color ?? AppColors.primary;
+        : categoria.color ?? AppColors.primary;
 
-    return Padding(
-      padding: const EdgeInsets.only(right: 12),
-      child: GestureDetector(
-        onTap: () {
-          ref.read(categoriaSeleccionadaProvider.notifier).state = catId;
-          Navigator.pop(ctx);
-        },
-        child: Container(
-          width: 120,
-          decoration: BoxDecoration(
-            color: isSelected
-                ? displayColor.withValues(alpha: 0.15)
-                : Colors.grey.shade50,
-            border: Border.all(
-              color: isSelected ? displayColor : Colors.grey.shade300,
-              width: isSelected ? 2 : 1,
-            ),
-            borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: () {
+        ref.read(categoriaSeleccionadaProvider.notifier).state = catId;
+        Navigator.pop(ctx);
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected
+              ? displayColor.withValues(alpha: 0.15)
+              : Colors.grey.shade50,
+          border: Border.all(
+            color: isSelected ? displayColor : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
           ),
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icono,
-                size: 36,
-                color: isSelected ? displayColor : Colors.black54,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                nombre,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: catId == null
+                  ? _buildTodosIcon()
+                  : _buildCategoryImage(
+                      categoria,
+                      double.infinity,
+                      double.infinity,
+                    ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(8),
+              color: isSelected
+                  ? displayColor.withValues(alpha: 0.1)
+                  : Colors.white,
+              child: Text(
+                categoria.nombre,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -957,8 +971,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -1391,11 +1405,23 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     showDialog(context: context, builder: (context) => const ProductoDialog());
   }
 
+  Widget _buildTodosIcon() {
+    return Container(
+      color: AppColors.primary.withValues(alpha: 0.1),
+      child: const Center(
+        child: Icon(Icons.apps, size: 40, color: AppColors.primary),
+      ),
+    );
+  }
+
   Widget _buildCategoryImage(
-    CategoriaProducto cat, [
+    CategoriaProducto? cat, [
     double width = 50,
     double height = 50,
   ]) {
+    if (cat == null) {
+      return _buildTodosIcon();
+    }
     final imagenUrl = cat.imagenUrl;
     if (imagenUrl != null && imagenUrl.isNotEmpty) {
       if (imagenUrl.startsWith('data:')) {

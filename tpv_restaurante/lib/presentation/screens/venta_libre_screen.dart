@@ -510,10 +510,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.85,
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.7,
-                ),
+                width: MediaQuery.of(context).size.width * 0.7,
+                constraints: BoxConstraints(maxHeight: 450),
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -816,109 +814,117 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     return Icon(Icons.category, size: size, color: cat.color);
   }
 
+  Widget _buildTodosIcon() {
+    return Container(
+      color: AppColors.primary.withValues(alpha: 0.1),
+      child: const Center(
+        child: Icon(Icons.apps, size: 40, color: AppColors.primary),
+      ),
+    );
+  }
+
   Widget _buildGridCategorias(
     BuildContext ctx,
     String? categoriaSeleccionada,
     List<CategoriaProducto> categorias,
   ) {
-    return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 5,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 0.9,
-      ),
-      itemCount: categorias.length + 1,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          final isSelected = categoriaSeleccionada == null;
-          return GestureDetector(
-            onTap: () {
-              ref.read(categoriaSeleccionadaProvider.notifier).state = null;
-              Navigator.pop(ctx);
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary.withValues(alpha: 0.15)
-                    : Colors.grey.shade50,
-                border: Border.all(
-                  color: isSelected ? AppColors.primary : Colors.grey.shade300,
-                  width: isSelected ? 2 : 1,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.apps,
-                    size: 40,
-                    color: isSelected ? AppColors.primary : Colors.black,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Todos',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: isSelected ? AppColors.primary : Colors.black,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
+    final todosCat = CategoriaProducto(
+      id: 'todos',
+      nombre: 'Todos',
+      icono: '',
+      color: AppColors.primary,
+    );
+
+    return SizedBox(
+      height: 350,
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 5,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.0,
+        ),
+        itemCount: categorias.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return _buildCategoriaCard(
+              ctx,
+              null,
+              categoriaSeleccionada,
+              todosCat,
+            );
+          }
+          return _buildCategoriaCard(
+            ctx,
+            categorias[index - 1].id,
+            categoriaSeleccionada,
+            categorias[index - 1],
           );
-        }
-        final cat = categorias[index - 1];
-        final isSelected = categoriaSeleccionada == cat.id;
-        return GestureDetector(
-          onTap: () {
-            ref.read(categoriaSeleccionadaProvider.notifier).state = cat.id;
-            Navigator.pop(ctx);
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? cat.color.withValues(alpha: 0.15)
-                  : Colors.grey.shade50,
-              border: Border.all(
-                color: isSelected ? cat.color : Colors.grey.shade300,
-                width: isSelected ? 2 : 1,
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildCategoryImage(cat, 90, 60),
-                const SizedBox(height: 6),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    cat.nombre,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: isSelected ? cat.color : Colors.black,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
+        },
+      ),
+    );
+  }
+
+  Widget _buildCategoriaCard(
+    BuildContext ctx,
+    String? catId,
+    String? categoriaSeleccionada,
+    CategoriaProducto categoria,
+  ) {
+    final isSelected = categoriaSeleccionada == catId;
+    final displayColor = catId == null
+        ? AppColors.primary
+        : categoria.color ?? AppColors.primary;
+
+    return GestureDetector(
+      onTap: () {
+        ref.read(categoriaSeleccionadaProvider.notifier).state = catId;
+        Navigator.pop(ctx);
       },
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected
+              ? displayColor.withValues(alpha: 0.15)
+              : Colors.grey.shade50,
+          border: Border.all(
+            color: isSelected ? displayColor : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: catId == null
+                  ? _buildTodosIcon()
+                  : _buildCategoryImage(
+                      categoria,
+                      double.infinity,
+                      double.infinity,
+                    ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(8),
+              color: isSelected
+                  ? displayColor.withValues(alpha: 0.1)
+                  : Colors.white,
+              child: Text(
+                categoria.nombre,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? displayColor : Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
