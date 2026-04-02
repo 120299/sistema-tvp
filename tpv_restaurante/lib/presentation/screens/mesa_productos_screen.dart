@@ -1,9 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
-import '../../data/services/image_storage_service.dart';
 import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
 import '../widgets/producto_personalizacion_dialog.dart';
@@ -110,7 +108,10 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.secondary, AppColors.secondary.withValues(alpha: 0.8)],
+          colors: [
+            AppColors.secondary,
+            AppColors.secondary.withValues(alpha: 0.8),
+          ],
         ),
       ),
       child: SafeArea(
@@ -675,99 +676,107 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
   }
 
   void _agregarProducto(Producto producto) async {
-    final mesaActual = ref
-        .read(mesasProvider)
-        .firstWhere((m) => m.id == widget.mesa.id);
-    String pedidoId = mesaActual.pedidoActualId ?? '';
+    try {
+      final mesaActual = ref
+          .read(mesasProvider)
+          .firstWhere((m) => m.id == widget.mesa.id);
+      String pedidoId = mesaActual.pedidoActualId ?? '';
 
-    if (pedidoId.isEmpty) {
-      final cajeroActual = ref.read(cajeroActualProvider);
-      final cajaActual = ref.read(cajaProvider);
-      pedidoId = await ref
-          .read(pedidosProvider.notifier)
-          .crear(
-            widget.mesa.id,
-            cajeroId: cajeroActual?.id,
-            cajeroNombre: cajeroActual?.nombre,
-            cajaId: cajaActual?.id,
-          );
-      await ref.read(mesasProvider.notifier).ocupar(widget.mesa.id, pedidoId);
-    }
-
-    final esConfigurable =
-        producto.esVariable ||
-        (producto.ingredientes?.isNotEmpty ?? false) ||
-        (producto.extras?.isNotEmpty ?? false);
-
-    if (esConfigurable) {
-      final resultado = await showDialog<PedidoItem>(
-        context: context,
-        builder: (ctx) => ProductoPersonalizacionDialog(
-          producto: producto,
-          onConfirm: (item) => Navigator.pop(ctx, item),
-        ),
-      );
-
-      if (resultado != null) {
-        // Buscar la variante del producto si tiene una
-        VarianteProducto? variante;
-        if (resultado.varianteId != null && producto.variantes != null) {
-          variante = producto.variantes!
-              .where((v) => v.id == resultado.varianteId)
-              .firstOrNull;
-        }
-
-        await ref
+      if (pedidoId.isEmpty) {
+        final cajeroActual = ref.read(cajeroActualProvider);
+        final cajaActual = ref.read(cajaProvider);
+        pedidoId = await ref
             .read(pedidosProvider.notifier)
-            .agregarItem(
-              pedidoId,
-              producto,
-              cantidad: resultado.cantidad,
-              variante: variante,
-              notas: resultado.notas,
-              ingredientesQuitados: resultado.ingredientesQuitados,
-              extrasSeleccionados: resultado.extrasSeleccionados,
+            .crear(
+              widget.mesa.id,
+              cajeroId: cajeroActual?.id,
+              cajeroNombre: cajeroActual?.nombre,
+              cajaId: cajaActual?.id,
             );
-        final mensaje = '${producto.nombre} añadido';
-        _mostrarMensaje(mensaje);
-        setState(() {});
+        await ref.read(mesasProvider.notifier).ocupar(widget.mesa.id, pedidoId);
       }
-      return;
-    }
 
-    await ref
-        .read(pedidosProvider.notifier)
-        .agregarItem(pedidoId, producto, cantidad: 1);
-    setState(() {});
-    _mostrarMensaje('${producto.nombre} añadido');
+      final esConfigurable =
+          producto.esVariable ||
+          (producto.ingredientes?.isNotEmpty ?? false) ||
+          (producto.extras?.isNotEmpty ?? false);
+
+      if (esConfigurable) {
+        final resultado = await showDialog<PedidoItem>(
+          context: context,
+          builder: (ctx) => ProductoPersonalizacionDialog(
+            producto: producto,
+            onConfirm: (item) => Navigator.pop(ctx, item),
+          ),
+        );
+
+        if (resultado != null && mounted) {
+          VarianteProducto? variante;
+          if (resultado.varianteId != null && producto.variantes != null) {
+            variante = producto.variantes!
+                .where((v) => v.id == resultado.varianteId)
+                .firstOrNull;
+          }
+
+          await ref
+              .read(pedidosProvider.notifier)
+              .agregarItem(
+                pedidoId,
+                producto,
+                cantidad: resultado.cantidad,
+                variante: variante,
+                notas: resultado.notas,
+                ingredientesQuitados: resultado.ingredientesQuitados,
+                extrasSeleccionados: resultado.extrasSeleccionados,
+              );
+          _mostrarMensaje('${producto.nombre} añadido');
+          setState(() {});
+        }
+        return;
+      }
+
+      await ref
+          .read(pedidosProvider.notifier)
+          .agregarItem(pedidoId, producto, cantidad: 1);
+      _mostrarMensaje('${producto.nombre} añadido');
+      setState(() {});
+    } catch (e) {
+      _mostrarMensaje('Error al añadir producto: $e');
+    }
   }
 
   void _actualizarCantidad(int index, int cantidad) async {
-    final pedidoActual = _getPedidoActual();
-    if (index >= pedidoActual.length) return;
+    try {
+      final pedidoActual = _getPedidoActual();
+      if (index >= pedidoActual.length) return;
 
-    final item = pedidoActual[index];
-    final mesaActual = ref
-        .read(mesasProvider)
-        .firstWhere((m) => m.id == widget.mesa.id);
-    if (mesaActual.pedidoActualId == null) return;
+      final item = pedidoActual[index];
+      final mesaActual = ref
+          .read(mesasProvider)
+          .firstWhere((m) => m.id == widget.mesa.id);
+      if (mesaActual.pedidoActualId == null) return;
 
-    final pedidoId = mesaActual.pedidoActualId!;
-    await ref
-        .read(pedidosProvider.notifier)
-        .actualizarCantidad(pedidoId, item.id, cantidad);
+      final pedidoId = mesaActual.pedidoActualId!;
+      await ref
+          .read(pedidosProvider.notifier)
+          .actualizarCantidad(pedidoId, item.id, cantidad);
 
-    final nuevosItems = ref
-        .read(pedidosProvider)
-        .firstWhere((p) => p.id == pedidoId, orElse: () => throw Exception())
-        .items;
+      final nuevoPedido = ref
+          .read(pedidosProvider)
+          .where((p) => p.id == pedidoId)
+          .firstOrNull;
 
-    if (nuevosItems.isEmpty) {
-      await ref.read(pedidosProvider.notifier).eliminar(pedidoId);
-      await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
+      if (nuevoPedido == null) return;
+
+      if (nuevoPedido.items.isEmpty) {
+        await ref.read(pedidosProvider.notifier).eliminar(pedidoId);
+        await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
+      }
+
+      setState(() {});
+    } catch (e) {
+      _mostrarMensaje('Error al actualizar cantidad: $e');
     }
-
-    setState(() {});
   }
 
   void _editarItem(PedidoItem item) {
@@ -778,70 +787,82 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
       builder: (ctx) => _EditarItemSheet(
         item: item,
         onGuardar: (cantidad, precio, notas) async {
-          final mesaActual = ref
-              .read(mesasProvider)
-              .firstWhere((m) => m.id == widget.mesa.id);
-          if (mesaActual.pedidoActualId == null) return;
+          try {
+            final mesaActual = ref
+                .read(mesasProvider)
+                .firstWhere((m) => m.id == widget.mesa.id);
+            if (mesaActual.pedidoActualId == null) return;
 
-          final pedidoId = mesaActual.pedidoActualId!;
+            final pedidoId = mesaActual.pedidoActualId!;
 
-          if (cantidad <= 0) {
+            if (cantidad <= 0) {
+              await ref
+                  .read(pedidosProvider.notifier)
+                  .actualizarCantidad(pedidoId, item.id, 0);
+              final pedidoActual = _getPedidoActual();
+              if (pedidoActual.isEmpty) {
+                await ref.read(pedidosProvider.notifier).eliminar(pedidoId);
+                await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
+              }
+            } else {
+              final pedidoIndex = ref
+                  .read(pedidosProvider)
+                  .indexWhere((p) => p.id == pedidoId);
+              if (pedidoIndex >= 0) {
+                final pedido = ref.read(pedidosProvider)[pedidoIndex];
+                final itemsActualizados = pedido.items.map((i) {
+                  if (i.id == item.id) {
+                    return PedidoItem(
+                      id: item.id,
+                      productoId: item.productoId,
+                      varianteId: item.varianteId,
+                      productoNombre: item.productoNombre,
+                      cantidad: cantidad,
+                      precioUnitario: precio,
+                      notas: notas,
+                      ingredientesQuitados: item.ingredientesQuitados,
+                      extrasSeleccionados: item.extrasSeleccionados,
+                    );
+                  }
+                  return i;
+                }).toList();
+                await ref
+                    .read(pedidosProvider.notifier)
+                    .actualizar(pedido.copyWith(items: itemsActualizados));
+              }
+            }
+
+            if (mounted) {
+              Navigator.pop(ctx);
+              setState(() {});
+            }
+          } catch (e) {
+            _mostrarMensaje('Error al editar: $e');
+          }
+        },
+        onEliminar: () async {
+          try {
+            final mesaActual = ref
+                .read(mesasProvider)
+                .firstWhere((m) => m.id == widget.mesa.id);
+            if (mesaActual.pedidoActualId == null) return;
+            final pedidoId = mesaActual.pedidoActualId!;
             await ref
                 .read(pedidosProvider.notifier)
                 .actualizarCantidad(pedidoId, item.id, 0);
+
             final pedidoActual = _getPedidoActual();
             if (pedidoActual.isEmpty) {
               await ref.read(pedidosProvider.notifier).eliminar(pedidoId);
               await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
             }
-          } else {
-            final pedidoIndex = ref
-                .read(pedidosProvider)
-                .indexWhere((p) => p.id == pedidoId);
-            if (pedidoIndex >= 0) {
-              final pedido = ref.read(pedidosProvider)[pedidoIndex];
-              final itemsActualizados = pedido.items.map((i) {
-                if (i.id == item.id)
-                  return PedidoItem(
-                    id: item.id,
-                    productoId: item.productoId,
-                    productoNombre: item.productoNombre,
-                    cantidad: cantidad,
-                    precioUnitario: precio,
-                    notas: notas,
-                  );
-                return i;
-              }).toList();
-              await ref
-                  .read(pedidosProvider.notifier)
-                  .actualizar(pedido.copyWith(items: itemsActualizados));
+
+            if (mounted) {
+              Navigator.pop(ctx);
+              setState(() {});
             }
-          }
-
-          if (mounted) {
-            Navigator.pop(ctx);
-            setState(() {});
-          }
-        },
-        onEliminar: () async {
-          final mesaActual = ref
-              .read(mesasProvider)
-              .firstWhere((m) => m.id == widget.mesa.id);
-          if (mesaActual.pedidoActualId == null) return;
-          final pedidoId = mesaActual.pedidoActualId!;
-          await ref
-              .read(pedidosProvider.notifier)
-              .actualizarCantidad(pedidoId, item.id, 0);
-
-          final pedidoActual = _getPedidoActual();
-          if (pedidoActual.isEmpty) {
-            await ref.read(pedidosProvider.notifier).eliminar(pedidoId);
-            await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
-          }
-
-          if (mounted) {
-            Navigator.pop(ctx);
-            setState(() {});
+          } catch (e) {
+            _mostrarMensaje('Error al eliminar: $e');
           }
         },
       ),

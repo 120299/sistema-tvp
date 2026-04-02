@@ -1,9 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/models.dart';
-import '../../data/services/image_storage_service.dart';
 import '../../data/services/print_service.dart';
 import '../widgets/producto_personalizacion_dialog.dart';
 import '../widgets/product_image_widget.dart';
@@ -956,27 +954,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     return Text(
       '${producto.precio.toStringAsFixed(2)} EUR',
       style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color),
-    );
-  }
-
-  Widget _buildPlaceholder(CategoriaProducto? categoria) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            (categoria?.color ?? AppColors.primary).withValues(alpha: 0.2),
-            (categoria?.color ?? AppColors.primary).withValues(alpha: 0.05),
-          ],
-        ),
-      ),
-      child: Center(
-        child: Text(
-          categoria?.icono ?? '🍽️',
-          style: const TextStyle(fontSize: 36),
-        ),
-      ),
     );
   }
 

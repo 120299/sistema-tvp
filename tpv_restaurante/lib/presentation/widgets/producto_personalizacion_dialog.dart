@@ -147,7 +147,6 @@ class _ProductoPersonalizacionDialogState
       extrasSeleccionados: extrasLista.isNotEmpty ? extrasLista : null,
     );
 
-    widget.onConfirm(item);
     Navigator.pop(context, item);
   }
 
