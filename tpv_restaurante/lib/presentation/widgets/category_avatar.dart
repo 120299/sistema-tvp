@@ -78,19 +78,27 @@ class CategoryAvatar extends StatelessWidget {
   }
 
   Widget _buildFallback() {
+    final fallbackSize = width ?? size;
     if (categoria.icono.isNotEmpty) {
       return SizedBox(
-        width: size,
-        height: size,
+        width: fallbackSize,
+        height: fallbackSize,
         child: Center(
-          child: Text(categoria.icono, style: TextStyle(fontSize: size * 0.65)),
+          child: Text(
+            categoria.icono,
+            style: TextStyle(fontSize: fallbackSize * 0.65),
+          ),
         ),
       );
     }
     return SizedBox(
-      width: size,
-      height: size,
-      child: Icon(Icons.category, size: size * 0.7),
+      width: fallbackSize,
+      height: fallbackSize,
+      child: Icon(
+        Icons.category,
+        size: fallbackSize * 0.7,
+        color: categoria.color,
+      ),
     );
   }
 }

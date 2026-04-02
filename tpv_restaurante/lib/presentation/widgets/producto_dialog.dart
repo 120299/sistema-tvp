@@ -1118,9 +1118,16 @@ class _ProductoDialogState extends ConsumerState<ProductoDialog> {
                 final index = entry.key;
                 final ingrediente = entry.value;
                 return Chip(
-                  label: Text(ingrediente.nombre),
-                  backgroundColor: Colors.green.shade50,
-                  deleteIcon: const Icon(Icons.close, size: 18),
+                  label: Text(
+                    ingrediente.nombre,
+                    style: const TextStyle(color: Colors.black),
+                  ),
+                  backgroundColor: Colors.grey.shade200,
+                  deleteIcon: const Icon(
+                    Icons.close,
+                    size: 18,
+                    color: Colors.black54,
+                  ),
                   onDeleted: () => _eliminarIngrediente(index),
                 );
               }).toList(),
