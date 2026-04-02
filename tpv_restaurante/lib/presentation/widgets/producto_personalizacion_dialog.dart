@@ -118,14 +118,15 @@ class _ProductoPersonalizacionDialogState
     if (!_puedeConfirmar) return;
 
     List<ExtraProducto> extrasLista = [];
-    if (_extrasSeleccionados.isNotEmpty) {
+    if (_extrasSeleccionados.isNotEmpty && widget.producto.extras != null) {
       extrasLista = widget.producto.extras!
           .where((e) => _extrasSeleccionados.contains(e.id))
           .toList();
     }
 
     List<String> ingredientesQuitadosLista = [];
-    if (_ingredientesQuitados.isNotEmpty) {
+    if (_ingredientesQuitados.isNotEmpty &&
+        widget.producto.ingredientes != null) {
       ingredientesQuitadosLista = widget.producto.ingredientes!
           .where((i) => _ingredientesQuitados.contains(i.id))
           .map((i) => i.nombre)
@@ -384,7 +385,7 @@ class _ProductoPersonalizacionDialogState
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: widget.producto.ingredientes!.map((ingrediente) {
+            children: (widget.producto.ingredientes ?? []).map((ingrediente) {
               final estaQuitado = _ingredientesQuitados.contains(
                 ingrediente.id,
               );
@@ -472,7 +473,7 @@ class _ProductoPersonalizacionDialogState
             ],
           ),
           const SizedBox(height: 12),
-          ...widget.producto.extras!.map((extra) {
+          ...(widget.producto.extras ?? []).map((extra) {
             final seleccionado = _extrasSeleccionados.contains(extra.id);
             return InkWell(
               onTap: () {
@@ -707,6 +708,7 @@ class _ProductoPersonalizacionDialogState
   }
 
   String _getIngredientesQuitadosTexto() {
+    if (widget.producto.ingredientes == null) return '';
     return widget.producto.ingredientes!
         .where((i) => _ingredientesQuitados.contains(i.id))
         .map((i) => i.nombre)
@@ -714,6 +716,7 @@ class _ProductoPersonalizacionDialogState
   }
 
   String _getExtrasSeleccionadosTexto() {
+    if (widget.producto.extras == null) return '';
     return widget.producto.extras!
         .where((e) => _extrasSeleccionados.contains(e.id))
         .map((e) => '+${e.nombre}')
