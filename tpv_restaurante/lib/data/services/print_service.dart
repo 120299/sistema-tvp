@@ -693,10 +693,7 @@ class PrintService {
                             ),
                             pw.Text(
                               '${_fmtDate(mov.fecha)} ${mov.metodoPago ?? ""}',
-                              style: const pw.TextStyle(
-                                fontSize: 6,
-                                color: PdfColors.grey600,
-                              ),
+                              style: const pw.TextStyle(fontSize: 6),
                             ),
                           ],
                         ),
@@ -1097,10 +1094,7 @@ class PrintService {
                     padding: const pw.EdgeInsets.only(left: 20),
                     child: pw.Text(
                       'Sin ${item.ingredientesQuitados!.join(", ")}',
-                      style: const pw.TextStyle(
-                        fontSize: 8,
-                        color: PdfColors.grey600,
-                      ),
+                      style: const pw.TextStyle(fontSize: 8),
                     ),
                   ),
                 if (item.extrasSeleccionados?.isNotEmpty ?? false)

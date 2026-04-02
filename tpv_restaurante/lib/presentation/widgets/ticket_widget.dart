@@ -308,7 +308,6 @@ class TicketWidget extends StatelessWidget {
                             'Sin: ${item.ingredientesQuitados!.join(", ")}',
                             style: TextStyle(
                               fontSize: fontSize - 1,
-                              color: Colors.grey.shade600,
                               fontStyle: FontStyle.italic,
                             ),
                             overflow: TextOverflow.ellipsis,

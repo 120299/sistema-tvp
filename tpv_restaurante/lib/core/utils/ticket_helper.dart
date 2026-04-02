@@ -152,10 +152,7 @@ class TicketHelper {
                             padding: const pw.EdgeInsets.only(left: 15),
                             child: pw.Text(
                               'Sin ${item.ingredientesQuitados!.join(", ")}',
-                              style: const pw.TextStyle(
-                                fontSize: 8,
-                                color: PdfColors.grey600,
-                              ),
+                              style: const pw.TextStyle(fontSize: 8),
                             ),
                           ),
                         if (item.extrasSeleccionados?.isNotEmpty ?? false)

@@ -392,7 +392,7 @@ class _ProductoPersonalizacionDialogState
                 label: Text(
                   ingrediente.nombre,
                   style: TextStyle(
-                    color: estaQuitado ? Colors.grey : Colors.green.shade700,
+                    color: Colors.black,
                     decoration: estaQuitado ? TextDecoration.lineThrough : null,
                   ),
                 ),
@@ -406,8 +406,8 @@ class _ProductoPersonalizacionDialogState
                     }
                   });
                 },
-                selectedColor: Colors.green.shade100,
-                checkmarkColor: Colors.green.shade700,
+                selectedColor: Colors.grey.shade300,
+                checkmarkColor: Colors.black,
                 backgroundColor: Colors.white,
               );
             }).toList(),
