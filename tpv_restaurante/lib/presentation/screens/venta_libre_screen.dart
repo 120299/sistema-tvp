@@ -704,6 +704,45 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                                 setModalState(() {});
                               },
                             ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                                size: 18,
+                                color: AppColors.error,
+                              ),
+                              onPressed: () async {
+                                final confirmado = await showDialog<bool>(
+                                  context: ctx,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text('Eliminar categoría'),
+                                    content: Text(
+                                      '¿Eliminar "${cat.nombre}"? Los productos de esta categoría perderán su categoría.',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(ctx, false),
+                                        child: const Text('Cancelar'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () =>
+                                            Navigator.pop(ctx, true),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.error,
+                                        ),
+                                        child: const Text('Eliminar'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirmado == true) {
+                                  await ref
+                                      .read(categoriasProvider.notifier)
+                                      .eliminar(cat.id);
+                                  setModalState(() {});
+                                }
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -860,16 +899,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (cat.imagenUrl != null && cat.imagenUrl!.isNotEmpty)
-                  CategoryAvatar(categoria: cat, width: 90, height: 60)
-                else if (cat.icono.isNotEmpty)
-                  Text(cat.icono, style: const TextStyle(fontSize: 28))
-                else
-                  Icon(
-                    Icons.category,
-                    size: 28,
-                    color: isSelected ? cat.color : Colors.black,
-                  ),
+                _buildCategoryImage(cat, 90, 60),
                 const SizedBox(height: 6),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
