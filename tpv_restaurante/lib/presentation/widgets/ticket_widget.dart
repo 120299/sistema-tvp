@@ -251,44 +251,102 @@ class TicketWidget extends StatelessWidget {
           ],
         ),
         Divider(thickness: 1, height: 1),
-        ...items.map(
-          (item) => Padding(
-            padding: EdgeInsets.symmetric(vertical: isCompact ? 1 : 2),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: isCompact ? 25 : 30,
-                  child: Text(
-                    '${item.cantidad}',
-                    style: TextStyle(fontSize: fontSize),
+        ...items.expand(
+          (item) => [
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: isCompact ? 1 : 2),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: isCompact ? 25 : 30,
+                    child: Text(
+                      '${item.cantidad}',
+                      style: TextStyle(fontSize: fontSize),
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: Text(
-                    item.productoNombre,
-                    style: TextStyle(fontSize: fontSize),
-                    overflow: TextOverflow.ellipsis,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.productoNombre,
+                          style: TextStyle(fontSize: fontSize),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (item.ingredientesQuitados != null &&
+                            item.ingredientesQuitados!.isNotEmpty)
+                          Text(
+                            'Sin: ${item.ingredientesQuitados!.join(", ")}',
+                            style: TextStyle(
+                              fontSize: fontSize - 1,
+                              color: Colors.grey.shade600,
+                              fontStyle: FontStyle.italic,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: isCompact ? 40 : 45,
-                  child: Text(
-                    '${item.precioUnitario.toStringAsFixed(2)} EUR',
-                    style: TextStyle(fontSize: fontSize),
-                    textAlign: TextAlign.right,
+                  SizedBox(
+                    width: isCompact ? 40 : 45,
+                    child: Text(
+                      '${item.precioUnitario.toStringAsFixed(2)}',
+                      style: TextStyle(fontSize: fontSize),
+                      textAlign: TextAlign.right,
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: isCompact ? 45 : 50,
-                  child: Text(
-                    '${item.subtotal.toStringAsFixed(2)} EUR',
-                    style: TextStyle(fontSize: fontSize),
-                    textAlign: TextAlign.right,
+                  SizedBox(
+                    width: isCompact ? 45 : 50,
+                    child: Text(
+                      '${item.subtotal.toStringAsFixed(2)}',
+                      style: TextStyle(fontSize: fontSize),
+                      textAlign: TextAlign.right,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            if (item.extrasSeleccionados != null &&
+                item.extrasSeleccionados!.isNotEmpty)
+              ...item.extrasSeleccionados!.map(
+                (extra) => Padding(
+                  padding: EdgeInsets.only(
+                    left: isCompact ? 10 : 15,
+                    top: 0,
+                    bottom: isCompact ? 1 : 1,
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: isCompact ? 25 : 30,
+                        child: Text('', style: TextStyle(fontSize: fontSize)),
+                      ),
+                      Expanded(
+                        child: Text(
+                          '  + ${extra.nombre}',
+                          style: TextStyle(
+                            fontSize: fontSize - 1,
+                            color: Colors.grey.shade700,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      SizedBox(
+                        width: isCompact ? 85 : 95,
+                        child: Text(
+                          '+${extra.precio.toStringAsFixed(2)} EUR',
+                          style: TextStyle(
+                            fontSize: fontSize - 1,
+                            color: Colors.grey.shade700,
+                          ),
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         ),
       ],
     );

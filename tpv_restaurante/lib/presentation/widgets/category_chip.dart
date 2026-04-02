@@ -27,7 +27,9 @@ class CategoryChip extends StatelessWidget {
           color: isSelected ? categoria.color : Theme.of(context).cardColor,
           borderRadius: BorderRadius.zero,
           border: Border.all(
-            color: isSelected ? categoria.color : Colors.grey.withValues(alpha: 0.3),
+            color: isSelected
+                ? categoria.color
+                : Colors.grey.withValues(alpha: 0.3),
             width: 1.5,
           ),
           boxShadow: isSelected
@@ -63,12 +65,34 @@ class CategoryChip extends StatelessWidget {
   }
 
   Widget _buildAvatar() {
-    if (categoria.imagenUrl != null && categoria.imagenUrl!.isNotEmpty) {
-      if (categoria.imagenUrl!.startsWith('http')) {
+    final imagenUrl = categoria.imagenUrl;
+
+    if (imagenUrl != null && imagenUrl.isNotEmpty) {
+      if (imagenUrl.startsWith('data:')) {
+        final base64Match = RegExp(r'base64,(.+)').firstMatch(imagenUrl);
+        if (base64Match != null) {
+          try {
+            final base64Data = base64Match.group(1)!;
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: Image.memory(
+                base64Decode(base64Data),
+                width: 24,
+                height: 24,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildIcon(),
+              ),
+            );
+          } catch (_) {
+            return _buildIcon();
+          }
+        }
+      }
+      if (imagenUrl.startsWith('http')) {
         return ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: Image.network(
-            categoria.imagenUrl!,
+            imagenUrl,
             width: 24,
             height: 24,
             fit: BoxFit.cover,
@@ -76,10 +100,8 @@ class CategoryChip extends StatelessWidget {
           ),
         );
       }
-      if (categoria.imagenUrl!.startsWith('categories/')) {
-        final base64 = imageStorageService.getBase64FromPath(
-          categoria.imagenUrl!,
-        );
+      if (imagenUrl.startsWith('categories/')) {
+        final base64 = imageStorageService.getBase64FromPath(imagenUrl);
         if (base64.isNotEmpty) {
           return ClipRRect(
             borderRadius: BorderRadius.circular(4),

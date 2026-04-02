@@ -17,12 +17,34 @@ class CategoryAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (categoria.imagenUrl != null && categoria.imagenUrl!.isNotEmpty) {
-      if (categoria.imagenUrl!.startsWith('http')) {
+    final imagenUrl = categoria.imagenUrl;
+
+    if (imagenUrl != null && imagenUrl.isNotEmpty) {
+      if (imagenUrl.startsWith('data:')) {
+        final base64Match = RegExp(r'base64,(.+)').firstMatch(imagenUrl);
+        if (base64Match != null) {
+          try {
+            final base64Data = base64Match.group(1)!;
+            return ClipRRect(
+              borderRadius: borderRadius ?? BorderRadius.circular(4),
+              child: Image.memory(
+                base64Decode(base64Data),
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildFallback(),
+              ),
+            );
+          } catch (_) {
+            return _buildFallback();
+          }
+        }
+      }
+      if (imagenUrl.startsWith('http')) {
         return ClipRRect(
           borderRadius: borderRadius ?? BorderRadius.circular(4),
           child: Image.network(
-            categoria.imagenUrl!,
+            imagenUrl,
             width: size,
             height: size,
             fit: BoxFit.cover,
@@ -30,10 +52,8 @@ class CategoryAvatar extends StatelessWidget {
           ),
         );
       }
-      if (categoria.imagenUrl!.startsWith('categories/')) {
-        final base64 = imageStorageService.getBase64FromPath(
-          categoria.imagenUrl!,
-        );
+      if (imagenUrl.startsWith('categories/')) {
+        final base64 = imageStorageService.getBase64FromPath(imagenUrl);
         if (base64.isNotEmpty) {
           return ClipRRect(
             borderRadius: borderRadius ?? BorderRadius.circular(4),
