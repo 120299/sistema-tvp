@@ -1626,19 +1626,35 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       await ref.read(mesasProvider.notifier).ocupar(_mesaAsignada!, pedidoId);
     }
 
-    // Derive base product name to avoid duplicating variant name in order item
-    final String baseName = item.productoNombre.split(' - ').first;
+    // Buscar la variante del producto si tiene una
+    VarianteProducto? variante;
+    if (item.varianteId != null) {
+      final productoCompleto = ref
+          .read(productosProvider)
+          .where((p) => p.id == item.productoId)
+          .firstOrNull;
+      if (productoCompleto?.variantes != null) {
+        variante = productoCompleto!.variantes!
+            .where((v) => v.id == item.varianteId)
+            .firstOrNull;
+      }
+    }
+
     await ref
         .read(pedidosProvider.notifier)
         .agregarItem(
           pedidoId,
           Producto(
             id: item.productoId,
-            nombre: baseName,
+            nombre: item.productoNombre.split(' - ').first,
             precio: item.precioUnitario,
             categoriaId: '',
           ),
           cantidad: item.cantidad,
+          variante: variante,
+          notas: item.notas,
+          ingredientesQuitados: item.ingredientesQuitados,
+          extrasSeleccionados: item.extrasSeleccionados,
         );
   }
 
@@ -1932,17 +1948,35 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 );
 
             for (final item in _carrito) {
+              // Buscar la variante del producto si tiene una
+              VarianteProducto? variante;
+              if (item.varianteId != null) {
+                final productoCompleto = ref
+                    .read(productosProvider)
+                    .where((p) => p.id == item.productoId)
+                    .firstOrNull;
+                if (productoCompleto?.variantes != null) {
+                  variante = productoCompleto!.variantes!
+                      .where((v) => v.id == item.varianteId)
+                      .firstOrNull;
+                }
+              }
+
               await ref
                   .read(pedidosProvider.notifier)
                   .agregarItem(
                     pedidoId,
                     Producto(
                       id: item.productoId,
-                      nombre: item.productoNombre,
+                      nombre: item.productoNombre.split(' - ').first,
                       precio: item.precioUnitario,
                       categoriaId: '',
                     ),
                     cantidad: item.cantidad,
+                    variante: variante,
+                    notas: item.notas,
+                    ingredientesQuitados: item.ingredientesQuitados,
+                    extrasSeleccionados: item.extrasSeleccionados,
                   );
 
               await ref

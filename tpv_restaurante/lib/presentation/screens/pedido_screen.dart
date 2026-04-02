@@ -6,6 +6,7 @@ import '../providers/providers.dart';
 import '../widgets/product_card.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/ticket_widget.dart';
+import '../widgets/producto_personalizacion_dialog.dart';
 
 class PedidoScreen extends ConsumerStatefulWidget {
   final Mesa mesa;
@@ -398,8 +399,47 @@ class _PedidoScreenState extends ConsumerState<PedidoScreen> {
     );
   }
 
-  void _agregarProducto(Producto producto) {
+  Future<void> _agregarProducto(Producto producto) async {
     if (!_pedidoCreado) _crearPedido();
+
+    final esConfigurable =
+        producto.esVariable ||
+        (producto.ingredientes?.isNotEmpty ?? false) ||
+        (producto.extras?.isNotEmpty ?? false);
+
+    if (esConfigurable) {
+      final resultado = await showDialog<PedidoItem>(
+        context: context,
+        builder: (ctx) => ProductoPersonalizacionDialog(
+          producto: producto,
+          onConfirm: (item) => Navigator.pop(ctx, item),
+        ),
+      );
+
+      if (resultado != null) {
+        // Buscar la variante del producto si tiene una
+        VarianteProducto? variante;
+        if (resultado.varianteId != null && producto.variantes != null) {
+          variante = producto.variantes!
+              .where((v) => v.id == resultado.varianteId)
+              .firstOrNull;
+        }
+
+        await ref
+            .read(pedidosProvider.notifier)
+            .agregarItem(
+              _pedidoId,
+              producto,
+              cantidad: resultado.cantidad,
+              variante: variante,
+              notas: resultado.notas,
+              ingredientesQuitados: resultado.ingredientesQuitados,
+              extrasSeleccionados: resultado.extrasSeleccionados,
+            );
+      }
+      return;
+    }
+
     ref.read(pedidosProvider.notifier).agregarItem(_pedidoId, producto);
   }
 

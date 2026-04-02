@@ -750,6 +750,8 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
     int cantidad = 1,
     String? notas,
     VarianteProducto? variante,
+    List<String>? ingredientesQuitados,
+    List<ExtraProducto>? extrasSeleccionados,
   }) async {
     final pedidoIndex = state.indexWhere((p) => p.id == pedidoId);
     if (pedidoIndex < 0) return;
@@ -762,10 +764,13 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
     final item = PedidoItem(
       id: 'item_${DateTime.now().millisecondsSinceEpoch}',
       productoId: producto.id,
+      varianteId: variante?.id,
       productoNombre: nombre,
       cantidad: cantidad,
       precioUnitario: precio,
       notas: notas,
+      ingredientesQuitados: ingredientesQuitados,
+      extrasSeleccionados: extrasSeleccionados,
     );
 
     final actualizado = pedido.copyWith(items: [...pedido.items, item]);

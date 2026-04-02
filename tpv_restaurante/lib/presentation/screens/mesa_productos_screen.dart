@@ -759,9 +759,25 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
       );
 
       if (resultado != null) {
+        // Buscar la variante del producto si tiene una
+        VarianteProducto? variante;
+        if (resultado.varianteId != null && producto.variantes != null) {
+          variante = producto.variantes!
+              .where((v) => v.id == resultado.varianteId)
+              .firstOrNull;
+        }
+
         await ref
             .read(pedidosProvider.notifier)
-            .agregarItem(pedidoId, producto, cantidad: 1);
+            .agregarItem(
+              pedidoId,
+              producto,
+              cantidad: resultado.cantidad,
+              variante: variante,
+              notas: resultado.notas,
+              ingredientesQuitados: resultado.ingredientesQuitados,
+              extrasSeleccionados: resultado.extrasSeleccionados,
+            );
         final mensaje = '${producto.nombre} añadido';
         _mostrarMensaje(mensaje);
         setState(() {});
