@@ -1531,14 +1531,13 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         .firstOrNull;
 
     if (itemExistente != null) {
+      final nuevaCantidad = itemExistente.cantidad + item.cantidad;
       final index = _carrito.indexOf(itemExistente);
       setState(() {
-        _carrito[index] = itemExistente.copyWith(
-          cantidad: itemExistente.cantidad + 1,
-        );
+        _carrito[index] = itemExistente.copyWith(cantidad: nuevaCantidad);
       });
       if (_mesaAsignada != null) {
-        await _actualizarItemBD(itemExistente, itemExistente.cantidad + 1);
+        await _actualizarItemBD(itemExistente, nuevaCantidad);
       }
     } else {
       setState(() {
@@ -1673,9 +1672,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         .firstOrNull;
     if (pedido == null) return;
 
-    final itemEnPedido = pedido.items
-        .where((i) => i.productoId == item.productoId)
-        .firstOrNull;
+    // Buscar el item por su ID exacto
+    final itemEnPedido = pedido.items.where((i) => i.id == item.id).firstOrNull;
     if (itemEnPedido != null) {
       await ref
           .read(pedidosProvider.notifier)
