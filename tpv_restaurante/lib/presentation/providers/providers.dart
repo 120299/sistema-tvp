@@ -718,6 +718,25 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
     state = _db.pedidoRepositorio.getAll();
   }
 
+  dynamic? _findPedidoKey(String pedidoId) {
+    final box = _db.pedidosBox;
+    for (int i = 0; i < box.length; i++) {
+      final pedido = box.getAt(i);
+      if (pedido != null && pedido.id == pedidoId) {
+        return box.keyAt(i);
+      }
+    }
+    return null;
+  }
+
+  Pedido? _findPedido(String pedidoId) {
+    try {
+      return state.firstWhere((p) => p.id == pedidoId);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<String> crear(
     String mesaId, {
     double porcentajePropina = 0,
@@ -727,24 +746,29 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
     String? cajeroNombre,
     String? cajaId,
   }) async {
-    final id = 'pedido_${DateTime.now().millisecondsSinceEpoch}';
-    final pedido = Pedido(
-      id: id,
-      mesaId: mesaId,
-      mesero: 'Camarero',
-      porcentajePropina: porcentajePropina,
-      clienteId: clienteId,
-      clienteNombre: clienteNombre,
-      cajeroId: cajeroId,
-      cajeroNombre: cajeroNombre,
-      cajaId: cajaId,
-    );
-    await _db.pedidosBox.add(pedido);
-    _refresh();
-    return id;
+    try {
+      final id = 'pedido_${DateTime.now().millisecondsSinceEpoch}';
+      final pedido = Pedido(
+        id: id,
+        mesaId: mesaId,
+        mesero: 'Camarero',
+        porcentajePropina: porcentajePropina,
+        clienteId: clienteId,
+        clienteNombre: clienteNombre,
+        cajeroId: cajeroId,
+        cajeroNombre: cajeroNombre,
+        cajaId: cajaId,
+      );
+      await _db.pedidosBox.add(pedido);
+      _refresh();
+      return id;
+    } catch (e) {
+      debugPrint('ERROR en crear pedido: $e');
+      rethrow;
+    }
   }
 
-  Future<void> agregarItem(
+  Future<bool> agregarItem(
     String pedidoId,
     Producto producto, {
     int cantidad = 1,
@@ -753,121 +777,194 @@ class PedidosNotifier extends StateNotifier<List<Pedido>> {
     List<String>? ingredientesQuitados,
     List<ExtraProducto>? extrasSeleccionados,
   }) async {
-    final pedidoIndex = state.indexWhere((p) => p.id == pedidoId);
-    if (pedidoIndex < 0) return;
+    try {
+      final pedidoKey = _findPedidoKey(pedidoId);
+      if (pedidoKey == null) {
+        debugPrint('ERROR: No se encontró el pedido $pedidoId');
+        return false;
+      }
 
-    final pedido = state[pedidoIndex];
-    final precio = variante?.precio ?? producto.precio;
-    final nombre = variante != null
-        ? '${producto.nombre} - ${variante.nombre}'
-        : producto.nombre;
-    final item = PedidoItem(
-      id: 'item_${DateTime.now().millisecondsSinceEpoch}',
-      productoId: producto.id,
-      varianteId: variante?.id,
-      productoNombre: nombre,
-      cantidad: cantidad,
-      precioUnitario: precio,
-      notas: notas,
-      ingredientesQuitados: ingredientesQuitados,
-      extrasSeleccionados: extrasSeleccionados,
-    );
+      final pedido = _findPedido(pedidoId);
+      if (pedido == null) {
+        debugPrint('ERROR: Pedido no encontrado en estado $pedidoId');
+        return false;
+      }
 
-    final actualizado = pedido.copyWith(items: [...pedido.items, item]);
-    await _db.pedidosBox.putAt(pedidoIndex, actualizado);
-    _refresh();
+      final precio = variante?.precio ?? producto.precio;
+      final nombre = variante != null
+          ? '${producto.nombre} - ${variante.nombre}'
+          : producto.nombre;
+      final item = PedidoItem(
+        id: 'item_${DateTime.now().millisecondsSinceEpoch}_${producto.id}',
+        productoId: producto.id,
+        varianteId: variante?.id,
+        productoNombre: nombre,
+        cantidad: cantidad,
+        precioUnitario: precio,
+        notas: notas,
+        ingredientesQuitados: ingredientesQuitados,
+        extrasSeleccionados: extrasSeleccionados,
+      );
+
+      final actualizado = pedido.copyWith(items: [...pedido.items, item]);
+      await _db.pedidosBox.put(pedidoKey, actualizado);
+      _refresh();
+      return true;
+    } catch (e) {
+      debugPrint('ERROR en agregarItem: $e');
+      return false;
+    }
   }
 
-  Future<void> actualizarCantidad(
+  Future<bool> actualizarCantidad(
     String pedidoId,
     String itemId,
     int cantidad,
   ) async {
-    final pedidoIndex = state.indexWhere((p) => p.id == pedidoId);
-    if (pedidoIndex < 0) return;
-
-    final pedido = state[pedidoIndex];
-    List<PedidoItem> nuevosItems;
-
-    if (cantidad <= 0) {
-      nuevosItems = pedido.items.where((i) => i.id != itemId).toList();
-    } else {
-      nuevosItems = pedido.items.map((i) {
-        if (i.id == itemId) return i.copyWith(cantidad: cantidad);
-        return i;
-      }).toList();
-    }
-
-    final actualizado = pedido.copyWith(items: nuevosItems);
-    await _db.pedidosBox.putAt(pedidoIndex, actualizado);
-    _refresh();
-  }
-
-  Future<void> eliminarItem(String pedidoId, String itemId) async {
-    final pedidoIndex = state.indexWhere((p) => p.id == pedidoId);
-    if (pedidoIndex < 0) return;
-
-    final pedido = state[pedidoIndex];
-    final nuevosItems = pedido.items.where((i) => i.id != itemId).toList();
-    final actualizado = pedido.copyWith(items: nuevosItems);
-    await _db.pedidosBox.putAt(pedidoIndex, actualizado);
-    _refresh();
-  }
-
-  Future<void> cancelar(String pedidoId) async {
-    await _cambiarEstado(pedidoId, EstadoPedido.cancelado);
-  }
-
-  Future<void> eliminar(String pedidoId) async {
-    final box = _db.pedidosBox;
-    for (int i = 0; i < box.length; i++) {
-      final pedido = box.getAt(i);
-      if (pedido != null && pedido.id == pedidoId) {
-        await box.deleteAt(i);
-        _refresh();
-        return;
+    try {
+      final pedidoKey = _findPedidoKey(pedidoId);
+      if (pedidoKey == null) {
+        debugPrint('ERROR: No se encontró el pedido $pedidoId');
+        return false;
       }
+
+      final pedido = _findPedido(pedidoId);
+      if (pedido == null) {
+        debugPrint('ERROR: Pedido no encontrado en estado $pedidoId');
+        return false;
+      }
+
+      List<PedidoItem> nuevosItems;
+
+      if (cantidad <= 0) {
+        nuevosItems = pedido.items.where((i) => i.id != itemId).toList();
+      } else {
+        nuevosItems = pedido.items.map((i) {
+          if (i.id == itemId) return i.copyWith(cantidad: cantidad);
+          return i;
+        }).toList();
+      }
+
+      final actualizado = pedido.copyWith(items: nuevosItems);
+      await _db.pedidosBox.put(pedidoKey, actualizado);
+      _refresh();
+      return true;
+    } catch (e) {
+      debugPrint('ERROR en actualizarCantidad: $e');
+      return false;
     }
   }
 
-  Future<void> actualizar(Pedido pedido) async {
-    final pedidoIndex = state.indexWhere((p) => p.id == pedido.id);
-    if (pedidoIndex < 0) return;
-    await _db.pedidosBox.putAt(pedidoIndex, pedido);
-    _refresh();
+  Future<bool> eliminarItem(String pedidoId, String itemId) async {
+    try {
+      final pedidoKey = _findPedidoKey(pedidoId);
+      if (pedidoKey == null) return false;
+
+      final pedido = _findPedido(pedidoId);
+      if (pedido == null) return false;
+
+      final nuevosItems = pedido.items.where((i) => i.id != itemId).toList();
+      final actualizado = pedido.copyWith(items: nuevosItems);
+      await _db.pedidosBox.put(pedidoKey, actualizado);
+      _refresh();
+      return true;
+    } catch (e) {
+      debugPrint('ERROR en eliminarItem: $e');
+      return false;
+    }
   }
 
-  Future<void> cerrar(
+  Future<bool> cancelar(String pedidoId) async {
+    return await _cambiarEstado(pedidoId, EstadoPedido.cancelado);
+  }
+
+  Future<bool> eliminar(String pedidoId) async {
+    try {
+      final box = _db.pedidosBox;
+      for (int i = 0; i < box.length; i++) {
+        final pedido = box.getAt(i);
+        if (pedido != null && pedido.id == pedidoId) {
+          await box.deleteAt(i);
+          _refresh();
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      debugPrint('ERROR en eliminar pedido: $e');
+      return false;
+    }
+  }
+
+  Future<bool> actualizar(Pedido pedido) async {
+    try {
+      final pedidoKey = _findPedidoKey(pedido.id);
+      if (pedidoKey == null) {
+        debugPrint('ERROR: No se encontró el pedido ${pedido.id}');
+        return false;
+      }
+      await _db.pedidosBox.put(pedidoKey, pedido);
+      _refresh();
+      return true;
+    } catch (e) {
+      debugPrint('ERROR en actualizar pedido: $e');
+      return false;
+    }
+  }
+
+  Future<bool> cerrar(
     String pedidoId,
     String metodoPago, {
     double descuento = 0,
     int? numeroTicket,
     String? cajaId,
   }) async {
-    final pedidoIndex = state.indexWhere((p) => p.id == pedidoId);
-    if (pedidoIndex < 0) return;
+    try {
+      final pedidoKey = _findPedidoKey(pedidoId);
+      if (pedidoKey == null) {
+        debugPrint('ERROR: No se encontró el pedido $pedidoId');
+        return false;
+      }
 
-    final pedido = state[pedidoIndex];
-    final actualizado = pedido.copyWith(
-      estado: EstadoPedido.cerrado,
-      horaCierre: DateTime.now(),
-      metodoPago: metodoPago,
-      descuento: descuento,
-      numeroTicket: numeroTicket,
-      cajaId: cajaId,
-    );
-    await _db.pedidosBox.putAt(pedidoIndex, actualizado);
-    _refresh();
+      final pedido = _findPedido(pedidoId);
+      if (pedido == null) {
+        debugPrint('ERROR: Pedido no encontrado en estado $pedidoId');
+        return false;
+      }
+
+      final actualizado = pedido.copyWith(
+        estado: EstadoPedido.cerrado,
+        horaCierre: DateTime.now(),
+        metodoPago: metodoPago,
+        descuento: descuento,
+        numeroTicket: numeroTicket,
+        cajaId: cajaId,
+      );
+      await _db.pedidosBox.put(pedidoKey, actualizado);
+      _refresh();
+      return true;
+    } catch (e) {
+      debugPrint('ERROR en cerrar pedido: $e');
+      return false;
+    }
   }
 
-  Future<void> _cambiarEstado(String pedidoId, EstadoPedido nuevoEstado) async {
-    final pedidoIndex = state.indexWhere((p) => p.id == pedidoId);
-    if (pedidoIndex < 0) return;
+  Future<bool> _cambiarEstado(String pedidoId, EstadoPedido nuevoEstado) async {
+    try {
+      final pedidoKey = _findPedidoKey(pedidoId);
+      if (pedidoKey == null) return false;
 
-    final pedido = state[pedidoIndex];
-    final actualizado = pedido.copyWith(estado: nuevoEstado);
-    await _db.pedidosBox.putAt(pedidoIndex, actualizado);
-    _refresh();
+      final pedido = _findPedido(pedidoId);
+      if (pedido == null) return false;
+
+      final actualizado = pedido.copyWith(estado: nuevoEstado);
+      await _db.pedidosBox.put(pedidoKey, actualizado);
+      _refresh();
+      return true;
+    } catch (e) {
+      debugPrint('ERROR en _cambiarEstado: $e');
+      return false;
+    }
   }
 
   Pedido? getPorId(String id) {

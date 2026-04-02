@@ -718,7 +718,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                 .firstOrNull;
           }
 
-          await ref
+          final success = await ref
               .read(pedidosProvider.notifier)
               .agregarItem(
                 pedidoId,
@@ -729,19 +729,31 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                 ingredientesQuitados: resultado.ingredientesQuitados,
                 extrasSeleccionados: resultado.extrasSeleccionados,
               );
-          _mostrarMensaje('${producto.nombre} añadido');
-          setState(() {});
+
+          if (success && mounted) {
+            _mostrarMensaje('${producto.nombre} añadido');
+            setState(() {});
+          } else if (mounted) {
+            _mostrarMensaje('Error al añadir ${producto.nombre}');
+          }
         }
         return;
       }
 
-      await ref
+      final success = await ref
           .read(pedidosProvider.notifier)
           .agregarItem(pedidoId, producto, cantidad: 1);
-      _mostrarMensaje('${producto.nombre} añadido');
-      setState(() {});
+
+      if (success && mounted) {
+        _mostrarMensaje('${producto.nombre} añadido');
+        setState(() {});
+      } else if (mounted) {
+        _mostrarMensaje('Error al añadir ${producto.nombre}');
+      }
     } catch (e) {
-      _mostrarMensaje('Error al añadir producto: $e');
+      if (mounted) {
+        _mostrarMensaje('Error al añadir producto: $e');
+      }
     }
   }
 
@@ -757,9 +769,14 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
       if (mesaActual.pedidoActualId == null) return;
 
       final pedidoId = mesaActual.pedidoActualId!;
-      await ref
+      final success = await ref
           .read(pedidosProvider.notifier)
           .actualizarCantidad(pedidoId, item.id, cantidad);
+
+      if (!success) {
+        if (mounted) _mostrarMensaje('Error al actualizar cantidad');
+        return;
+      }
 
       final nuevoPedido = ref
           .read(pedidosProvider)
@@ -773,9 +790,9 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
         await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
       }
 
-      setState(() {});
+      if (mounted) setState(() {});
     } catch (e) {
-      _mostrarMensaje('Error al actualizar cantidad: $e');
+      if (mounted) _mostrarMensaje('Error al actualizar cantidad: $e');
     }
   }
 
@@ -796,20 +813,24 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
             final pedidoId = mesaActual.pedidoActualId!;
 
             if (cantidad <= 0) {
-              await ref
+              final success = await ref
                   .read(pedidosProvider.notifier)
                   .actualizarCantidad(pedidoId, item.id, 0);
+              if (!success) {
+                if (mounted) _mostrarMensaje('Error al actualizar');
+                return;
+              }
               final pedidoActual = _getPedidoActual();
               if (pedidoActual.isEmpty) {
                 await ref.read(pedidosProvider.notifier).eliminar(pedidoId);
                 await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
               }
             } else {
-              final pedidoIndex = ref
+              final pedido = ref
                   .read(pedidosProvider)
-                  .indexWhere((p) => p.id == pedidoId);
-              if (pedidoIndex >= 0) {
-                final pedido = ref.read(pedidosProvider)[pedidoIndex];
+                  .where((p) => p.id == pedidoId)
+                  .firstOrNull;
+              if (pedido != null) {
                 final itemsActualizados = pedido.items.map((i) {
                   if (i.id == item.id) {
                     return PedidoItem(
@@ -826,9 +847,13 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                   }
                   return i;
                 }).toList();
-                await ref
+                final success = await ref
                     .read(pedidosProvider.notifier)
                     .actualizar(pedido.copyWith(items: itemsActualizados));
+                if (!success && mounted) {
+                  _mostrarMensaje('Error al guardar cambios');
+                  return;
+                }
               }
             }
 
@@ -837,7 +862,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               setState(() {});
             }
           } catch (e) {
-            _mostrarMensaje('Error al editar: $e');
+            if (mounted) _mostrarMensaje('Error al editar: $e');
           }
         },
         onEliminar: () async {
@@ -847,9 +872,14 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                 .firstWhere((m) => m.id == widget.mesa.id);
             if (mesaActual.pedidoActualId == null) return;
             final pedidoId = mesaActual.pedidoActualId!;
-            await ref
+            final success = await ref
                 .read(pedidosProvider.notifier)
                 .actualizarCantidad(pedidoId, item.id, 0);
+
+            if (!success) {
+              if (mounted) _mostrarMensaje('Error al eliminar');
+              return;
+            }
 
             final pedidoActual = _getPedidoActual();
             if (pedidoActual.isEmpty) {
@@ -862,7 +892,7 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               setState(() {});
             }
           } catch (e) {
-            _mostrarMensaje('Error al eliminar: $e');
+            if (mounted) _mostrarMensaje('Error al eliminar: $e');
           }
         },
       ),
@@ -881,70 +911,79 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
       builder: (context) => _CobroSheet(
         total: total,
         onCobrar: (metodoPago) async {
-          final negocio = ref.read(negocioProvider);
-          final pedidoActual = _getPedidoActual();
-          final pedidoId = mesaActual.pedidoActualId!;
-          final cajaActual = ref.read(cajaProvider);
-
-          final numeroTicket = await ref
-              .read(negocioProvider.notifier)
-              .obtenerSiguienteNumeroTicket();
-
-          await ref
-              .read(pedidosProvider.notifier)
-              .cerrar(
-                pedidoId,
-                metodoPago,
-                numeroTicket: numeroTicket,
-                cajaId: cajaActual?.id,
-              );
-
-          for (final item in pedidoActual) {
-            await ref
-                .read(productosProvider.notifier)
-                .decrementarStock(item.productoId, item.cantidad);
-          }
-
-          // Registrar venta en la caja
-          if (cajaActual != null) {
-            await ref
-                .read(cajaProvider.notifier)
-                .registrarVenta(total, metodoPago, pedidoId: pedidoId);
-          }
-
-          final pedidoCompleto = _getPedidoCompleto();
-          await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
-
           try {
-            await PrintService.mostrarTicketPreview(
-              context: context,
-              items: pedidoActual,
-              subtotal: pedidoActual.fold<double>(
-                0,
-                (sum, item) => sum + item.subtotal,
-              ),
-              ivaPorcentaje: negocio.ivaPorcentaje,
-              metodoPago: metodoPago,
-              negocio: negocio,
-              mesaNumero: widget.mesa.numero.toString(),
-              numeroTicket: numeroTicket,
-              fechaVenta: pedidoCompleto?.horaApertura,
-            );
+            final negocio = ref.read(negocioProvider);
+            final pedidoActual = _getPedidoActual();
+            final pedidoId = mesaActual.pedidoActualId!;
+            final cajaActual = ref.read(cajaProvider);
+
+            final numeroTicket = await ref
+                .read(negocioProvider.notifier)
+                .obtenerSiguienteNumeroTicket();
+
+            final cerrarSuccess = await ref
+                .read(pedidosProvider.notifier)
+                .cerrar(
+                  pedidoId,
+                  metodoPago,
+                  numeroTicket: numeroTicket,
+                  cajaId: cajaActual?.id,
+                );
+
+            if (!cerrarSuccess) {
+              if (mounted) {
+                _mostrarMensaje('Error al cerrar el pedido');
+              }
+              return;
+            }
+
+            for (final item in pedidoActual) {
+              try {
+                await ref
+                    .read(productosProvider.notifier)
+                    .decrementarStock(item.productoId, item.cantidad);
+              } catch (e) {
+                debugPrint('Error decrementando stock: $e');
+              }
+            }
+
+            if (cajaActual != null) {
+              await ref
+                  .read(cajaProvider.notifier)
+                  .registrarVenta(total, metodoPago, pedidoId: pedidoId);
+            }
+
+            final pedidoCompleto = _getPedidoCompleto();
+            await ref.read(mesasProvider.notifier).liberar(widget.mesa.id);
+
+            try {
+              await PrintService.mostrarTicketPreview(
+                context: context,
+                items: pedidoActual,
+                subtotal: pedidoActual.fold<double>(
+                  0,
+                  (sum, item) => sum + item.subtotal,
+                ),
+                ivaPorcentaje: negocio.ivaPorcentaje,
+                metodoPago: metodoPago,
+                negocio: negocio,
+                mesaNumero: widget.mesa.numero.toString(),
+                numeroTicket: numeroTicket,
+                fechaVenta: pedidoCompleto?.horaApertura,
+              );
+            } catch (e) {
+              debugPrint('Error imprimiendo ticket: $e');
+            }
+
+            if (mounted) {
+              Navigator.pop(context);
+              Navigator.pop(context);
+              _mostrarMensaje('Venta completada');
+            }
           } catch (e) {
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('No se pudo imprimir: $e'),
-                  backgroundColor: AppColors.error,
-                ),
-              );
+              _mostrarMensaje('Error al cobrar: $e');
             }
-          }
-
-          if (mounted) {
-            Navigator.pop(context);
-            Navigator.pop(context);
-            _mostrarMensaje('Venta completada');
           }
         },
       ),
