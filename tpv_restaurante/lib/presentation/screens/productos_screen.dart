@@ -907,6 +907,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
+              alignment: Alignment.center,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -950,6 +951,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
               ),
               borderRadius: BorderRadius.circular(8),
             ),
+            alignment: Alignment.center,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -1060,10 +1062,17 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Center(
-                                child: Text(
-                                  cat.icono,
-                                  style: const TextStyle(fontSize: 20),
-                                ),
+                                child:
+                                    cat.imagenUrl != null &&
+                                        cat.imagenUrl!.isNotEmpty
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: _buildCategoryImage(cat, 36, 36),
+                                      )
+                                    : Text(
+                                        cat.icono,
+                                        style: const TextStyle(fontSize: 20),
+                                      ),
                               ),
                             ),
                           ],

@@ -580,6 +580,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
+              alignment: Alignment.center,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -623,6 +624,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               ),
               borderRadius: BorderRadius.circular(8),
             ),
+            alignment: Alignment.center,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -637,22 +639,20 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                     color: isSelected ? cat.color : Colors.black,
                   ),
                 const SizedBox(height: 6),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Text(
-                      cat.nombre,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: isSelected ? cat.color : Colors.black,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    cat.nombre,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: isSelected ? cat.color : Colors.black,
                     ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
