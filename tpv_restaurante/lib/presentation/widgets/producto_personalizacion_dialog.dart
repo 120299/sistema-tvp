@@ -355,27 +355,23 @@ class _ProductoPersonalizacionDialogState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.green.shade50,
+        color: Colors.grey.shade100,
         borderRadius: BorderRadius.zero,
-        border: Border.all(color: Colors.green.shade200),
+        border: Border.all(color: Colors.grey.shade300),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.restaurant_menu,
-                color: Colors.green.shade700,
-                size: 20,
-              ),
+              Icon(Icons.restaurant_menu, color: Colors.black, size: 20),
               const SizedBox(width: 8),
               Text(
                 'INGREDIENTES (quitar los que no quiera)',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: Colors.green.shade700,
+                  color: Colors.black,
                 ),
               ),
             ],
@@ -450,23 +446,23 @@ class _ProductoPersonalizacionDialogState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.purple.shade50,
+        color: Colors.grey.shade100,
         borderRadius: BorderRadius.zero,
-        border: Border.all(color: Colors.purple.shade200),
+        border: Border.all(color: Colors.grey.shade300),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.add_circle, color: Colors.purple.shade700, size: 20),
+              Icon(Icons.add_circle, color: Colors.black, size: 20),
               const SizedBox(width: 8),
               Text(
                 'EXTRAS (añadir con coste adicional)',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: Colors.purple.shade700,
+                  color: Colors.black,
                 ),
               ),
             ],
