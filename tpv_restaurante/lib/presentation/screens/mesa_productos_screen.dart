@@ -6,6 +6,7 @@ import '../../data/services/print_service.dart';
 import '../providers/providers.dart';
 import '../widgets/producto_personalizacion_dialog.dart';
 import '../widgets/product_image_widget.dart';
+import '../widgets/category_avatar.dart';
 
 class MesaProductosScreen extends ConsumerStatefulWidget {
   final Mesa mesa;
@@ -217,14 +218,8 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
             padding: const EdgeInsets.only(right: 8),
             child: FilterChip(
               selected: isSelected,
-              label: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(categoria.icono),
-                  const SizedBox(width: 6),
-                  Text(categoria.nombre),
-                ],
-              ),
+              avatar: CategoryAvatar(categoria: categoria, size: 20),
+              label: Text(categoria.nombre),
               onSelected: (_) {
                 ref.read(categoriaSeleccionadaProvider.notifier).state =
                     isSelected ? null : categoria.id;

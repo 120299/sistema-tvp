@@ -5,6 +5,7 @@ import '../../data/models/models.dart';
 import '../../data/services/print_service.dart';
 import '../widgets/producto_personalizacion_dialog.dart';
 import '../widgets/product_image_widget.dart';
+import '../widgets/category_avatar.dart';
 import '../providers/providers.dart';
 import 'cobro_sheet.dart';
 
@@ -451,6 +452,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                       Icons.category,
                       cat.icono,
                       cat.color,
+                      CategoryAvatar(categoria: cat, size: 18),
                     ),
                   ),
                 ),
@@ -626,7 +628,9 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (cat.icono.isNotEmpty)
+                if (cat.imagenUrl != null && cat.imagenUrl!.isNotEmpty)
+                  CategoryAvatar(categoria: cat, size: 48)
+                else if (cat.icono.isNotEmpty)
                   Text(cat.icono, style: const TextStyle(fontSize: 28))
                 else
                   Icon(
@@ -666,15 +670,18 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     IconData icon, [
     String? icono,
     Color? color,
+    Widget? avatar,
   ]) {
     return ActionChip(
-      avatar: icono != null
-          ? Text(icono, style: const TextStyle(fontSize: 14))
-          : Icon(
-              selected ? Icons.check : icon,
-              size: 16,
-              color: selected ? (color ?? AppColors.primary) : Colors.grey,
-            ),
+      avatar:
+          avatar ??
+          (icono != null
+              ? Text(icono, style: const TextStyle(fontSize: 14))
+              : Icon(
+                  selected ? Icons.check : icon,
+                  size: 16,
+                  color: selected ? (color ?? AppColors.primary) : Colors.grey,
+                )),
       label: Text(
         label,
         style: TextStyle(
