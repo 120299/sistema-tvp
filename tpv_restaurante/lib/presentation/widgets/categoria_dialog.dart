@@ -289,7 +289,9 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary.withValues(alpha: 0.1) : Colors.white,
+          color: selected
+              ? AppColors.primary.withValues(alpha: 0.1)
+              : Colors.white,
           borderRadius: BorderRadius.zero,
           border: Border.all(
             color: selected ? AppColors.primary : Colors.grey.shade300,
@@ -410,7 +412,7 @@ class _CategoriaDialogState extends ConsumerState<CategoriaDialog> {
       final categoria = CategoriaProducto(
         id: widget.categoria?.id ?? 'cat_${const Uuid().v4()}',
         nombre: _nombreController.text.trim(),
-        icono: _usarImagen ? '🖼️' : _iconoController.text,
+        icono: _usarImagen ? '' : _iconoController.text,
         color: _color,
         imagenUrl: imagenUrl,
         orden: widget.categoria?.orden ?? 0,

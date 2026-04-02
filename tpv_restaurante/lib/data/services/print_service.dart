@@ -1037,8 +1037,17 @@ class PrintService {
           ],
         ),
         pw.Divider(thickness: 0.5),
-        ...items.map(
-          (item) => pw.Padding(
+        ...items.map((item) {
+          final extrasTotal =
+              item.extrasSeleccionados?.fold<double>(
+                0,
+                (sum, extra) => sum + extra.precio,
+              ) ??
+              0;
+          final precioConExtras = item.precioUnitario + extrasTotal;
+          final lineaTotal = precioConExtras * item.cantidad;
+
+          return pw.Padding(
             padding: const pw.EdgeInsets.symmetric(vertical: 2),
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -1064,7 +1073,7 @@ class PrintService {
                     pw.SizedBox(
                       width: 45,
                       child: pw.Text(
-                        item.precioUnitario.toStringAsFixed(2),
+                        precioConExtras.toStringAsFixed(2),
                         style: const pw.TextStyle(fontSize: 9),
                         textAlign: pw.TextAlign.right,
                       ),
@@ -1072,7 +1081,7 @@ class PrintService {
                     pw.SizedBox(
                       width: 45,
                       child: pw.Text(
-                        '${item.subtotal.toStringAsFixed(2)} EUR',
+                        '${lineaTotal.toStringAsFixed(2)} EUR',
                         style: pw.TextStyle(
                           fontSize: 9,
                           fontWeight: pw.FontWeight.bold,
@@ -1097,18 +1106,9 @@ class PrintService {
                   ...item.extrasSeleccionados!.map(
                     (extra) => pw.Padding(
                       padding: const pw.EdgeInsets.only(left: 20),
-                      child: pw.Row(
-                        children: [
-                          pw.Text(
-                            '+${extra.nombre}',
-                            style: const pw.TextStyle(fontSize: 8),
-                          ),
-                          pw.Spacer(),
-                          pw.Text(
-                            '+${extra.precio.toStringAsFixed(2)} EUR',
-                            style: const pw.TextStyle(fontSize: 8),
-                          ),
-                        ],
+                      child: pw.Text(
+                        '+ ${extra.nombre} (${extra.precio.toStringAsFixed(2)} EUR)',
+                        style: const pw.TextStyle(fontSize: 8),
                       ),
                     ),
                   ),
@@ -1125,8 +1125,8 @@ class PrintService {
                   ),
               ],
             ),
-          ),
-        ),
+          );
+        }),
       ],
     );
   }

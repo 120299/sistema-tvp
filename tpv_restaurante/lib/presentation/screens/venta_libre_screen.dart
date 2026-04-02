@@ -629,7 +629,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (cat.imagenUrl != null && cat.imagenUrl!.isNotEmpty)
-                  CategoryAvatar(categoria: cat, size: 60)
+                  CategoryAvatar(categoria: cat, width: 80, height: 50)
                 else if (cat.icono.isNotEmpty)
                   Text(cat.icono, style: const TextStyle(fontSize: 32))
                 else
