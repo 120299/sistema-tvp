@@ -14,32 +14,62 @@ class MesasScreen extends ConsumerStatefulWidget {
 class _MesasScreenState extends ConsumerState<MesasScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final List<String> _tabs = ['Todas', 'Libres', 'Ocupadas', 'Reservas'];
+  final List<String> _tabs = [
+    'Todas',
+    'Local',
+    'Terraza',
+    'Libres',
+    'Ocupadas',
+    'Reservas',
+  ];
+  UbicacionMesa? _filtroUbicacion;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController.addListener(_onTabChanged);
+  }
+
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) return;
+    setState(() {
+      switch (_tabController.index) {
+        case 1:
+          _filtroUbicacion = UbicacionMesa.local;
+          break;
+        case 2:
+          _filtroUbicacion = UbicacionMesa.terraza;
+          break;
+        default:
+          _filtroUbicacion = null;
+      }
+    });
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
   }
 
   List<Mesa> _getMesasFiltradas(List<Mesa> todasMesas) {
+    var mesas = todasMesas;
+
+    if (_filtroUbicacion != null) {
+      mesas = mesas.where((m) => m.ubicacion == _filtroUbicacion).toList();
+    }
+
     switch (_tabController.index) {
-      case 1:
-        return todasMesas.where((m) => m.estado == EstadoMesa.libre).toList();
-      case 2:
-        return todasMesas.where((m) => m.estado == EstadoMesa.ocupada).toList();
       case 3:
-        return todasMesas
-            .where((m) => m.estado == EstadoMesa.reservada)
-            .toList();
+        return mesas.where((m) => m.estado == EstadoMesa.libre).toList();
+      case 4:
+        return mesas.where((m) => m.estado == EstadoMesa.ocupada).toList();
+      case 5:
+        return mesas.where((m) => m.estado == EstadoMesa.reservada).toList();
       default:
-        return todasMesas;
+        return mesas;
     }
   }
 
@@ -68,6 +98,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
   void _mostrarDialogoAgregarMesas() {
     int cantidad = 1;
     int capacidad = 4;
+    UbicacionMesa ubicacion = UbicacionMesa.local;
 
     showDialog(
       context: context,
@@ -192,6 +223,103 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Ubicación:',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => setDialogState(
+                          () => ubicacion = UbicacionMesa.local,
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: ubicacion == UbicacionMesa.local
+                                ? AppColors.primary.withValues(alpha: 0.2)
+                                : Colors.grey.shade100,
+                            border: Border.all(
+                              color: ubicacion == UbicacionMesa.local
+                                  ? AppColors.primary
+                                  : Colors.grey.shade300,
+                              width: ubicacion == UbicacionMesa.local ? 2 : 1,
+                            ),
+                            borderRadius: BorderRadius.zero,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.store,
+                                color: ubicacion == UbicacionMesa.local
+                                    ? AppColors.primary
+                                    : Colors.grey,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Local',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: ubicacion == UbicacionMesa.local
+                                      ? AppColors.primary
+                                      : Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => setDialogState(
+                          () => ubicacion = UbicacionMesa.terraza,
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: ubicacion == UbicacionMesa.terraza
+                                ? AppColors.primary.withValues(alpha: 0.2)
+                                : Colors.grey.shade100,
+                            border: Border.all(
+                              color: ubicacion == UbicacionMesa.terraza
+                                  ? AppColors.primary
+                                  : Colors.grey.shade300,
+                              width: ubicacion == UbicacionMesa.terraza ? 2 : 1,
+                            ),
+                            borderRadius: BorderRadius.zero,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.wb_sunny,
+                                color: ubicacion == UbicacionMesa.terraza
+                                    ? AppColors.primary
+                                    : Colors.grey,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Terraza',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: ubicacion == UbicacionMesa.terraza
+                                      ? AppColors.primary
+                                      : Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
             actions: [
@@ -207,6 +335,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                       id: 'mesa_$nuevoNumero',
                       numero: nuevoNumero,
                       capacidad: capacidad,
+                      ubicacion: ubicacion,
                       estado: EstadoMesa.libre,
                     );
                     ref.read(mesasProvider.notifier).agregar(nuevaMesa);
@@ -223,6 +352,23 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
   }
 
   Widget _buildTabBar() {
+    final todasLasMesas = ref.watch(mesasProvider);
+    final localCount = todasLasMesas
+        .where((m) => m.ubicacion == UbicacionMesa.local)
+        .length;
+    final terrazaCount = todasLasMesas
+        .where((m) => m.ubicacion == UbicacionMesa.terraza)
+        .length;
+    final libresCount = todasLasMesas
+        .where((m) => m.estado == EstadoMesa.libre)
+        .length;
+    final ocupadasCount = todasLasMesas
+        .where((m) => m.estado == EstadoMesa.ocupada)
+        .length;
+    final reservasCount = todasLasMesas
+        .where((m) => m.estado == EstadoMesa.reservada)
+        .length;
+
     return Container(
       color: Colors.white,
       child: TabBar(
@@ -233,21 +379,15 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
         indicatorColor: AppColors.primary,
         indicatorWeight: 3,
         indicatorSize: TabBarIndicatorSize.label,
-        labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        isScrollable: true,
         tabs: [
-          Tab(text: 'Todas (${ref.watch(mesasProvider).length})'),
-          Tab(
-            text:
-                'Libres (${ref.watch(mesasProvider).where((m) => m.estado == EstadoMesa.libre).length})',
-          ),
-          Tab(
-            text:
-                'Ocupadas (${ref.watch(mesasProvider).where((m) => m.estado == EstadoMesa.ocupada).length})',
-          ),
-          Tab(
-            text:
-                'Reservas (${ref.watch(mesasProvider).where((m) => m.estado == EstadoMesa.reservada).length})',
-          ),
+          Tab(text: 'Todas (${todasLasMesas.length})'),
+          Tab(text: 'Local ($localCount)'),
+          Tab(text: 'Terraza ($terrazaCount)'),
+          Tab(text: 'Libres ($libresCount)'),
+          Tab(text: 'Ocupadas ($ocupadasCount)'),
+          Tab(text: 'Reservas ($reservasCount)'),
         ],
       ),
     );
@@ -444,33 +584,42 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                         ),
                       ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 1,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.zero,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.people,
-                            size: 9,
-                            color: AppColors.textSecondary,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          mesa.ubicacion == UbicacionMesa.terraza
+                              ? Icons.wb_sunny
+                              : Icons.store,
+                          size: 9,
+                          color: Colors.orange,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          mesa.ubicacion == UbicacionMesa.terraza
+                              ? 'Terraza'
+                              : 'Local',
+                          style: const TextStyle(
+                            fontSize: 8,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.orange,
                           ),
-                          const SizedBox(width: 1),
-                          Text(
-                            '${mesa.capacidad}',
-                            style: const TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.people,
+                          size: 9,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 1),
+                        Text(
+                          '${mesa.capacidad}',
+                          style: const TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -581,12 +730,57 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Mesa ${mesa.numero}',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            'Mesa ${mesa.numero}',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: mesa.ubicacion == UbicacionMesa.terraza
+                                  ? Colors.orange.shade100
+                                  : Colors.blue.shade100,
+                              borderRadius: BorderRadius.zero,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  mesa.ubicacion == UbicacionMesa.terraza
+                                      ? Icons.wb_sunny
+                                      : Icons.store,
+                                  size: 12,
+                                  color: mesa.ubicacion == UbicacionMesa.terraza
+                                      ? Colors.orange.shade700
+                                      : Colors.blue.shade700,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  mesa.ubicacion == UbicacionMesa.terraza
+                                      ? 'Terraza'
+                                      : 'Local',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color:
+                                        mesa.ubicacion == UbicacionMesa.terraza
+                                        ? Colors.orange.shade700
+                                        : Colors.blue.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                       Text(
                         '${mesa.capacidad} personas',
@@ -713,70 +907,170 @@ class _MesasScreenState extends ConsumerState<MesasScreen>
     final capacidadController = TextEditingController(
       text: mesa.capacidad.toString(),
     );
+    UbicacionMesa ubicacion = mesa.ubicacion;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Editar ${mesa.nombreMostrar}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: numeroController,
-              decoration: const InputDecoration(
-                labelText: 'Número',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.tag),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Editar ${mesa.nombreMostrar}'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: numeroController,
+                decoration: const InputDecoration(
+                  labelText: 'Número',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.tag),
+                ),
+                keyboardType: TextInputType.number,
               ),
-              keyboardType: TextInputType.number,
+              const SizedBox(height: 16),
+              TextField(
+                controller: nombreController,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre (opcional)',
+                  hintText: 'Ej: Terraza, VIP...',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.label),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: capacidadController,
+                decoration: const InputDecoration(
+                  labelText: 'Capacidad',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.people),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Ubicación:',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () =>
+                          setDialogState(() => ubicacion = UbicacionMesa.local),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: ubicacion == UbicacionMesa.local
+                              ? AppColors.primary.withValues(alpha: 0.2)
+                              : Colors.grey.shade100,
+                          border: Border.all(
+                            color: ubicacion == UbicacionMesa.local
+                                ? AppColors.primary
+                                : Colors.grey.shade300,
+                            width: ubicacion == UbicacionMesa.local ? 2 : 1,
+                          ),
+                          borderRadius: BorderRadius.zero,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.store,
+                              color: ubicacion == UbicacionMesa.local
+                                  ? AppColors.primary
+                                  : Colors.grey,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Local',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: ubicacion == UbicacionMesa.local
+                                    ? AppColors.primary
+                                    : Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => setDialogState(
+                        () => ubicacion = UbicacionMesa.terraza,
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: ubicacion == UbicacionMesa.terraza
+                              ? AppColors.primary.withValues(alpha: 0.2)
+                              : Colors.grey.shade100,
+                          border: Border.all(
+                            color: ubicacion == UbicacionMesa.terraza
+                                ? AppColors.primary
+                                : Colors.grey.shade300,
+                            width: ubicacion == UbicacionMesa.terraza ? 2 : 1,
+                          ),
+                          borderRadius: BorderRadius.zero,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.wb_sunny,
+                              color: ubicacion == UbicacionMesa.terraza
+                                  ? AppColors.primary
+                                  : Colors.grey,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Terraza',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: ubicacion == UbicacionMesa.terraza
+                                    ? AppColors.primary
+                                    : Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: nombreController,
-              decoration: const InputDecoration(
-                labelText: 'Nombre (opcional)',
-                hintText: 'Ej: Terraza, VIP...',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.label),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: capacidadController,
-              decoration: const InputDecoration(
-                labelText: 'Capacidad',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.people),
-              ),
-              keyboardType: TextInputType.number,
+            ElevatedButton(
+              onPressed: () async {
+                final numero = int.tryParse(numeroController.text);
+                final capacidad = int.tryParse(capacidadController.text);
+                final nombre = nombreController.text.trim();
+                if (numero != null && capacidad != null) {
+                  await ref
+                      .read(mesasProvider.notifier)
+                      .actualizarMesa(
+                        mesa.id,
+                        numero: numero,
+                        nombre: nombre.isEmpty ? null : nombre,
+                        capacidad: capacidad,
+                        ubicacion: ubicacion,
+                      );
+                  if (context.mounted) Navigator.pop(context);
+                }
+              },
+              child: const Text('Guardar'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final numero = int.tryParse(numeroController.text);
-              final capacidad = int.tryParse(capacidadController.text);
-              final nombre = nombreController.text.trim();
-              if (numero != null && capacidad != null) {
-                await ref
-                    .read(mesasProvider.notifier)
-                    .actualizarMesa(
-                      mesa.id,
-                      numero: numero,
-                      nombre: nombre.isEmpty ? null : nombre,
-                      capacidad: capacidad,
-                    );
-                if (context.mounted) Navigator.pop(context);
-              }
-            },
-            child: const Text('Guardar'),
-          ),
-        ],
       ),
     );
   }

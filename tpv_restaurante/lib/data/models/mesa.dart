@@ -1,10 +1,13 @@
 enum EstadoMesa { libre, ocupada, reservada, necesitaAtencion }
 
+enum UbicacionMesa { local, terraza }
+
 class Mesa {
   final String id;
   final int numero;
   final String? nombre;
   final int capacidad;
+  final UbicacionMesa ubicacion;
   EstadoMesa estado;
   String? pedidoActualId;
   DateTime? horaApertura;
@@ -16,6 +19,7 @@ class Mesa {
     required this.numero,
     this.nombre,
     required this.capacidad,
+    this.ubicacion = UbicacionMesa.local,
     this.estado = EstadoMesa.libre,
     this.pedidoActualId,
     this.horaApertura,
@@ -34,6 +38,7 @@ class Mesa {
     int? numero,
     String? nombre,
     int? capacidad,
+    UbicacionMesa? ubicacion,
     EstadoMesa? estado,
     String? pedidoActualId,
     DateTime? horaApertura,
@@ -44,6 +49,7 @@ class Mesa {
       numero: numero ?? this.numero,
       nombre: nombre ?? this.nombre,
       capacidad: capacidad ?? this.capacidad,
+      ubicacion: ubicacion ?? this.ubicacion,
       estado: estado ?? this.estado,
       pedidoActualId: pedidoActualId ?? this.pedidoActualId,
       horaApertura: horaApertura ?? this.horaApertura,
@@ -57,6 +63,7 @@ class Mesa {
       'numero': numero,
       'nombre': nombre,
       'capacidad': capacidad,
+      'ubicacion': ubicacion.index,
       'estado': estado.index,
       'pedidoActualId': pedidoActualId,
       'horaApertura': horaApertura?.toIso8601String(),
@@ -70,6 +77,9 @@ class Mesa {
       numero: json['numero'] as int,
       nombre: json['nombre'] as String?,
       capacidad: json['capacidad'] as int,
+      ubicacion: json['ubicacion'] != null
+          ? UbicacionMesa.values[json['ubicacion'] as int]
+          : UbicacionMesa.local,
       estado: EstadoMesa.values[json['estado'] as int],
       pedidoActualId: json['pedidoActualId'] as String?,
       horaApertura: json['horaApertura'] != null

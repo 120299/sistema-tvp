@@ -677,6 +677,7 @@ class MesasNotifier extends StateNotifier<List<Mesa>> {
     String? nombre,
     int? capacidad,
     DateTime? fechaReserva,
+    UbicacionMesa? ubicacion,
   }) async {
     final mesa = state.firstWhere((m) => m.id == mesaId);
     await actualizar(
@@ -685,6 +686,7 @@ class MesasNotifier extends StateNotifier<List<Mesa>> {
         nombre: nombre,
         capacidad: capacidad ?? mesa.capacidad,
         fechaReserva: fechaReserva,
+        ubicacion: ubicacion ?? mesa.ubicacion,
       ),
     );
   }

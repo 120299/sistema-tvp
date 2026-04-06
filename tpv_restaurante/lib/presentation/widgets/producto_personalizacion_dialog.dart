@@ -248,6 +248,8 @@ class _ProductoPersonalizacionDialogState
   }
 
   Widget _buildVariantesSection() {
+    final variantes = widget.producto.variantes!;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -274,57 +276,81 @@ class _ProductoPersonalizacionDialogState
             ],
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: widget.producto.variantes!.map((variante) {
-              final isSelected = _varianteSeleccionada?.id == variante.id;
-              return InkWell(
-                onTap: () {
-                  setState(() {
-                    _varianteSeleccionada = variante;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected ? Colors.blue.shade100 : Colors.white,
-                    borderRadius: BorderRadius.zero,
-                    border: Border.all(
-                      color: isSelected
-                          ? Colors.blue.shade600
-                          : Colors.grey.shade300,
-                      width: isSelected ? 2 : 1,
+          ClipRRect(
+            child: Row(
+              children: variantes.asMap().entries.map((entry) {
+                final index = entry.key;
+                final variante = entry.value;
+                final isSelected = _varianteSeleccionada?.id == variante.id;
+                final esUltimo = index == variantes.length - 1;
+
+                return Expanded(
+                  flex: variantes.length == 2 ? 50 : 33,
+                  child: InkWell(
+                    onTap: () {
+                      setState(() {
+                        _varianteSeleccionada = variante;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected ? Colors.blue.shade600 : Colors.white,
+                        border: Border(
+                          right: esUltimo
+                              ? BorderSide.none
+                              : BorderSide(
+                                  color: Colors.blue.shade300,
+                                  width: 1,
+                                ),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            isSelected
+                                ? Icons.check_circle
+                                : Icons.circle_outlined,
+                            color: isSelected
+                                ? Colors.white
+                                : Colors.blue.shade300,
+                            size: 24,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            variante.nombre,
+                            style: TextStyle(
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.blue.shade700,
+                              fontSize: 13,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${variante.precio.toStringAsFixed(2)}€',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.blue.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  child: Column(
-                    children: [
-                      Text(
-                        variante.nombre,
-                        style: TextStyle(
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: Colors.blue.shade700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${variante.precio.toStringAsFixed(2)}€',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
+                );
+              }).toList(),
+            ),
           ),
           if (_mensajeError != null) ...[
             const SizedBox(height: 8),
