@@ -43,7 +43,12 @@ class TicketWidget extends StatelessWidget {
               ) ??
               0;
           final precioConExtras = item.precioUnitario + extrasTotal;
-          final lineaTotal = precioConExtras * item.cantidad;
+
+          final tieneModificaciones =
+              (item.ingredientesQuitados != null &&
+                  item.ingredientesQuitados!.isNotEmpty) ||
+              (item.extrasSeleccionados != null &&
+                  item.extrasSeleccionados!.isNotEmpty);
 
           String extrasHtml = '';
           if (item.extrasSeleccionados != null &&
@@ -56,14 +61,25 @@ class TicketWidget extends StatelessWidget {
                 .join('');
           }
 
-          return '''
+          final lineas = <String>[];
+
+          for (int i = 0; i < item.cantidad; i++) {
+            final completoBadge = !tieneModificaciones
+                ? ' <span style="border: 1px solid black; font-size: 7px; padding: 1px 3px;">COMPLETO</span>'
+                : '';
+
+            lineas.add('''
       <div class="row">
-        <span>${item.cantidad}x ${item.productoNombre}</span>
-        <span>${lineaTotal.toStringAsFixed(2)} EUR</span>
+        <span>1 x ${item.productoNombre}$completoBadge</span>
+        <span>${precioConExtras.toStringAsFixed(2)} EUR</span>
       </div>
-      ${extrasHtml}
+      $extrasHtml
       ${item.ingredientesQuitados != null && item.ingredientesQuitados!.isNotEmpty ? '<div style="padding-left: 15px; font-size: 8px; font-style: italic;">Sin: ${item.ingredientesQuitados!.join(", ")}</div>' : ''}
-    ''';
+      ${item.notas != null && item.notas!.isNotEmpty ? '<div style="padding-left: 15px; font-size: 8px; font-style: italic;">Nota: ${item.notas}</div>' : ''}
+''');
+          }
+
+          return lineas.join('');
         })
         .join('');
 
@@ -280,62 +296,110 @@ class TicketWidget extends StatelessWidget {
               0;
           final precioConExtras = item.precioUnitario + extrasTotal;
 
-          return [
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: isCompact ? 1 : 2),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: isCompact ? 25 : 30,
-                    child: Text(
-                      '${item.cantidad}',
-                      style: TextStyle(fontSize: fontSize),
+          // Determinar si el producto tiene modificaciones
+          final tieneModificaciones =
+              (item.ingredientesQuitados != null &&
+                  item.ingredientesQuitados!.isNotEmpty) ||
+              (item.extrasSeleccionados != null &&
+                  item.extrasSeleccionados!.isNotEmpty);
+
+          // Crear lista de líneas para este item
+          final lineasItem = <Widget>[];
+
+          // Si cantidad > 1, crear múltiples líneas
+          for (int i = 0; i < item.cantidad; i++) {
+            lineasItem.add(
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: isCompact ? 1 : 2),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: isCompact ? 25 : 30,
+                      child: Text('1', style: TextStyle(fontSize: fontSize)),
                     ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.productoNombre,
-                          style: TextStyle(fontSize: fontSize),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (item.ingredientesQuitados != null &&
-                            item.ingredientesQuitados!.isNotEmpty)
-                          Text(
-                            'Sin: ${item.ingredientesQuitados!.join(", ")}',
-                            style: TextStyle(
-                              fontSize: fontSize - 1,
-                              fontStyle: FontStyle.italic,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  item.productoNombre,
+                                  style: TextStyle(
+                                    fontSize: fontSize,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (!tieneModificaciones)
+                                Container(
+                                  margin: const EdgeInsets.only(left: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 1,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.black),
+                                  ),
+                                  child: Text(
+                                    'COMPLETO',
+                                    style: TextStyle(
+                                      fontSize: fontSize - 2,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                        if (item.extrasSeleccionados != null &&
-                            item.extrasSeleccionados!.isNotEmpty)
-                          ...item.extrasSeleccionados!.map(
-                            (extra) => Text(
-                              '+ ${extra.nombre} (${extra.precio.toStringAsFixed(2)} EUR)',
-                              style: TextStyle(fontSize: fontSize - 1),
+                          if (item.ingredientesQuitados != null &&
+                              item.ingredientesQuitados!.isNotEmpty)
+                            Text(
+                              'Sin: ${item.ingredientesQuitados!.join(", ")}',
+                              style: TextStyle(
+                                fontSize: fontSize - 1,
+                                fontStyle: FontStyle.italic,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                      ],
+                          if (item.extrasSeleccionados != null &&
+                              item.extrasSeleccionados!.isNotEmpty)
+                            ...item.extrasSeleccionados!.map(
+                              (extra) => Text(
+                                '+ ${extra.nombre} (${extra.precio.toStringAsFixed(2)} EUR)',
+                                style: TextStyle(fontSize: fontSize - 1),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          if (item.notas != null && item.notas!.isNotEmpty)
+                            Text(
+                              'Nota: ${item.notas}',
+                              style: TextStyle(
+                                fontSize: fontSize - 1,
+                                fontStyle: FontStyle.italic,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(
-                    width: isCompact ? 45 : 50,
-                    child: Text(
-                      '${precioConExtras.toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: fontSize),
-                      textAlign: TextAlign.right,
+                    SizedBox(
+                      width: isCompact ? 45 : 50,
+                      child: Text(
+                        '${precioConExtras.toStringAsFixed(2)}',
+                        style: TextStyle(fontSize: fontSize),
+                        textAlign: TextAlign.right,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ];
+            );
+          }
+
+          return lineasItem;
         }),
       ],
     );
