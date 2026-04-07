@@ -44,6 +44,8 @@ class CategoryChip extends StatelessWidget {
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             _buildAvatar(),
             const SizedBox(width: 8),
@@ -56,6 +58,7 @@ class CategoryChip extends StatelessWidget {
                   color: isSelected ? Colors.white : AppColors.textPrimary,
                 ),
                 overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
             ),
           ],
@@ -121,7 +124,9 @@ class CategoryChip extends StatelessWidget {
 
   Widget _buildIcon() {
     if (categoria.icono.isNotEmpty) {
-      return Text(categoria.icono, style: const TextStyle(fontSize: 16));
+      return Center(
+        child: Text(categoria.icono, style: const TextStyle(fontSize: 16)),
+      );
     }
     return Icon(
       Icons.category,

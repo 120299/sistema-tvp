@@ -200,7 +200,8 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
               padding: const EdgeInsets.only(right: 8),
               child: FilterChip(
                 selected: isSelected,
-                label: const Text('Todos'),
+                label: Text('Todos', textAlign: TextAlign.center),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 4),
                 avatar: isSelected ? null : const Icon(Icons.apps, size: 18),
                 onSelected: (_) {
                   ref.read(categoriaSeleccionadaProvider.notifier).state = null;
@@ -223,7 +224,8 @@ class _MesaProductosScreenState extends ConsumerState<MesaProductosScreen> {
                 width: 28,
                 height: 20,
               ),
-              label: Text(categoria.nombre),
+              label: Text(categoria.nombre, textAlign: TextAlign.center),
+              labelPadding: const EdgeInsets.symmetric(horizontal: 4),
               onSelected: (_) {
                 ref.read(categoriaSeleccionadaProvider.notifier).state =
                     isSelected ? null : categoria.id;

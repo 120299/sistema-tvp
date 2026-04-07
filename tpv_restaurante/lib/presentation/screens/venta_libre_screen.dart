@@ -82,7 +82,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                   flex: 3,
                   child: Column(
                     children: [
-                      _buildHeader(mesasDisponibles, caja: caja, isWide: true),
+                      _buildHeader(todasMesas, caja: caja, isWide: true),
                       _buildCategorias(
                         categoriaSeleccionada,
                         categoriasOrdenadas,
@@ -99,7 +99,7 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
           } else {
             return Column(
               children: [
-                _buildHeader(mesasDisponibles, caja: caja, isWide: false),
+                _buildHeader(todasMesas, caja: caja, isWide: false),
                 _buildCategorias(categoriaSeleccionada, categoriasOrdenadas),
                 _buildBuscador(),
                 Expanded(child: _buildGridProductos(productosAMostrar)),
@@ -208,11 +208,11 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     );
   }
 
-  Widget _buildHeader(
-    List<Mesa> mesasDisponibles, {
-    Caja? caja,
-    bool isWide = true,
-  }) {
+  Widget _buildHeader(List<Mesa> todasMesas, {Caja? caja, bool isWide = true}) {
+    final mesasDisponibles = todasMesas
+        .where((m) => m.estado == EstadoMesa.libre)
+        .toList();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -256,110 +256,94 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.zero,
-                      border: Border.all(color: AppColors.lightDivider),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String?>(
-                        value: _mesaAsignada,
-                        isExpanded: true,
-                        hint: const Row(
-                          children: [
-                            Icon(
-                              Icons.table_restaurant,
-                              size: 18,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              '/',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
+                  child: InkWell(
+                    onTap: () =>
+                        _mostrarModalSelectorMesas(context, todasMesas),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _mesaAsignada != null
+                              ? _getColorMesaSeleccionada(todasMesas)
+                              : AppColors.lightDivider,
+                          width: _mesaAsignada != null ? 2 : 1,
                         ),
-                        items: [
-                          DropdownMenuItem<String?>(
-                            value: null,
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.table_restaurant,
-                                  size: 18,
-                                  color: Colors.grey,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  '/ (Sin mesa)',
-                                  style: TextStyle(fontWeight: FontWeight.w500),
-                                ),
-                              ],
-                            ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _mesaAsignada != null
+                                ? Icons.table_restaurant
+                                : Icons.point_of_sale,
+                            color: _mesaAsignada != null
+                                ? _getColorMesaSeleccionada(todasMesas)
+                                : AppColors.primary,
+                            size: 22,
                           ),
-                          ...mesasDisponibles.map(
-                            (m) => DropdownMenuItem(
-                              value: m.id,
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.table_restaurant,
-                                    size: 18,
-                                    color: AppColors.success,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text('Mesa ${m.numero}'),
-                                ],
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _mesaAsignada != null
+                                  ? _getNombreMesaSeleccionada(todasMesas)
+                                  : 'Venta en barra',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: _mesaAsignada != null
+                                    ? _getColorMesaSeleccionada(todasMesas)
+                                    : AppColors.textPrimary,
                               ),
                             ),
                           ),
-                          ..._getMesasOcupadas().map(
-                            (m) => DropdownMenuItem(
-                              value: m.id,
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.table_restaurant,
-                                    size: 18,
-                                    color: AppColors.warning,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text('Mesa ${m.numero}'),
-                                ],
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _mesaAsignada != null
+                                  ? _getColorMesaSeleccionada(
+                                      todasMesas,
+                                    ).withValues(alpha: 0.2)
+                                  : Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              _mesaAsignada != null
+                                  ? _getEstadoMesaSeleccionada(todasMesas)
+                                  : 'Abierto',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: _mesaAsignada != null
+                                    ? _getColorMesaSeleccionada(todasMesas)
+                                    : Colors.grey.shade600,
                               ),
                             ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.chevron_right,
+                            color: Colors.grey.shade400,
                           ),
                         ],
-                        onChanged: (value) async {
-                          if (value == _mesaAsignada) return;
-
-                          setState(() {
-                            _mesaAsignada = value;
-                            _carrito.clear();
-                          });
-
-                          if (value != null) {
-                            await _cargarProductosMesa(value);
-                          }
-                        },
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                if (_mesaAsignada != null && _carrito.isNotEmpty) ...[
+                if (_mesaAsignada != null && _carrito.isNotEmpty)
                   _buildActionButton(
                     icon: Icons.delete_outline,
                     color: AppColors.error,
-                    onPressed: () {
-                      _mostrarDialogoLiberarMesa();
-                    },
+                    onPressed: () => _mostrarDialogoLiberarMesa(),
                     tooltip: 'Liberar mesa',
                   ),
-                ],
               ],
             ),
           ),
@@ -2336,5 +2320,375 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
         },
       ),
     );
+  }
+
+  String _getNombreMesaSeleccionada(List<Mesa> todasMesas) {
+    if (_mesaAsignada == null) return 'Venta en barra';
+    try {
+      final mesa = todasMesas.firstWhere((m) => m.id == _mesaAsignada);
+      final ubicacion = mesa.ubicacion == UbicacionMesa.terraza
+          ? ' - Terraza'
+          : ' - Local';
+      return 'Mesa ${mesa.numero}$ubicacion';
+    } catch (_) {
+      return 'Venta en barra';
+    }
+  }
+
+  void _mostrarModalSelectorMesas(BuildContext context, List<Mesa> todasMesas) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final mesasActualizadas = ref.watch(mesasProvider);
+
+          final mesasLocal = mesasActualizadas
+              .where((m) => m.ubicacion == UbicacionMesa.local)
+              .toList();
+          final mesasTerraza = mesasActualizadas
+              .where((m) => m.ubicacion == UbicacionMesa.terraza)
+              .toList();
+
+          return DraggableScrollableSheet(
+            initialChildSize: 0.6,
+            minChildSize: 0.4,
+            maxChildSize: 0.9,
+            expand: false,
+            builder: (context, scrollController) => Column(
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.table_restaurant,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Seleccionar Mesa',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: ListView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            _mesaAsignada = null;
+                            _carrito.clear();
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: _mesaAsignada == null
+                                ? AppColors.primary.withValues(alpha: 0.1)
+                                : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: _mesaAsignada == null
+                                  ? AppColors.primary
+                                  : Colors.grey.shade300,
+                              width: _mesaAsignada == null ? 2 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.point_of_sale,
+                                color: _mesaAsignada == null
+                                    ? AppColors.primary
+                                    : Colors.grey,
+                                size: 28,
+                              ),
+                              const SizedBox(width: 12),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Venta en barra',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: _mesaAsignada == null
+                                          ? AppColors.primary
+                                          : AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Sin asignar a mesa',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Spacer(),
+                              if (_mesaAsignada == null)
+                                const Icon(
+                                  Icons.check_circle,
+                                  color: AppColors.primary,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (mesasLocal.isNotEmpty) ...[
+                        _buildSeccionMesas('LOCAL', mesasLocal),
+                        const SizedBox(height: 16),
+                      ],
+                      if (mesasTerraza.isNotEmpty)
+                        _buildSeccionMesas('TERRAZA', mesasTerraza),
+                      if (mesasLocal.isEmpty && mesasTerraza.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.table_restaurant,
+                                  size: 48,
+                                  color: Colors.grey.shade400,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No hay mesas disponibles',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSeccionMesas(String titulo, List<Mesa> mesas) {
+    final esTerraza = titulo == 'TERRAZA';
+    final esLocal = titulo == 'LOCAL';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            if (esLocal) const Icon(Icons.store, size: 16, color: Colors.blue),
+            if (esTerraza)
+              const Icon(Icons.wb_sunny, size: 16, color: Colors.orange),
+            const SizedBox(width: 6),
+            Text(
+              titulo,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: esTerraza
+                    ? Colors.orange.shade700
+                    : Colors.blue.shade700,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: mesas.map((mesa) {
+            final isSelected = _mesaAsignada == mesa.id;
+            final estaLibre = mesa.estado == EstadoMesa.libre;
+            final estaOcupada = mesa.estado == EstadoMesa.ocupada;
+            final estaReservada = mesa.estado == EstadoMesa.reservada;
+
+            Color colorBorde;
+            Color colorIcono;
+            Color colorTexto;
+            String estadoTexto;
+
+            if (estaOcupada) {
+              colorBorde = Colors.orange;
+              colorIcono = Colors.orange.shade700;
+              colorTexto = Colors.orange.shade700;
+              estadoTexto = 'Ocupada';
+            } else if (estaReservada) {
+              colorBorde = Colors.purple;
+              colorIcono = Colors.purple.shade700;
+              colorTexto = Colors.purple.shade700;
+              estadoTexto = 'Reservada';
+            } else if (estaLibre) {
+              colorBorde = Colors.green;
+              colorIcono = AppColors.success;
+              colorTexto = Colors.green.shade700;
+              estadoTexto = 'Libre';
+            } else {
+              colorBorde = Colors.grey;
+              colorIcono = Colors.grey;
+              colorTexto = Colors.grey.shade700;
+              estadoTexto = 'Libre';
+            }
+
+            return InkWell(
+              onTap: () async {
+                Navigator.pop(context);
+                setState(() {
+                  _mesaAsignada = mesa.id;
+                  _carrito.clear();
+                });
+                await _cargarProductosMesa(mesa.id);
+              },
+              child: Container(
+                width: 90,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isSelected
+                        ? colorBorde
+                        : colorBorde.withValues(alpha: 0.5),
+                    width: isSelected ? 2.5 : 1.5,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: colorBorde.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
+                      alignment: Alignment.topRight,
+                      children: [
+                        Icon(
+                          Icons.table_restaurant,
+                          color: isSelected ? colorBorde : colorIcono,
+                          size: 32,
+                        ),
+                        if (estaOcupada || estaReservada)
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: estaOcupada
+                                  ? Colors.orange
+                                  : Colors.purple,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Mesa ${mesa.numero}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? colorBorde : AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorBorde.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: colorBorde.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        estadoTexto,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: colorTexto,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Color _getColorMesaSeleccionada(List<Mesa> todasMesas) {
+    if (_mesaAsignada == null) return AppColors.primary;
+    try {
+      final mesa = todasMesas.firstWhere((m) => m.id == _mesaAsignada);
+      if (mesa.estado == EstadoMesa.ocupada) {
+        return Colors.orange;
+      } else if (mesa.estado == EstadoMesa.reservada) {
+        return Colors.purple;
+      } else {
+        return AppColors.success;
+      }
+    } catch (_) {
+      return AppColors.primary;
+    }
+  }
+
+  String _getEstadoMesaSeleccionada(List<Mesa> todasMesas) {
+    if (_mesaAsignada == null) return 'Abierto';
+    try {
+      final mesa = todasMesas.firstWhere((m) => m.id == _mesaAsignada);
+      if (mesa.estado == EstadoMesa.ocupada) {
+        return 'Ocupada';
+      } else if (mesa.estado == EstadoMesa.reservada) {
+        return 'Reservada';
+      } else {
+        return 'Libre';
+      }
+    } catch (_) {
+      return 'Abierto';
+    }
   }
 }

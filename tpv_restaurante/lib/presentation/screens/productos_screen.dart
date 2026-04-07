@@ -1141,7 +1141,9 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
           color: selected ? (color ?? AppColors.primary) : Colors.grey.shade700,
           fontWeight: selected ? FontWeight.bold : FontWeight.normal,
         ),
+        textAlign: TextAlign.center,
       ),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
       backgroundColor: selected
           ? (color ?? AppColors.primary).withValues(alpha: 0.15)
           : Colors.grey.shade100,
