@@ -26,11 +26,17 @@ class _ProductoPersonalizacionDialogState
   final Set<String> _ingredientesQuitados = {};
   final Set<String> _extrasSeleccionados = {};
   late TextEditingController _notasController;
+  late TextEditingController _buscadorIngredientesController;
+  late TextEditingController _buscadorExtrasController;
+  final ValueNotifier<String> _busquedaIngredientes = ValueNotifier<String>('');
+  final ValueNotifier<String> _busquedaExtras = ValueNotifier<String>('');
 
   @override
   void initState() {
     super.initState();
     _notasController = TextEditingController(text: widget.itemInicial?.notas);
+    _buscadorIngredientesController = TextEditingController();
+    _buscadorExtrasController = TextEditingController();
 
     if (widget.itemInicial != null) {
       final item = widget.itemInicial!;
@@ -60,6 +66,10 @@ class _ProductoPersonalizacionDialogState
   @override
   void dispose() {
     _notasController.dispose();
+    _buscadorIngredientesController.dispose();
+    _buscadorExtrasController.dispose();
+    _busquedaIngredientes.dispose();
+    _busquedaExtras.dispose();
     super.dispose();
   }
 
@@ -378,11 +388,13 @@ class _ProductoPersonalizacionDialogState
   }
 
   Widget _buildIngredientesSection() {
+    final ingredientesTodos = widget.producto.ingredientes ?? [];
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
-        borderRadius: BorderRadius.zero,
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey.shade300),
       ),
       child: Column(
@@ -390,77 +402,123 @@ class _ProductoPersonalizacionDialogState
         children: [
           Row(
             children: [
-              Icon(Icons.restaurant_menu, color: Colors.black, size: 20),
+              const Icon(Icons.restaurant_menu, color: Colors.black, size: 20),
               const SizedBox(width: 8),
-              Text(
-                'INGREDIENTES (quitar los que no quiera)',
+              const Text(
+                'INGREDIENTES',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),
+              const Spacer(),
+              Text(
+                '(quitar)',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: (widget.producto.ingredientes ?? []).map((ingrediente) {
-              final estaQuitado = _ingredientesQuitados.contains(
-                ingrediente.id,
+          TextField(
+            controller: _buscadorIngredientesController,
+            decoration: InputDecoration(
+              hintText: 'Buscar ingrediente...',
+              prefixIcon: const Icon(Icons.search, size: 20),
+              suffixIcon: _buscadorIngredientesController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, size: 18),
+                      onPressed: () {
+                        _buscadorIngredientesController.clear();
+                        _busquedaIngredientes.value = '';
+                      },
+                    )
+                  : null,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+            ),
+            onChanged: (value) {
+              _busquedaIngredientes.value = value.toLowerCase();
+            },
+          ),
+          const SizedBox(height: 12),
+          ListenableBuilder(
+            listenable: _busquedaIngredientes,
+            builder: (context, _) {
+              final filtrados = _busquedaIngredientes.value.isEmpty
+                  ? ingredientesTodos
+                  : ingredientesTodos
+                        .where(
+                          (i) => i.nombre.toLowerCase().contains(
+                            _busquedaIngredientes.value,
+                          ),
+                        )
+                        .toList();
+
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: filtrados.map((ingrediente) {
+                  final estaQuitado = _ingredientesQuitados.contains(
+                    ingrediente.id,
+                  );
+                  return FilterChip(
+                    label: Text(
+                      ingrediente.nombre,
+                      style: TextStyle(
+                        color: Colors.black,
+                        decoration: estaQuitado
+                            ? TextDecoration.lineThrough
+                            : null,
+                      ),
+                    ),
+                    selected: !estaQuitado,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _ingredientesQuitados.remove(ingrediente.id);
+                        } else {
+                          _ingredientesQuitados.add(ingrediente.id);
+                        }
+                      });
+                    },
+                    selectedColor: Colors.grey.shade300,
+                    checkmarkColor: Colors.black,
+                    backgroundColor: Colors.white,
+                  );
+                }).toList(),
               );
-              return FilterChip(
-                label: Text(
-                  ingrediente.nombre,
-                  style: TextStyle(
-                    color: Colors.black,
-                    decoration: estaQuitado ? TextDecoration.lineThrough : null,
-                  ),
-                ),
-                selected: !estaQuitado,
-                onSelected: (selected) {
-                  setState(() {
-                    if (selected) {
-                      _ingredientesQuitados.remove(ingrediente.id);
-                    } else {
-                      _ingredientesQuitados.add(ingrediente.id);
-                    }
-                  });
-                },
-                selectedColor: Colors.grey.shade300,
-                checkmarkColor: Colors.black,
-                backgroundColor: Colors.white,
-              );
-            }).toList(),
+            },
           ),
           if (_ingredientesQuitados.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.zero,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.remove_circle,
-                    color: Colors.red.shade700,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
+            Row(
+              children: [
+                Icon(Icons.remove_circle, color: Colors.red.shade700, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
                     'Sin ${_getIngredientesQuitadosTexto()}',
                     style: TextStyle(
                       color: Colors.red.shade700,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ],
@@ -469,11 +527,13 @@ class _ProductoPersonalizacionDialogState
   }
 
   Widget _buildExtrasSection() {
+    final extrasTodos = widget.producto.extras ?? [];
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
-        borderRadius: BorderRadius.zero,
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey.shade300),
       ),
       child: Column(
@@ -481,98 +541,133 @@ class _ProductoPersonalizacionDialogState
         children: [
           Row(
             children: [
-              Icon(Icons.add_circle, color: Colors.black, size: 20),
+              const Icon(Icons.add_circle, color: Colors.black, size: 20),
               const SizedBox(width: 8),
-              Text(
-                'EXTRAS (añadir con coste adicional)',
+              const Text(
+                'EXTRAS',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),
+              const Spacer(),
+              Text(
+                '(añadir)',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          ...(widget.producto.extras ?? []).map((extra) {
-            final seleccionado = _extrasSeleccionados.contains(extra.id);
-            return InkWell(
-              onTap: () {
-                setState(() {
-                  if (seleccionado) {
-                    _extrasSeleccionados.remove(extra.id);
-                  } else {
-                    _extrasSeleccionados.add(extra.id);
-                  }
-                });
-              },
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: seleccionado ? Colors.purple.shade100 : Colors.white,
-                  borderRadius: BorderRadius.zero,
-                  border: Border.all(
-                    color: seleccionado
-                        ? Colors.purple.shade400
-                        : Colors.grey.shade300,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      seleccionado
-                          ? Icons.check_box
-                          : Icons.check_box_outline_blank,
-                      color: Colors.purple.shade700,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        extra.nombre,
-                        style: TextStyle(
-                          color: Colors.purple.shade700,
-                          fontWeight: seleccionado
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.purple.shade700,
-                        borderRadius: BorderRadius.zero,
-                      ),
-                      child: Text(
-                        '+${extra.precio.toStringAsFixed(2)}€',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+          TextField(
+            controller: _buscadorExtrasController,
+            decoration: InputDecoration(
+              hintText: 'Buscar extra...',
+              prefixIcon: const Icon(Icons.search, size: 20),
+              suffixIcon: _buscadorExtrasController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, size: 18),
+                      onPressed: () {
+                        _buscadorExtrasController.clear();
+                        _busquedaExtras.value = '';
+                      },
+                    )
+                  : null,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
               ),
-            );
-          }),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+            ),
+            onChanged: (value) {
+              _busquedaExtras.value = value.toLowerCase();
+            },
+          ),
+          const SizedBox(height: 12),
+          ListenableBuilder(
+            listenable: _busquedaExtras,
+            builder: (context, _) {
+              final filtrados = _busquedaExtras.value.isEmpty
+                  ? extrasTodos
+                  : extrasTodos
+                        .where(
+                          (e) => e.nombre.toLowerCase().contains(
+                            _busquedaExtras.value,
+                          ),
+                        )
+                        .toList();
+
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: filtrados.map((extra) {
+                  final seleccionado = _extrasSeleccionados.contains(extra.id);
+                  return FilterChip(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          extra.nombre,
+                          style: TextStyle(
+                            color: seleccionado ? Colors.white : Colors.black,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '+${extra.precio.toStringAsFixed(2)}€',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: seleccionado
+                                ? Colors.white70
+                                : Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    selected: seleccionado,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _extrasSeleccionados.add(extra.id);
+                        } else {
+                          _extrasSeleccionados.remove(extra.id);
+                        }
+                      });
+                    },
+                    selectedColor: AppColors.primary,
+                    checkmarkColor: Colors.white,
+                    backgroundColor: Colors.white,
+                  );
+                }).toList(),
+              );
+            },
+          ),
           if (_extrasSeleccionados.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text(
-              'Extras seleccionados: ${_getExtrasSeleccionadosTexto()}',
-              style: TextStyle(
-                color: Colors.purple.shade700,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
+            Row(
+              children: [
+                Icon(Icons.check_circle, color: AppColors.primary, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Extras: ${_getExtrasSeleccionadosTexto()}',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
           ],
         ],
