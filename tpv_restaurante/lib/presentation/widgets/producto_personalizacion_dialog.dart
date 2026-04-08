@@ -166,37 +166,41 @@ class _ProductoPersonalizacionDialogState
 
     return Dialog(
       backgroundColor: Colors.white,
+      elevation: 8,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-      child: Container(
-        width: 500,
-        constraints: const BoxConstraints(maxHeight: 700),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildHeader(isEditing: isEditing),
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_esVariable && _tieneVariantes)
-                      _buildVariantesSection(),
-                    if ((_esVariable && _tieneVariantes) &&
-                        (_tieneIngredientes || _tieneExtras))
+      child: Material(
+        color: Colors.white,
+        child: Container(
+          width: 500,
+          constraints: const BoxConstraints(maxHeight: 700),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeader(isEditing: isEditing),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_esVariable && _tieneVariantes)
+                        _buildVariantesSection(),
+                      if ((_esVariable && _tieneVariantes) &&
+                          (_tieneIngredientes || _tieneExtras))
+                        const SizedBox(height: 16),
+                      if (_tieneIngredientes) _buildIngredientesSection(),
+                      if (_tieneIngredientes && _tieneExtras)
+                        const SizedBox(height: 16),
+                      if (_tieneExtras) _buildExtrasSection(),
                       const SizedBox(height: 16),
-                    if (_tieneIngredientes) _buildIngredientesSection(),
-                    if (_tieneIngredientes && _tieneExtras)
-                      const SizedBox(height: 16),
-                    if (_tieneExtras) _buildExtrasSection(),
-                    const SizedBox(height: 16),
-                    _buildNotasSection(),
-                  ],
+                      _buildNotasSection(),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            _buildFooter(isEditing: isEditing),
-          ],
+              _buildFooter(isEditing: isEditing),
+            ],
+          ),
         ),
       ),
     );
@@ -213,20 +217,20 @@ class _ProductoPersonalizacionDialogState
         children: [
           Row(
             children: [
-              if (widget.producto.imagenUrl != null)
-                Container(
-                  width: 60,
-                  height: 60,
-                  margin: const EdgeInsets.only(right: 16),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.zero,
-                    color: Colors.white,
-                    image: DecorationImage(
-                      image: _getProductImage(),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+              Container(
+                width: 60,
+                height: 60,
+                margin: const EdgeInsets.only(right: 16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.zero,
+                  color: Colors.white.withValues(alpha: 0.2),
                 ),
+                child: const Icon(
+                  Icons.fastfood,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,81 +294,74 @@ class _ProductoPersonalizacionDialogState
             ],
           ),
           const SizedBox(height: 12),
-          ClipRRect(
-            child: Row(
-              children: variantes.asMap().entries.map((entry) {
-                final index = entry.key;
-                final variante = entry.value;
-                final isSelected = _varianteSeleccionada?.id == variante.id;
-                final esUltimo = index == variantes.length - 1;
+          Wrap(
+            spacing: 0,
+            runSpacing: 0,
+            children: variantes.asMap().entries.map((entry) {
+              final variante = entry.value;
+              final isSelected = _varianteSeleccionada?.id == variante.id;
 
-                return Expanded(
-                  flex: variantes.length == 2 ? 50 : 33,
-                  child: InkWell(
-                    onTap: () {
-                      setState(() {
-                        _varianteSeleccionada = variante;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 16,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected ? Colors.blue.shade600 : Colors.white,
-                        border: Border(
-                          right: esUltimo
-                              ? BorderSide.none
-                              : BorderSide(
-                                  color: Colors.blue.shade300,
-                                  width: 1,
-                                ),
+              return SizedBox(
+                width: 100,
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      _varianteSeleccionada = variante;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected ? Colors.blue.shade600 : Colors.white,
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          isSelected
+                              ? Icons.check_circle
+                              : Icons.circle_outlined,
+                          color: isSelected
+                              ? Colors.white
+                              : Colors.blue.shade300,
+                          size: 24,
                         ),
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            isSelected
-                                ? Icons.check_circle
-                                : Icons.circle_outlined,
+                        const SizedBox(height: 6),
+                        Text(
+                          variante.nombre,
+                          style: TextStyle(
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                             color: isSelected
                                 ? Colors.white
-                                : Colors.blue.shade300,
-                            size: 24,
+                                : Colors.blue.shade700,
+                            fontSize: 12,
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            variante.nombre,
-                            style: TextStyle(
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: isSelected
-                                  ? Colors.white
-                                  : Colors.blue.shade700,
-                              fontSize: 13,
-                            ),
-                            textAlign: TextAlign.center,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${variante.precio.toStringAsFixed(2)}€',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected
+                                ? Colors.white
+                                : Colors.blue.shade700,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${variante.precio.toStringAsFixed(2)}€',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected
-                                  ? Colors.white
-                                  : Colors.blue.shade700,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              }).toList(),
-            ),
+                ),
+              );
+            }).toList(),
           ),
           if (_mensajeError != null) ...[
             const SizedBox(height: 8),
@@ -845,21 +842,5 @@ class _ProductoPersonalizacionDialogState
         .where((e) => _extrasSeleccionados.contains(e.id))
         .map((e) => '+${e.nombre}')
         .join(', ');
-  }
-
-  ImageProvider _getProductImage() {
-    if (widget.producto.imagenUrl == null) {
-      return const AssetImage('assets/images/placeholder.png');
-    }
-
-    if (widget.producto.imagenUrl!.startsWith('products/')) {
-      return const AssetImage('assets/images/placeholder.png');
-    }
-
-    if (widget.producto.imagenUrl!.startsWith('http')) {
-      return NetworkImage(widget.producto.imagenUrl!);
-    }
-
-    return const AssetImage('assets/images/placeholder.png');
   }
 }

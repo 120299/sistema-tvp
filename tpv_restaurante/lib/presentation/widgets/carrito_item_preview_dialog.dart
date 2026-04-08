@@ -4,15 +4,8 @@ import '../../data/models/models.dart';
 
 class CarritoItemPreviewDialog extends StatelessWidget {
   final PedidoItem item;
-  final VoidCallback? onEditar;
-  final VoidCallback? onEliminar;
 
-  const CarritoItemPreviewDialog({
-    super.key,
-    required this.item,
-    this.onEditar,
-    this.onEliminar,
-  });
+  const CarritoItemPreviewDialog({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -22,38 +15,44 @@ class CarritoItemPreviewDialog extends StatelessWidget {
         (item.notas?.isNotEmpty ?? false);
 
     return Dialog(
-      child: Container(
-        width: 450,
-        constraints: const BoxConstraints(maxHeight: 600),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildHeader(),
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildProductoInfo(),
-                    if (tieneModificaciones) ...[
+      backgroundColor: Colors.white,
+      elevation: 8,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+      child: Material(
+        color: Colors.white,
+        child: Container(
+          width: 450,
+          constraints: const BoxConstraints(maxHeight: 600),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeader(context),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildProductoInfo(),
+                      if (tieneModificaciones) ...[
+                        const SizedBox(height: 20),
+                        _buildModificaciones(),
+                      ],
                       const SizedBox(height: 20),
-                      _buildModificaciones(),
+                      _buildCantidadPrecio(),
                     ],
-                    const SizedBox(height: 20),
-                    _buildCantidadPrecio(),
-                  ],
+                  ),
                 ),
               ),
-            ),
-            _buildFooter(context),
-          ],
+              _buildFooter(context),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: const BoxDecoration(color: AppColors.primary),
@@ -72,7 +71,7 @@ class CarritoItemPreviewDialog extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.close, color: Colors.white, size: 20),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
@@ -288,56 +287,17 @@ class CarritoItemPreviewDialog extends StatelessWidget {
         color: Colors.grey.shade50,
         border: Border(top: BorderSide(color: Colors.grey.shade300)),
       ),
-      child: Row(
-        children: [
-          if (onEliminar != null)
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  onEliminar?.call();
-                },
-                icon: const Icon(Icons.delete_outline, color: AppColors.error),
-                label: const Text(
-                  'Eliminar',
-                  style: TextStyle(color: AppColors.error),
-                ),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  side: const BorderSide(color: AppColors.error),
-                ),
-              ),
-            ),
-          if (onEliminar != null) const SizedBox(width: 12),
-          if (onEditar != null)
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  onEditar?.call();
-                },
-                icon: const Icon(Icons.edit, size: 18),
-                label: const Text('Editar'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
-            ),
-          if (onEditar == null && onEliminar == null)
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                child: const Text('Cerrar'),
-              ),
-            ),
-        ],
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () => Navigator.pop(context),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+          child: const Text('Cerrar'),
+        ),
       ),
     );
   }

@@ -25,7 +25,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
   final List<PedidoItem> _carrito = [];
   String? _mesaAsignada;
   final TextEditingController _buscadorController = TextEditingController();
-  bool _mesaCargada = false;
 
   @override
   void initState() {
@@ -36,14 +35,26 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
   }
 
   Future<void> _cargarMesaInicial() async {
-    if (_mesaCargada) return;
     final mesaId = ref.read(mesaVentaSeleccionadaProvider);
     if (mesaId != null && mounted) {
-      _mesaCargada = true;
       ref.read(mesaVentaSeleccionadaProvider.notifier).state = null;
-      setState(() {
-        _mesaAsignada = mesaId;
-      });
+      await seleccionarMesa(mesaId);
+    }
+  }
+
+  Future<void> seleccionarMesa(String mesaId) async {
+    ref.read(pedidosProvider.notifier).actualizarLista();
+    ref.read(mesasProvider.notifier).actualizarLista();
+
+    setState(() {
+      _mesaAsignada = mesaId;
+      _carrito.clear();
+    });
+
+    final todasMesas = ref.read(mesasProvider);
+    final mesa = todasMesas.where((m) => m.id == mesaId).firstOrNull;
+
+    if (mesa != null && mesa.pedidoActualId != null) {
       await _cargarProductosMesa(mesaId);
     }
   }
@@ -2299,45 +2310,8 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
   void _mostrarPreviewItemCarrito(PedidoItem item, int index) {
     showDialog(
       context: context,
-      builder: (ctx) => CarritoItemPreviewDialog(
-        item: item,
-        onEditar: () async {
-          Navigator.pop(ctx);
-          await Future.delayed(const Duration(milliseconds: 50));
-          if (mounted) {
-            _mostrarDialogoEditarItem(item, index);
-          }
-        },
-        onEliminar: () {
-          Navigator.pop(ctx);
-          _eliminarProductoPorId(item.id);
-        },
-      ),
+      builder: (ctx) => CarritoItemPreviewDialog(item: item),
     );
-  }
-
-  void _mostrarDialogoEditarItem(PedidoItem item, int index) async {
-    final producto = ref
-        .read(productosProvider)
-        .where((p) => p.id == item.productoId)
-        .firstOrNull;
-
-    if (producto == null) return;
-
-    final resultado = await showDialog<PedidoItem>(
-      context: context,
-      builder: (ctx) => ProductoPersonalizacionDialog(
-        producto: producto,
-        itemInicial: item,
-        onConfirm: (newItem) => Navigator.pop(ctx, newItem),
-      ),
-    );
-
-    if (resultado != null) {
-      setState(() {
-        _carrito[index] = resultado;
-      });
-    }
   }
 
   void _cobrarPedido() async {
@@ -2471,13 +2445,6 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 clienteNif: cliente?.nif,
                 numeroTicket: numeroTicket,
                 fechaVenta: pedido?.horaApertura,
-              );
-
-              await TicketHelper.imprimirTicketCocina(
-                negocio,
-                _carrito,
-                mesaNumero: mesaNumero,
-                conPrecios: true,
               );
             } catch (e) {
               debugPrint('Error al imprimir ticket: $e');
@@ -2819,75 +2786,13 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
 
             return InkWell(
               onTap: () async {
-                final mesaAnteriorId = _mesaAsignada;
-                final tieneItemsCarrito = _carrito.isNotEmpty;
-
-                if (mesaAnteriorId == mesa.id) {
+                if (_mesaAsignada == mesa.id) {
                   Navigator.pop(context);
                   return;
                 }
 
                 Navigator.pop(context);
-
-                if (mesa.estado == EstadoMesa.ocupada && tieneItemsCarrito) {
-                  final opcion = await showDialog<String>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: Text('Mesa ${mesa.numero} ocupada'),
-                      content: const Text(
-                        '¿Qué deseas hacer con los items del carrito?',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, 'cancelar'),
-                          child: const Text('Cancelar'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, 'descartar'),
-                          child: const Text('Descartar carrito'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () => Navigator.pop(ctx, 'combinar'),
-                          child: const Text('Combinar'),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  if (opcion == 'cancelar') return;
-                  if (opcion == 'combinar') {
-                    setState(() {
-                      _mesaAsignada = mesa.id;
-                    });
-                    await _cargarProductosMesa(mesa.id);
-                    return;
-                  }
-                }
-
-                if (mesaAnteriorId != null && tieneItemsCarrito) {
-                  if (mesa.estado == EstadoMesa.libre) {
-                    for (final item in _carrito) {
-                      await _agregarItemBD(item);
-                    }
-                  }
-                }
-
-                if (mesaAnteriorId != null && mesaAnteriorId != mesa.id) {
-                  if (mesaAnteriorId != null) {
-                    await ref
-                        .read(mesasProvider.notifier)
-                        .liberar(mesaAnteriorId);
-                    ref.read(mesasProvider.notifier).actualizarLista();
-                  }
-                }
-
-                setState(() {
-                  _mesaAsignada = mesa.id;
-                  if (mesa.estado != EstadoMesa.ocupada) {
-                    _carrito.clear();
-                  }
-                });
-                await _cargarProductosMesa(mesa.id);
+                await seleccionarMesa(mesa.id);
               },
               child: Container(
                 width: 90,
