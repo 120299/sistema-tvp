@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/ticket_helper.dart';
 import '../../data/models/models.dart';
 import '../../data/services/print_service.dart';
 import '../../data/services/image_storage_service.dart';
@@ -9,6 +10,7 @@ import '../widgets/producto_personalizacion_dialog.dart';
 import '../widgets/product_image_widget.dart';
 import '../widgets/category_avatar.dart';
 import '../widgets/categoria_dialog.dart';
+import '../widgets/carrito_item_preview_dialog.dart';
 import '../providers/providers.dart';
 import 'cobro_sheet.dart';
 
@@ -1296,7 +1298,47 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                             fontSize: 12,
                           ),
                         ),
+                        const SizedBox(width: 4),
+                        GestureDetector(
+                          onTap: () => _cambiarMesa(),
+                          child: const Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ),
                       ],
+                    ),
+                  )
+                else if (_carrito.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.zero,
+                    ),
+                    child: GestureDetector(
+                      onTap: () => _cambiarMesa(),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.point_of_sale,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Asignar mesa',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(Icons.add, color: Colors.white, size: 14),
+                        ],
+                      ),
                     ),
                   ),
                 const SizedBox(width: 8),
@@ -1384,6 +1426,23 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _carrito.isEmpty ? null : _imprimirTicketCocina,
+                    icon: const Icon(Icons.restaurant_menu, size: 20),
+                    label: const Text(
+                      'IMPRIMIR COCINA',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.orange.shade700,
+                      side: BorderSide(color: Colors.orange.shade700),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -1625,6 +1684,24 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () => _mostrarPreviewItemCarrito(item, index),
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Colors.purple.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.zero,
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.visibility,
+                  color: Colors.purple.shade700,
+                  size: 16,
+                ),
+              ),
             ),
             const SizedBox(width: 8),
             GestureDetector(
@@ -2156,6 +2233,113 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
     );
   }
 
+  void _imprimirTicketCocina() async {
+    if (_carrito.isEmpty) return;
+
+    final negocio = ref.read(negocioProvider);
+    final mesa = _mesaAsignada != null
+        ? ref
+              .read(mesasProvider)
+              .where((m) => m.id == _mesaAsignada)
+              .firstOrNull
+        : null;
+
+    final opcion = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.restaurant_menu, color: Colors.orange.shade700),
+            const SizedBox(width: 12),
+            const Text('Imprimir para Cocina'),
+          ],
+        ),
+        content: const Text('¿Qué tipo de ticket quieres imprimir?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'simplificado'),
+            child: const Text('Sin precios'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'completo'),
+            child: const Text('Con precios'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, 'ambos'),
+            child: const Text('Ambas opciones'),
+          ),
+        ],
+      ),
+    );
+
+    if (opcion == null || negocio == null) return;
+
+    final conPrecios = opcion == 'completo' || opcion == 'ambos';
+    final sinPrecios = opcion == 'simplificado' || opcion == 'ambos';
+
+    if (sinPrecios) {
+      await TicketHelper.imprimirTicketCocina(
+        negocio,
+        _carrito,
+        mesaNumero: mesa?.numero.toString(),
+        conPrecios: false,
+      );
+    }
+
+    if (conPrecios) {
+      await TicketHelper.imprimirTicketCocina(
+        negocio,
+        _carrito,
+        mesaNumero: mesa?.numero.toString(),
+        conPrecios: true,
+      );
+    }
+  }
+
+  void _mostrarPreviewItemCarrito(PedidoItem item, int index) {
+    showDialog(
+      context: context,
+      builder: (ctx) => CarritoItemPreviewDialog(
+        item: item,
+        onEditar: () async {
+          Navigator.pop(ctx);
+          await Future.delayed(const Duration(milliseconds: 50));
+          if (mounted) {
+            _mostrarDialogoEditarItem(item, index);
+          }
+        },
+        onEliminar: () {
+          Navigator.pop(ctx);
+          _eliminarProductoPorId(item.id);
+        },
+      ),
+    );
+  }
+
+  void _mostrarDialogoEditarItem(PedidoItem item, int index) async {
+    final producto = ref
+        .read(productosProvider)
+        .where((p) => p.id == item.productoId)
+        .firstOrNull;
+
+    if (producto == null) return;
+
+    final resultado = await showDialog<PedidoItem>(
+      context: context,
+      builder: (ctx) => ProductoPersonalizacionDialog(
+        producto: producto,
+        itemInicial: item,
+        onConfirm: (newItem) => Navigator.pop(ctx, newItem),
+      ),
+    );
+
+    if (resultado != null) {
+      setState(() {
+        _carrito[index] = resultado;
+      });
+    }
+  }
+
   void _cobrarPedido() async {
     if (_carrito.isEmpty) return;
 
@@ -2288,6 +2472,13 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
                 numeroTicket: numeroTicket,
                 fechaVenta: pedido?.horaApertura,
               );
+
+              await TicketHelper.imprimirTicketCocina(
+                negocio,
+                _carrito,
+                mesaNumero: mesaNumero,
+                conPrecios: true,
+              );
             } catch (e) {
               debugPrint('Error al imprimir ticket: $e');
             }
@@ -2332,6 +2523,72 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
       return 'Mesa ${mesa.numero}$ubicacion';
     } catch (_) {
       return 'Venta en barra';
+    }
+  }
+
+  void _cambiarMesa() async {
+    if (_carrito.isEmpty && _mesaAsignada == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Agrega productos al carrito primero'),
+          backgroundColor: AppColors.warning,
+        ),
+      );
+      return;
+    }
+
+    final todasMesas = ref.read(mesasProvider);
+    final mesaActual = _mesaAsignada != null
+        ? todasMesas.where((m) => m.id == _mesaAsignada).firstOrNull
+        : null;
+
+    if (_mesaAsignada == null) {
+      _mostrarModalSelectorMesas(context, todasMesas);
+      return;
+    }
+
+    final opcion = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.table_restaurant, color: AppColors.primary),
+            const SizedBox(width: 12),
+            Text('Cambiar Mesa ${mesaActual?.numero ?? ""}'),
+          ],
+        ),
+        content: const Text('¿Qué deseas hacer con la mesa actual?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'cancelar'),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'quitar'),
+            child: const Text('Quitar (Venta en barra)'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, 'cambiar'),
+            child: const Text('Cambiar a otra mesa'),
+          ),
+        ],
+      ),
+    );
+
+    if (opcion == 'quitar') {
+      if (mesaActual?.pedidoActualId != null) {
+        await ref
+            .read(pedidosProvider.notifier)
+            .eliminar(mesaActual!.pedidoActualId!);
+        ref.read(pedidosProvider.notifier).actualizarLista();
+      }
+      await ref.read(mesasProvider.notifier).liberar(_mesaAsignada!);
+      ref.read(mesasProvider.notifier).actualizarLista();
+      setState(() {
+        _mesaAsignada = null;
+      });
+    } else if (opcion == 'cambiar') {
+      _mostrarModalSelectorMesas(context, todasMesas);
     }
   }
 
@@ -2562,10 +2819,73 @@ class _VentaLibreScreenState extends ConsumerState<VentaLibreScreen> {
 
             return InkWell(
               onTap: () async {
+                final mesaAnteriorId = _mesaAsignada;
+                final tieneItemsCarrito = _carrito.isNotEmpty;
+
+                if (mesaAnteriorId == mesa.id) {
+                  Navigator.pop(context);
+                  return;
+                }
+
                 Navigator.pop(context);
+
+                if (mesa.estado == EstadoMesa.ocupada && tieneItemsCarrito) {
+                  final opcion = await showDialog<String>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: Text('Mesa ${mesa.numero} ocupada'),
+                      content: const Text(
+                        '¿Qué deseas hacer con los items del carrito?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, 'cancelar'),
+                          child: const Text('Cancelar'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, 'descartar'),
+                          child: const Text('Descartar carrito'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(ctx, 'combinar'),
+                          child: const Text('Combinar'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (opcion == 'cancelar') return;
+                  if (opcion == 'combinar') {
+                    setState(() {
+                      _mesaAsignada = mesa.id;
+                    });
+                    await _cargarProductosMesa(mesa.id);
+                    return;
+                  }
+                }
+
+                if (mesaAnteriorId != null && tieneItemsCarrito) {
+                  if (mesa.estado == EstadoMesa.libre) {
+                    for (final item in _carrito) {
+                      await _agregarItemBD(item);
+                    }
+                  }
+                }
+
+                if (mesaAnteriorId != null && mesaAnteriorId != mesa.id) {
+                  if (mesaAnteriorId != null) {
+                    await ref
+                        .read(mesasProvider.notifier)
+                        .liberar(mesaAnteriorId);
+                    ref.read(mesasProvider.notifier).actualizarLista();
+                  }
+                }
+
                 setState(() {
                   _mesaAsignada = mesa.id;
-                  _carrito.clear();
+                  if (mesa.estado != EstadoMesa.ocupada) {
+                    _carrito.clear();
+                  }
                 });
                 await _cargarProductosMesa(mesa.id);
               },

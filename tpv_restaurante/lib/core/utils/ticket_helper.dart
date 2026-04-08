@@ -223,6 +223,154 @@ class TicketHelper {
     }
   }
 
+  static Future<void> imprimirTicketCocina(
+    DatosNegocio negocio,
+    List<PedidoItem> items, {
+    String? mesaNumero,
+    bool conPrecios = false,
+  }) async {
+    try {
+      final doc = pw.Document();
+
+      doc.addPage(
+        pw.Page(
+          pageFormat: const PdfPageFormat(
+            72 * PdfPageFormat.mm,
+            double.infinity,
+            marginAll: 5 * PdfPageFormat.mm,
+          ),
+          build: (pw.Context ctx) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Center(
+                  child: pw.Text(
+                    negocio.nombre.toUpperCase(),
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                pw.SizedBox(height: 5),
+                pw.Center(
+                  child: pw.Text(
+                    'PEDIDO PARA COCINA',
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+                pw.SizedBox(height: 5),
+                pw.Divider(thickness: 1),
+                pw.SizedBox(height: 5),
+                pw.Text(
+                  'FECHA: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
+                if (mesaNumero != null) ...[
+                  pw.SizedBox(height: 3),
+                  pw.Text(
+                    'MESA: $mesaNumero',
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+                pw.SizedBox(height: 10),
+                pw.Divider(thickness: 0.5),
+                ...items.map(
+                  (item) => pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(vertical: 3),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Row(
+                          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                          children: [
+                            pw.Expanded(
+                              child: pw.Text(
+                                '${item.cantidad}x ${item.productoNombre}',
+                                style: pw.TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: pw.FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            if (conPrecios)
+                              pw.Text(
+                                '${item.subtotal.toStringAsFixed(2)} EUR',
+                                style: const pw.TextStyle(fontSize: 9),
+                              ),
+                          ],
+                        ),
+                        if (item.ingredientesQuitados?.isNotEmpty ?? false)
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.only(left: 10, top: 2),
+                            child: pw.Text(
+                              'SIN: ${item.ingredientesQuitados!.join(", ")}',
+                              style: const pw.TextStyle(
+                                fontSize: 8,
+                                color: PdfColors.black,
+                              ),
+                            ),
+                          ),
+                        if (item.extrasSeleccionados?.isNotEmpty ?? false)
+                          ...item.extrasSeleccionados!.map(
+                            (extra) => pw.Padding(
+                              padding: const pw.EdgeInsets.only(
+                                left: 10,
+                                top: 2,
+                              ),
+                              child: pw.Text(
+                                '+ ${extra.nombre}${conPrecios ? " (${extra.precio.toStringAsFixed(2)} EUR)" : ""}',
+                                style: const pw.TextStyle(fontSize: 8),
+                              ),
+                            ),
+                          ),
+                        if (item.notas?.isNotEmpty ?? false)
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.only(left: 10, top: 2),
+                            child: pw.Text(
+                              'NOTA: ${item.notas}',
+                              style: pw.TextStyle(
+                                fontSize: 8,
+                                fontStyle: pw.FontStyle.italic,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                pw.SizedBox(height: 10),
+                pw.Divider(thickness: 1),
+                pw.Center(
+                  child: pw.Text(
+                    '*** FIN DEL PEDIDO ***',
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+
+      await Printing.directPrintPdf(
+        printer: const Printer(url: ''),
+        onLayout: (PdfPageFormat format) async => doc.save(),
+      );
+    } catch (e) {
+      debugPrint('Error al imprimir ticket de cocina: $e');
+    }
+  }
+
   static Future<void> previewPedido(
     BuildContext context,
     DatosNegocio negocio,
