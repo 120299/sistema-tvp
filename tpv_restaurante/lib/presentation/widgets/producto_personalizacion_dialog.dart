@@ -162,14 +162,18 @@ class _ProductoPersonalizacionDialogState
 
   @override
   Widget build(BuildContext context) {
+    final bool isEditing = widget.itemInicial != null;
+
     return Dialog(
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       child: Container(
         width: 500,
         constraints: const BoxConstraints(maxHeight: 700),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildHeader(),
+            _buildHeader(isEditing: isEditing),
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
@@ -191,14 +195,14 @@ class _ProductoPersonalizacionDialogState
                 ),
               ),
             ),
-            _buildFooter(),
+            _buildFooter(isEditing: isEditing),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader({bool isEditing = false}) {
     String? nombreVariante = _varianteSeleccionada?.nombre;
 
     return Container(
@@ -715,7 +719,11 @@ class _ProductoPersonalizacionDialogState
     );
   }
 
-  Widget _buildFooter() {
+  Widget _buildFooter({bool isEditing = false}) {
+    final String buttonText = isEditing
+        ? 'Actualizar ${_precioTotal.toStringAsFixed(2)}€'
+        : 'Añadir ${_precioTotal.toStringAsFixed(2)}€';
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -806,8 +814,8 @@ class _ProductoPersonalizacionDialogState
                 flex: 2,
                 child: ElevatedButton.icon(
                   onPressed: _puedeConfirmar ? _confirmar : null,
-                  icon: const Icon(Icons.add_shopping_cart),
-                  label: Text('Añadir ${_precioTotal.toStringAsFixed(2)}€'),
+                  icon: Icon(isEditing ? Icons.check : Icons.add_shopping_cart),
+                  label: Text(buttonText),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,

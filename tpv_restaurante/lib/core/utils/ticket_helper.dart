@@ -362,10 +362,26 @@ class TicketHelper {
         ),
       );
 
-      await Printing.directPrintPdf(
-        printer: const Printer(url: ''),
-        onLayout: (PdfPageFormat format) async => doc.save(),
-      );
+      try {
+        final printers = await Printing.listPrinters();
+        final defaultPrinter = printers.where((p) => p.isDefault).firstOrNull;
+
+        if (defaultPrinter != null) {
+          await Printing.directPrintPdf(
+            printer: defaultPrinter,
+            onLayout: (PdfPageFormat format) async => doc.save(),
+          );
+        } else {
+          await Printing.layoutPdf(
+            onLayout: (PdfPageFormat format) async => doc.save(),
+          );
+        }
+      } catch (e) {
+        debugPrint('Error al imprimir ticket de cocina: $e');
+        await Printing.layoutPdf(
+          onLayout: (PdfPageFormat format) async => doc.save(),
+        );
+      }
     } catch (e) {
       debugPrint('Error al imprimir ticket de cocina: $e');
     }
