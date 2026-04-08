@@ -294,74 +294,81 @@ class _ProductoPersonalizacionDialogState
             ],
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 0,
-            runSpacing: 0,
-            children: variantes.asMap().entries.map((entry) {
-              final variante = entry.value;
-              final isSelected = _varianteSeleccionada?.id == variante.id;
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final anchoPorItem = constraints.maxWidth / 2;
 
-              return SizedBox(
-                width: 100,
-                child: InkWell(
-                  onTap: () {
-                    setState(() {
-                      _varianteSeleccionada = variante;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected ? Colors.blue.shade600 : Colors.white,
-                      border: Border.all(color: Colors.blue.shade200),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(
-                          isSelected
-                              ? Icons.check_circle
-                              : Icons.circle_outlined,
+              return Wrap(
+                spacing: 0,
+                runSpacing: 0,
+                children: variantes.map((variante) {
+                  final isSelected = _varianteSeleccionada?.id == variante.id;
+
+                  return SizedBox(
+                    width: anchoPorItem,
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          _varianteSeleccionada = variante;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
                           color: isSelected
-                              ? Colors.white
-                              : Colors.blue.shade300,
-                          size: 24,
+                              ? Colors.blue.shade600
+                              : Colors.white,
+                          border: Border.all(color: Colors.blue.shade200),
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          variante.nombre,
-                          style: TextStyle(
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            color: isSelected
-                                ? Colors.white
-                                : Colors.blue.shade700,
-                            fontSize: 12,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: Column(
+                          children: [
+                            Icon(
+                              isSelected
+                                  ? Icons.check_circle
+                                  : Icons.circle_outlined,
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.blue.shade300,
+                              size: 28,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              variante.nombre,
+                              style: TextStyle(
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.blue.shade700,
+                                fontSize: 14,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${variante.precio.toStringAsFixed(2)}€',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.blue.shade700,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${variante.precio.toStringAsFixed(2)}€',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: isSelected
-                                ? Colors.white
-                                : Colors.blue.shade700,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                }).toList(),
               );
-            }).toList(),
+            },
           ),
           if (_mensajeError != null) ...[
             const SizedBox(height: 8),
